@@ -1,0 +1,184 @@
+Yes — you mean an editable document directly inside the chat, not a downloadable file.
+
+I can format it as a clean editable script block below so you can directly modify the wording in the conversation:
+
+
+---
+
+🎬 TRACE — 3-MINUTE VIDEO SCRIPT
+
+From Signal to Decision
+
+[0:00–0:20 | HOOK]
+
+Imagine you’re running a business.
+
+You open your dashboard on a Monday morning… and suddenly, revenue is down 8%.
+
+The dashboard tells you exactly what happened.
+
+But then your manager asks the most important question:
+
+“Why?”
+
+And that's where the real problem begins.
+
+
+---
+
+[0:20–0:50 | THE PROBLEM]
+
+You start checking your sales dashboard.
+
+Then your CRM.
+
+Then Excel sheets.
+
+Then inventory and operations data.
+
+You look at customer reviews, support tickets, maybe emails…
+
+And suddenly, what looked like a simple KPI problem has turned into an investigation across five different systems and multiple teams.
+
+Because the answer usually isn't sitting in one place.
+
+The data exists. But the evidence is fragmented.
+
+
+---
+
+[0:50–1:15 | WHY IT'S HARD]
+
+And even after collecting all that information, there's another problem.
+
+There could be several possible reasons for that 8% drop.
+
+Maybe conversion went down.
+
+Maybe a competitor changed its pricing.
+
+Maybe inventory wasn't available.
+
+Maybe deliveries were delayed.
+
+Or maybe it's simply normal seasonal variation.
+
+So the real challenge isn't just detecting an anomaly.
+
+It's figuring out which explanation is actually credible — and how confident we should be in it.
+
+Because correlation isn't causation.
+
+And incomplete or contradictory data can easily lead to the wrong decision.
+
+
+---
+
+[1:15–1:30 | INTRODUCING TRACE]
+
+That's the problem we wanted to solve.
+
+And that's why we built TRACE — From Signal to Decision.
+
+TRACE is an AI-powered decision intelligence engine that investigates KPI changes across both structured and unstructured data.
+
+Its goal is simple:
+
+What happened?
+Why did it happen?
+And what should we do next?
+
+
+---
+
+[1:30–2:05 | HOW TRACE WORKS]
+
+Let's go back to our example.
+
+Revenue has dropped by 8%.
+
+First, TRACE checks whether that movement is actually unusual — or just normal business noise.
+
+Then it investigates the relevant data sources.
+
+Sales.
+
+Operations.
+
+CRM.
+
+Customer reviews.
+
+Support tickets.
+
+And other available business information.
+
+But here's the important part:
+
+TRACE doesn't immediately jump to one answer.
+
+Instead, it generates multiple possible hypotheses and tests them against the available evidence.
+
+
+---
+
+[2:05–2:30 | EVIDENCE GRAPH]
+
+For example, TRACE might discover that premium sales have fallen, delivery performance has deteriorated, and customer complaints have increased.
+
+It connects these signals together through an Evidence Graph.
+
+So instead of simply telling you:
+
+> “Delivery reliability is probably the problem.”
+
+
+
+TRACE can show you why it reached that conclusion — and which pieces of evidence support it.
+
+This makes the reasoning transparent rather than turning AI into a black box.
+
+
+---
+
+[2:30–2:45 | CHALLENGE THE CONCLUSION]
+
+But we wanted to take this one step further.
+
+What if the AI is wrong?
+
+With TRACE, you can actually challenge its conclusion.
+
+TRACE searches for contradictory evidence and alternative explanations before you act.
+
+Because an AI simply saying “I'm confident” isn't enough.
+
+Confidence should come from evidence — not from how confidently the AI speaks.
+
+
+---
+
+[2:45–2:55 | FROM INSIGHT TO ACTION]
+
+And finally, TRACE doesn't stop at explaining the problem.
+
+It moves from:
+
+What happened → Why → How confident are we → What should we do?
+
+So the output isn't another dashboard.
+
+It's an actionable decision.
+
+
+---
+
+[2:55–3:05 | CLOSING]
+
+Traditional BI tells you what happened.
+
+TRACE helps you understand why it happened, how confident you should be, and what to do next.
+
+TRACE.
+
+From Signal to Decision.
