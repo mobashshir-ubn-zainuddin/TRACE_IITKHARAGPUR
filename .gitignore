@@ -1,2 +1,14 @@
+# Next.js build output
+trace-app/.next/
+
+# Dependencies
+trace-app/node_modules/
+
+# Environment variables
+trace-app/.env
+trace-app/.env.local
+trace-app/.env.*.local
+
+# Large/reference files
 TRACE_IITKharagpur.mp4
 TRACE_IITKharagpur.pdf
