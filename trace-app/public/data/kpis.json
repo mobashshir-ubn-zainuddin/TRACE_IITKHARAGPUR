@@ -1,0 +1,1922 @@
+[
+  {
+    "month": "2025-09",
+    "region": "North",
+    "product": "A",
+    "revenue": 149396,
+    "orders": 3741,
+    "aov": 120
+  },
+  {
+    "month": "2025-09",
+    "region": "North",
+    "product": "B",
+    "revenue": 154649,
+    "orders": 2348,
+    "aov": 134
+  },
+  {
+    "month": "2025-09",
+    "region": "North",
+    "product": "C",
+    "revenue": 136093,
+    "orders": 3377,
+    "aov": 131
+  },
+  {
+    "month": "2025-09",
+    "region": "North",
+    "product": "D",
+    "revenue": 151932,
+    "orders": 1035,
+    "aov": 90
+  },
+  {
+    "month": "2025-09",
+    "region": "North",
+    "product": "E",
+    "revenue": 124144,
+    "orders": 2204,
+    "aov": 153
+  },
+  {
+    "month": "2025-09",
+    "region": "South",
+    "product": "A",
+    "revenue": 189014,
+    "orders": 3231,
+    "aov": 136
+  },
+  {
+    "month": "2025-09",
+    "region": "South",
+    "product": "B",
+    "revenue": 157450,
+    "orders": 1581,
+    "aov": 125
+  },
+  {
+    "month": "2025-09",
+    "region": "South",
+    "product": "C",
+    "revenue": 103220,
+    "orders": 4929,
+    "aov": 130
+  },
+  {
+    "month": "2025-09",
+    "region": "South",
+    "product": "D",
+    "revenue": 170810,
+    "orders": 1647,
+    "aov": 104
+  },
+  {
+    "month": "2025-09",
+    "region": "South",
+    "product": "E",
+    "revenue": 101418,
+    "orders": 3023,
+    "aov": 90
+  },
+  {
+    "month": "2025-09",
+    "region": "East",
+    "product": "A",
+    "revenue": 93662,
+    "orders": 4696,
+    "aov": 145
+  },
+  {
+    "month": "2025-09",
+    "region": "East",
+    "product": "B",
+    "revenue": 69164,
+    "orders": 1639,
+    "aov": 174
+  },
+  {
+    "month": "2025-09",
+    "region": "East",
+    "product": "C",
+    "revenue": 161516,
+    "orders": 2621,
+    "aov": 100
+  },
+  {
+    "month": "2025-09",
+    "region": "East",
+    "product": "D",
+    "revenue": 69733,
+    "orders": 4891,
+    "aov": 111
+  },
+  {
+    "month": "2025-09",
+    "region": "East",
+    "product": "E",
+    "revenue": 129058,
+    "orders": 1337,
+    "aov": 196
+  },
+  {
+    "month": "2025-09",
+    "region": "West",
+    "product": "A",
+    "revenue": 63395,
+    "orders": 3099,
+    "aov": 79
+  },
+  {
+    "month": "2025-09",
+    "region": "West",
+    "product": "B",
+    "revenue": 80359,
+    "orders": 2934,
+    "aov": 90
+  },
+  {
+    "month": "2025-09",
+    "region": "West",
+    "product": "C",
+    "revenue": 120987,
+    "orders": 2192,
+    "aov": 198
+  },
+  {
+    "month": "2025-09",
+    "region": "West",
+    "product": "D",
+    "revenue": 156789,
+    "orders": 1446,
+    "aov": 189
+  },
+  {
+    "month": "2025-09",
+    "region": "West",
+    "product": "E",
+    "revenue": 71277,
+    "orders": 4389,
+    "aov": 103
+  },
+  {
+    "month": "2025-10",
+    "region": "North",
+    "product": "A",
+    "revenue": 86511,
+    "orders": 2530,
+    "aov": 108
+  },
+  {
+    "month": "2025-10",
+    "region": "North",
+    "product": "B",
+    "revenue": 135273,
+    "orders": 3333,
+    "aov": 128
+  },
+  {
+    "month": "2025-10",
+    "region": "North",
+    "product": "C",
+    "revenue": 58001,
+    "orders": 3635,
+    "aov": 110
+  },
+  {
+    "month": "2025-10",
+    "region": "North",
+    "product": "D",
+    "revenue": 81967,
+    "orders": 1205,
+    "aov": 103
+  },
+  {
+    "month": "2025-10",
+    "region": "North",
+    "product": "E",
+    "revenue": 154039,
+    "orders": 1300,
+    "aov": 102
+  },
+  {
+    "month": "2025-10",
+    "region": "South",
+    "product": "A",
+    "revenue": 80858,
+    "orders": 4303,
+    "aov": 111
+  },
+  {
+    "month": "2025-10",
+    "region": "South",
+    "product": "B",
+    "revenue": 196539,
+    "orders": 4099,
+    "aov": 88
+  },
+  {
+    "month": "2025-10",
+    "region": "South",
+    "product": "C",
+    "revenue": 135823,
+    "orders": 3815,
+    "aov": 108
+  },
+  {
+    "month": "2025-10",
+    "region": "South",
+    "product": "D",
+    "revenue": 129119,
+    "orders": 1730,
+    "aov": 82
+  },
+  {
+    "month": "2025-10",
+    "region": "South",
+    "product": "E",
+    "revenue": 199227,
+    "orders": 3613,
+    "aov": 89
+  },
+  {
+    "month": "2025-10",
+    "region": "East",
+    "product": "A",
+    "revenue": 149537,
+    "orders": 4362,
+    "aov": 53
+  },
+  {
+    "month": "2025-10",
+    "region": "East",
+    "product": "B",
+    "revenue": 187885,
+    "orders": 3457,
+    "aov": 161
+  },
+  {
+    "month": "2025-10",
+    "region": "East",
+    "product": "C",
+    "revenue": 85805,
+    "orders": 1349,
+    "aov": 140
+  },
+  {
+    "month": "2025-10",
+    "region": "East",
+    "product": "D",
+    "revenue": 144044,
+    "orders": 2803,
+    "aov": 87
+  },
+  {
+    "month": "2025-10",
+    "region": "East",
+    "product": "E",
+    "revenue": 78685,
+    "orders": 2312,
+    "aov": 95
+  },
+  {
+    "month": "2025-10",
+    "region": "West",
+    "product": "A",
+    "revenue": 60031,
+    "orders": 1979,
+    "aov": 193
+  },
+  {
+    "month": "2025-10",
+    "region": "West",
+    "product": "B",
+    "revenue": 172472,
+    "orders": 2229,
+    "aov": 91
+  },
+  {
+    "month": "2025-10",
+    "region": "West",
+    "product": "C",
+    "revenue": 54418,
+    "orders": 3177,
+    "aov": 181
+  },
+  {
+    "month": "2025-10",
+    "region": "West",
+    "product": "D",
+    "revenue": 76789,
+    "orders": 4438,
+    "aov": 145
+  },
+  {
+    "month": "2025-10",
+    "region": "West",
+    "product": "E",
+    "revenue": 148677,
+    "orders": 1257,
+    "aov": 137
+  },
+  {
+    "month": "2025-11",
+    "region": "North",
+    "product": "A",
+    "revenue": 142363,
+    "orders": 4731,
+    "aov": 149
+  },
+  {
+    "month": "2025-11",
+    "region": "North",
+    "product": "B",
+    "revenue": 133417,
+    "orders": 1763,
+    "aov": 142
+  },
+  {
+    "month": "2025-11",
+    "region": "North",
+    "product": "C",
+    "revenue": 82152,
+    "orders": 4026,
+    "aov": 111
+  },
+  {
+    "month": "2025-11",
+    "region": "North",
+    "product": "D",
+    "revenue": 60153,
+    "orders": 4066,
+    "aov": 132
+  },
+  {
+    "month": "2025-11",
+    "region": "North",
+    "product": "E",
+    "revenue": 166919,
+    "orders": 1692,
+    "aov": 86
+  },
+  {
+    "month": "2025-11",
+    "region": "South",
+    "product": "A",
+    "revenue": 63539,
+    "orders": 1589,
+    "aov": 64
+  },
+  {
+    "month": "2025-11",
+    "region": "South",
+    "product": "B",
+    "revenue": 146311,
+    "orders": 2316,
+    "aov": 164
+  },
+  {
+    "month": "2025-11",
+    "region": "South",
+    "product": "C",
+    "revenue": 136517,
+    "orders": 4545,
+    "aov": 187
+  },
+  {
+    "month": "2025-11",
+    "region": "South",
+    "product": "D",
+    "revenue": 95866,
+    "orders": 2070,
+    "aov": 68
+  },
+  {
+    "month": "2025-11",
+    "region": "South",
+    "product": "E",
+    "revenue": 112398,
+    "orders": 1493,
+    "aov": 163
+  },
+  {
+    "month": "2025-11",
+    "region": "East",
+    "product": "A",
+    "revenue": 169432,
+    "orders": 1641,
+    "aov": 159
+  },
+  {
+    "month": "2025-11",
+    "region": "East",
+    "product": "B",
+    "revenue": 63768,
+    "orders": 2777,
+    "aov": 134
+  },
+  {
+    "month": "2025-11",
+    "region": "East",
+    "product": "C",
+    "revenue": 153817,
+    "orders": 3315,
+    "aov": 75
+  },
+  {
+    "month": "2025-11",
+    "region": "East",
+    "product": "D",
+    "revenue": 115187,
+    "orders": 4687,
+    "aov": 77
+  },
+  {
+    "month": "2025-11",
+    "region": "East",
+    "product": "E",
+    "revenue": 115692,
+    "orders": 3511,
+    "aov": 108
+  },
+  {
+    "month": "2025-11",
+    "region": "West",
+    "product": "A",
+    "revenue": 111297,
+    "orders": 2164,
+    "aov": 116
+  },
+  {
+    "month": "2025-11",
+    "region": "West",
+    "product": "B",
+    "revenue": 190865,
+    "orders": 3010,
+    "aov": 70
+  },
+  {
+    "month": "2025-11",
+    "region": "West",
+    "product": "C",
+    "revenue": 151404,
+    "orders": 1063,
+    "aov": 89
+  },
+  {
+    "month": "2025-11",
+    "region": "West",
+    "product": "D",
+    "revenue": 65199,
+    "orders": 3906,
+    "aov": 88
+  },
+  {
+    "month": "2025-11",
+    "region": "West",
+    "product": "E",
+    "revenue": 58428,
+    "orders": 2552,
+    "aov": 169
+  },
+  {
+    "month": "2025-12",
+    "region": "North",
+    "product": "A",
+    "revenue": 145382,
+    "orders": 4506,
+    "aov": 192
+  },
+  {
+    "month": "2025-12",
+    "region": "North",
+    "product": "B",
+    "revenue": 163516,
+    "orders": 1614,
+    "aov": 51
+  },
+  {
+    "month": "2025-12",
+    "region": "North",
+    "product": "C",
+    "revenue": 138856,
+    "orders": 1600,
+    "aov": 161
+  },
+  {
+    "month": "2025-12",
+    "region": "North",
+    "product": "D",
+    "revenue": 191768,
+    "orders": 2884,
+    "aov": 158
+  },
+  {
+    "month": "2025-12",
+    "region": "North",
+    "product": "E",
+    "revenue": 108934,
+    "orders": 4195,
+    "aov": 68
+  },
+  {
+    "month": "2025-12",
+    "region": "South",
+    "product": "A",
+    "revenue": 71551,
+    "orders": 4719,
+    "aov": 178
+  },
+  {
+    "month": "2025-12",
+    "region": "South",
+    "product": "B",
+    "revenue": 87205,
+    "orders": 1401,
+    "aov": 70
+  },
+  {
+    "month": "2025-12",
+    "region": "South",
+    "product": "C",
+    "revenue": 151561,
+    "orders": 1698,
+    "aov": 129
+  },
+  {
+    "month": "2025-12",
+    "region": "South",
+    "product": "D",
+    "revenue": 99132,
+    "orders": 4373,
+    "aov": 51
+  },
+  {
+    "month": "2025-12",
+    "region": "South",
+    "product": "E",
+    "revenue": 77806,
+    "orders": 3321,
+    "aov": 125
+  },
+  {
+    "month": "2025-12",
+    "region": "East",
+    "product": "A",
+    "revenue": 152497,
+    "orders": 4995,
+    "aov": 188
+  },
+  {
+    "month": "2025-12",
+    "region": "East",
+    "product": "B",
+    "revenue": 56885,
+    "orders": 1025,
+    "aov": 114
+  },
+  {
+    "month": "2025-12",
+    "region": "East",
+    "product": "C",
+    "revenue": 179536,
+    "orders": 4805,
+    "aov": 110
+  },
+  {
+    "month": "2025-12",
+    "region": "East",
+    "product": "D",
+    "revenue": 124230,
+    "orders": 3094,
+    "aov": 52
+  },
+  {
+    "month": "2025-12",
+    "region": "East",
+    "product": "E",
+    "revenue": 173047,
+    "orders": 2754,
+    "aov": 145
+  },
+  {
+    "month": "2025-12",
+    "region": "West",
+    "product": "A",
+    "revenue": 165953,
+    "orders": 3040,
+    "aov": 63
+  },
+  {
+    "month": "2025-12",
+    "region": "West",
+    "product": "B",
+    "revenue": 124665,
+    "orders": 1651,
+    "aov": 138
+  },
+  {
+    "month": "2025-12",
+    "region": "West",
+    "product": "C",
+    "revenue": 145022,
+    "orders": 1821,
+    "aov": 125
+  },
+  {
+    "month": "2025-12",
+    "region": "West",
+    "product": "D",
+    "revenue": 177607,
+    "orders": 3018,
+    "aov": 143
+  },
+  {
+    "month": "2025-12",
+    "region": "West",
+    "product": "E",
+    "revenue": 84728,
+    "orders": 1620,
+    "aov": 171
+  },
+  {
+    "month": "2026-01",
+    "region": "North",
+    "product": "A",
+    "revenue": 136274,
+    "orders": 2428,
+    "aov": 120
+  },
+  {
+    "month": "2026-01",
+    "region": "North",
+    "product": "B",
+    "revenue": 51793,
+    "orders": 2005,
+    "aov": 164
+  },
+  {
+    "month": "2026-01",
+    "region": "North",
+    "product": "C",
+    "revenue": 165336,
+    "orders": 2470,
+    "aov": 126
+  },
+  {
+    "month": "2026-01",
+    "region": "North",
+    "product": "D",
+    "revenue": 113660,
+    "orders": 4110,
+    "aov": 194
+  },
+  {
+    "month": "2026-01",
+    "region": "North",
+    "product": "E",
+    "revenue": 190736,
+    "orders": 1269,
+    "aov": 185
+  },
+  {
+    "month": "2026-01",
+    "region": "South",
+    "product": "A",
+    "revenue": 50594,
+    "orders": 4319,
+    "aov": 107
+  },
+  {
+    "month": "2026-01",
+    "region": "South",
+    "product": "B",
+    "revenue": 180166,
+    "orders": 2968,
+    "aov": 91
+  },
+  {
+    "month": "2026-01",
+    "region": "South",
+    "product": "C",
+    "revenue": 146611,
+    "orders": 4278,
+    "aov": 51
+  },
+  {
+    "month": "2026-01",
+    "region": "South",
+    "product": "D",
+    "revenue": 163692,
+    "orders": 3563,
+    "aov": 147
+  },
+  {
+    "month": "2026-01",
+    "region": "South",
+    "product": "E",
+    "revenue": 152318,
+    "orders": 2291,
+    "aov": 200
+  },
+  {
+    "month": "2026-01",
+    "region": "East",
+    "product": "A",
+    "revenue": 123388,
+    "orders": 2662,
+    "aov": 65
+  },
+  {
+    "month": "2026-01",
+    "region": "East",
+    "product": "B",
+    "revenue": 199304,
+    "orders": 2359,
+    "aov": 115
+  },
+  {
+    "month": "2026-01",
+    "region": "East",
+    "product": "C",
+    "revenue": 117448,
+    "orders": 3414,
+    "aov": 100
+  },
+  {
+    "month": "2026-01",
+    "region": "East",
+    "product": "D",
+    "revenue": 76017,
+    "orders": 4080,
+    "aov": 67
+  },
+  {
+    "month": "2026-01",
+    "region": "East",
+    "product": "E",
+    "revenue": 157959,
+    "orders": 4766,
+    "aov": 120
+  },
+  {
+    "month": "2026-01",
+    "region": "West",
+    "product": "A",
+    "revenue": 128840,
+    "orders": 2968,
+    "aov": 76
+  },
+  {
+    "month": "2026-01",
+    "region": "West",
+    "product": "B",
+    "revenue": 118965,
+    "orders": 3648,
+    "aov": 170
+  },
+  {
+    "month": "2026-01",
+    "region": "West",
+    "product": "C",
+    "revenue": 93749,
+    "orders": 4060,
+    "aov": 104
+  },
+  {
+    "month": "2026-01",
+    "region": "West",
+    "product": "D",
+    "revenue": 161042,
+    "orders": 2211,
+    "aov": 57
+  },
+  {
+    "month": "2026-01",
+    "region": "West",
+    "product": "E",
+    "revenue": 159391,
+    "orders": 3048,
+    "aov": 93
+  },
+  {
+    "month": "2026-02",
+    "region": "North",
+    "product": "A",
+    "revenue": 80047,
+    "orders": 1822,
+    "aov": 78
+  },
+  {
+    "month": "2026-02",
+    "region": "North",
+    "product": "B",
+    "revenue": 191225,
+    "orders": 4652,
+    "aov": 183
+  },
+  {
+    "month": "2026-02",
+    "region": "North",
+    "product": "C",
+    "revenue": 144618,
+    "orders": 2945,
+    "aov": 187
+  },
+  {
+    "month": "2026-02",
+    "region": "North",
+    "product": "D",
+    "revenue": 168248,
+    "orders": 4679,
+    "aov": 80
+  },
+  {
+    "month": "2026-02",
+    "region": "North",
+    "product": "E",
+    "revenue": 159956,
+    "orders": 1112,
+    "aov": 159
+  },
+  {
+    "month": "2026-02",
+    "region": "South",
+    "product": "A",
+    "revenue": 149432,
+    "orders": 2283,
+    "aov": 150
+  },
+  {
+    "month": "2026-02",
+    "region": "South",
+    "product": "B",
+    "revenue": 97890,
+    "orders": 2702,
+    "aov": 195
+  },
+  {
+    "month": "2026-02",
+    "region": "South",
+    "product": "C",
+    "revenue": 134375,
+    "orders": 2372,
+    "aov": 63
+  },
+  {
+    "month": "2026-02",
+    "region": "South",
+    "product": "D",
+    "revenue": 172695,
+    "orders": 4016,
+    "aov": 115
+  },
+  {
+    "month": "2026-02",
+    "region": "South",
+    "product": "E",
+    "revenue": 98579,
+    "orders": 4091,
+    "aov": 188
+  },
+  {
+    "month": "2026-02",
+    "region": "East",
+    "product": "A",
+    "revenue": 129669,
+    "orders": 4897,
+    "aov": 150
+  },
+  {
+    "month": "2026-02",
+    "region": "East",
+    "product": "B",
+    "revenue": 65093,
+    "orders": 1876,
+    "aov": 178
+  },
+  {
+    "month": "2026-02",
+    "region": "East",
+    "product": "C",
+    "revenue": 114568,
+    "orders": 3792,
+    "aov": 180
+  },
+  {
+    "month": "2026-02",
+    "region": "East",
+    "product": "D",
+    "revenue": 113676,
+    "orders": 2004,
+    "aov": 99
+  },
+  {
+    "month": "2026-02",
+    "region": "East",
+    "product": "E",
+    "revenue": 157371,
+    "orders": 3022,
+    "aov": 180
+  },
+  {
+    "month": "2026-02",
+    "region": "West",
+    "product": "A",
+    "revenue": 181275,
+    "orders": 1230,
+    "aov": 116
+  },
+  {
+    "month": "2026-02",
+    "region": "West",
+    "product": "B",
+    "revenue": 91644,
+    "orders": 2291,
+    "aov": 174
+  },
+  {
+    "month": "2026-02",
+    "region": "West",
+    "product": "C",
+    "revenue": 174108,
+    "orders": 4406,
+    "aov": 140
+  },
+  {
+    "month": "2026-02",
+    "region": "West",
+    "product": "D",
+    "revenue": 137941,
+    "orders": 1842,
+    "aov": 69
+  },
+  {
+    "month": "2026-02",
+    "region": "West",
+    "product": "E",
+    "revenue": 71402,
+    "orders": 2353,
+    "aov": 66
+  },
+  {
+    "month": "2026-03",
+    "region": "North",
+    "product": "A",
+    "revenue": 84418,
+    "orders": 1943,
+    "aov": 158
+  },
+  {
+    "month": "2026-03",
+    "region": "North",
+    "product": "B",
+    "revenue": 86781,
+    "orders": 3380,
+    "aov": 125
+  },
+  {
+    "month": "2026-03",
+    "region": "North",
+    "product": "C",
+    "revenue": 133627,
+    "orders": 2966,
+    "aov": 104
+  },
+  {
+    "month": "2026-03",
+    "region": "North",
+    "product": "D",
+    "revenue": 91043,
+    "orders": 3073,
+    "aov": 80
+  },
+  {
+    "month": "2026-03",
+    "region": "North",
+    "product": "E",
+    "revenue": 175364,
+    "orders": 2827,
+    "aov": 146
+  },
+  {
+    "month": "2026-03",
+    "region": "South",
+    "product": "A",
+    "revenue": 75370,
+    "orders": 4709,
+    "aov": 191
+  },
+  {
+    "month": "2026-03",
+    "region": "South",
+    "product": "B",
+    "revenue": 168971,
+    "orders": 2801,
+    "aov": 98
+  },
+  {
+    "month": "2026-03",
+    "region": "South",
+    "product": "C",
+    "revenue": 171181,
+    "orders": 3275,
+    "aov": 176
+  },
+  {
+    "month": "2026-03",
+    "region": "South",
+    "product": "D",
+    "revenue": 67158,
+    "orders": 4786,
+    "aov": 164
+  },
+  {
+    "month": "2026-03",
+    "region": "South",
+    "product": "E",
+    "revenue": 85211,
+    "orders": 4082,
+    "aov": 140
+  },
+  {
+    "month": "2026-03",
+    "region": "East",
+    "product": "A",
+    "revenue": 65128,
+    "orders": 4274,
+    "aov": 56
+  },
+  {
+    "month": "2026-03",
+    "region": "East",
+    "product": "B",
+    "revenue": 117849,
+    "orders": 3499,
+    "aov": 182
+  },
+  {
+    "month": "2026-03",
+    "region": "East",
+    "product": "C",
+    "revenue": 92960,
+    "orders": 1760,
+    "aov": 183
+  },
+  {
+    "month": "2026-03",
+    "region": "East",
+    "product": "D",
+    "revenue": 89534,
+    "orders": 4264,
+    "aov": 82
+  },
+  {
+    "month": "2026-03",
+    "region": "East",
+    "product": "E",
+    "revenue": 67337,
+    "orders": 4454,
+    "aov": 144
+  },
+  {
+    "month": "2026-03",
+    "region": "West",
+    "product": "A",
+    "revenue": 108898,
+    "orders": 3244,
+    "aov": 134
+  },
+  {
+    "month": "2026-03",
+    "region": "West",
+    "product": "B",
+    "revenue": 55419,
+    "orders": 3861,
+    "aov": 95
+  },
+  {
+    "month": "2026-03",
+    "region": "West",
+    "product": "C",
+    "revenue": 71147,
+    "orders": 1481,
+    "aov": 69
+  },
+  {
+    "month": "2026-03",
+    "region": "West",
+    "product": "D",
+    "revenue": 157702,
+    "orders": 3315,
+    "aov": 61
+  },
+  {
+    "month": "2026-03",
+    "region": "West",
+    "product": "E",
+    "revenue": 111205,
+    "orders": 3452,
+    "aov": 73
+  },
+  {
+    "month": "2026-04",
+    "region": "North",
+    "product": "A",
+    "revenue": 117367,
+    "orders": 2915,
+    "aov": 145
+  },
+  {
+    "month": "2026-04",
+    "region": "North",
+    "product": "B",
+    "revenue": 142647,
+    "orders": 4500,
+    "aov": 134
+  },
+  {
+    "month": "2026-04",
+    "region": "North",
+    "product": "C",
+    "revenue": 71875,
+    "orders": 1616,
+    "aov": 61
+  },
+  {
+    "month": "2026-04",
+    "region": "North",
+    "product": "D",
+    "revenue": 54714,
+    "orders": 2718,
+    "aov": 134
+  },
+  {
+    "month": "2026-04",
+    "region": "North",
+    "product": "E",
+    "revenue": 149508,
+    "orders": 2225,
+    "aov": 58
+  },
+  {
+    "month": "2026-04",
+    "region": "South",
+    "product": "A",
+    "revenue": 136439,
+    "orders": 1995,
+    "aov": 96
+  },
+  {
+    "month": "2026-04",
+    "region": "South",
+    "product": "B",
+    "revenue": 114920,
+    "orders": 2019,
+    "aov": 168
+  },
+  {
+    "month": "2026-04",
+    "region": "South",
+    "product": "C",
+    "revenue": 109429,
+    "orders": 2014,
+    "aov": 79
+  },
+  {
+    "month": "2026-04",
+    "region": "South",
+    "product": "D",
+    "revenue": 90708,
+    "orders": 4853,
+    "aov": 169
+  },
+  {
+    "month": "2026-04",
+    "region": "South",
+    "product": "E",
+    "revenue": 52395,
+    "orders": 1285,
+    "aov": 56
+  },
+  {
+    "month": "2026-04",
+    "region": "East",
+    "product": "A",
+    "revenue": 82850,
+    "orders": 1530,
+    "aov": 186
+  },
+  {
+    "month": "2026-04",
+    "region": "East",
+    "product": "B",
+    "revenue": 164215,
+    "orders": 4923,
+    "aov": 194
+  },
+  {
+    "month": "2026-04",
+    "region": "East",
+    "product": "C",
+    "revenue": 64929,
+    "orders": 1100,
+    "aov": 92
+  },
+  {
+    "month": "2026-04",
+    "region": "East",
+    "product": "D",
+    "revenue": 119048,
+    "orders": 1671,
+    "aov": 124
+  },
+  {
+    "month": "2026-04",
+    "region": "East",
+    "product": "E",
+    "revenue": 138118,
+    "orders": 2016,
+    "aov": 61
+  },
+  {
+    "month": "2026-04",
+    "region": "West",
+    "product": "A",
+    "revenue": 181490,
+    "orders": 1882,
+    "aov": 153
+  },
+  {
+    "month": "2026-04",
+    "region": "West",
+    "product": "B",
+    "revenue": 65775,
+    "orders": 2559,
+    "aov": 129
+  },
+  {
+    "month": "2026-04",
+    "region": "West",
+    "product": "C",
+    "revenue": 84412,
+    "orders": 2632,
+    "aov": 197
+  },
+  {
+    "month": "2026-04",
+    "region": "West",
+    "product": "D",
+    "revenue": 166760,
+    "orders": 1700,
+    "aov": 156
+  },
+  {
+    "month": "2026-04",
+    "region": "West",
+    "product": "E",
+    "revenue": 125567,
+    "orders": 2748,
+    "aov": 58
+  },
+  {
+    "month": "2026-05",
+    "region": "North",
+    "product": "A",
+    "revenue": 94166,
+    "orders": 4274,
+    "aov": 178
+  },
+  {
+    "month": "2026-05",
+    "region": "North",
+    "product": "B",
+    "revenue": 134591,
+    "orders": 3576,
+    "aov": 57
+  },
+  {
+    "month": "2026-05",
+    "region": "North",
+    "product": "C",
+    "revenue": 74827,
+    "orders": 3003,
+    "aov": 172
+  },
+  {
+    "month": "2026-05",
+    "region": "North",
+    "product": "D",
+    "revenue": 89998,
+    "orders": 4286,
+    "aov": 67
+  },
+  {
+    "month": "2026-05",
+    "region": "North",
+    "product": "E",
+    "revenue": 109695,
+    "orders": 3316,
+    "aov": 64
+  },
+  {
+    "month": "2026-05",
+    "region": "South",
+    "product": "A",
+    "revenue": 142660,
+    "orders": 3285,
+    "aov": 102
+  },
+  {
+    "month": "2026-05",
+    "region": "South",
+    "product": "B",
+    "revenue": 138258,
+    "orders": 3818,
+    "aov": 182
+  },
+  {
+    "month": "2026-05",
+    "region": "South",
+    "product": "C",
+    "revenue": 190903,
+    "orders": 3699,
+    "aov": 67
+  },
+  {
+    "month": "2026-05",
+    "region": "South",
+    "product": "D",
+    "revenue": 81421,
+    "orders": 4393,
+    "aov": 137
+  },
+  {
+    "month": "2026-05",
+    "region": "South",
+    "product": "E",
+    "revenue": 110799,
+    "orders": 2168,
+    "aov": 194
+  },
+  {
+    "month": "2026-05",
+    "region": "East",
+    "product": "A",
+    "revenue": 83449,
+    "orders": 2480,
+    "aov": 134
+  },
+  {
+    "month": "2026-05",
+    "region": "East",
+    "product": "B",
+    "revenue": 53963,
+    "orders": 4663,
+    "aov": 52
+  },
+  {
+    "month": "2026-05",
+    "region": "East",
+    "product": "C",
+    "revenue": 52647,
+    "orders": 4381,
+    "aov": 131
+  },
+  {
+    "month": "2026-05",
+    "region": "East",
+    "product": "D",
+    "revenue": 99378,
+    "orders": 2223,
+    "aov": 132
+  },
+  {
+    "month": "2026-05",
+    "region": "East",
+    "product": "E",
+    "revenue": 111860,
+    "orders": 1024,
+    "aov": 134
+  },
+  {
+    "month": "2026-05",
+    "region": "West",
+    "product": "A",
+    "revenue": 141127,
+    "orders": 3347,
+    "aov": 104
+  },
+  {
+    "month": "2026-05",
+    "region": "West",
+    "product": "B",
+    "revenue": 184139,
+    "orders": 4000,
+    "aov": 108
+  },
+  {
+    "month": "2026-05",
+    "region": "West",
+    "product": "C",
+    "revenue": 114138,
+    "orders": 3390,
+    "aov": 93
+  },
+  {
+    "month": "2026-05",
+    "region": "West",
+    "product": "D",
+    "revenue": 94683,
+    "orders": 3062,
+    "aov": 88
+  },
+  {
+    "month": "2026-05",
+    "region": "West",
+    "product": "E",
+    "revenue": 58977,
+    "orders": 1788,
+    "aov": 78
+  },
+  {
+    "month": "2026-06",
+    "region": "North",
+    "product": "A",
+    "revenue": 168929,
+    "orders": 3672,
+    "aov": 160
+  },
+  {
+    "month": "2026-06",
+    "region": "North",
+    "product": "B",
+    "revenue": 117321,
+    "orders": 2073,
+    "aov": 63
+  },
+  {
+    "month": "2026-06",
+    "region": "North",
+    "product": "C",
+    "revenue": 53558,
+    "orders": 3809,
+    "aov": 150
+  },
+  {
+    "month": "2026-06",
+    "region": "North",
+    "product": "D",
+    "revenue": 59705,
+    "orders": 3268,
+    "aov": 88
+  },
+  {
+    "month": "2026-06",
+    "region": "North",
+    "product": "E",
+    "revenue": 71715,
+    "orders": 3831,
+    "aov": 191
+  },
+  {
+    "month": "2026-06",
+    "region": "South",
+    "product": "A",
+    "revenue": 177550,
+    "orders": 1545,
+    "aov": 86
+  },
+  {
+    "month": "2026-06",
+    "region": "South",
+    "product": "B",
+    "revenue": 125113,
+    "orders": 1698,
+    "aov": 83
+  },
+  {
+    "month": "2026-06",
+    "region": "South",
+    "product": "C",
+    "revenue": 126649,
+    "orders": 3774,
+    "aov": 63
+  },
+  {
+    "month": "2026-06",
+    "region": "South",
+    "product": "D",
+    "revenue": 63288,
+    "orders": 1206,
+    "aov": 161
+  },
+  {
+    "month": "2026-06",
+    "region": "South",
+    "product": "E",
+    "revenue": 106057,
+    "orders": 1817,
+    "aov": 138
+  },
+  {
+    "month": "2026-06",
+    "region": "East",
+    "product": "A",
+    "revenue": 67441,
+    "orders": 1304,
+    "aov": 161
+  },
+  {
+    "month": "2026-06",
+    "region": "East",
+    "product": "B",
+    "revenue": 185215,
+    "orders": 4090,
+    "aov": 112
+  },
+  {
+    "month": "2026-06",
+    "region": "East",
+    "product": "C",
+    "revenue": 175654,
+    "orders": 2556,
+    "aov": 165
+  },
+  {
+    "month": "2026-06",
+    "region": "East",
+    "product": "D",
+    "revenue": 154067,
+    "orders": 2949,
+    "aov": 93
+  },
+  {
+    "month": "2026-06",
+    "region": "East",
+    "product": "E",
+    "revenue": 81553,
+    "orders": 4675,
+    "aov": 76
+  },
+  {
+    "month": "2026-06",
+    "region": "West",
+    "product": "A",
+    "revenue": 77417,
+    "orders": 1808,
+    "aov": 182
+  },
+  {
+    "month": "2026-06",
+    "region": "West",
+    "product": "B",
+    "revenue": 198079,
+    "orders": 4330,
+    "aov": 111
+  },
+  {
+    "month": "2026-06",
+    "region": "West",
+    "product": "C",
+    "revenue": 120318,
+    "orders": 2962,
+    "aov": 95
+  },
+  {
+    "month": "2026-06",
+    "region": "West",
+    "product": "D",
+    "revenue": 106908,
+    "orders": 4505,
+    "aov": 63
+  },
+  {
+    "month": "2026-06",
+    "region": "West",
+    "product": "E",
+    "revenue": 99200,
+    "orders": 3882,
+    "aov": 194
+  },
+  {
+    "month": "2026-07",
+    "region": "North",
+    "product": "A",
+    "revenue": 59102,
+    "orders": 3433,
+    "aov": 152
+  },
+  {
+    "month": "2026-07",
+    "region": "North",
+    "product": "B",
+    "revenue": 117002,
+    "orders": 4724,
+    "aov": 100
+  },
+  {
+    "month": "2026-07",
+    "region": "North",
+    "product": "C",
+    "revenue": 64841,
+    "orders": 4140,
+    "aov": 144
+  },
+  {
+    "month": "2026-07",
+    "region": "North",
+    "product": "D",
+    "revenue": 174616,
+    "orders": 2649,
+    "aov": 182
+  },
+  {
+    "month": "2026-07",
+    "region": "North",
+    "product": "E",
+    "revenue": 114691,
+    "orders": 1368,
+    "aov": 65
+  },
+  {
+    "month": "2026-07",
+    "region": "South",
+    "product": "A",
+    "revenue": 122674,
+    "orders": 4542,
+    "aov": 58
+  },
+  {
+    "month": "2026-07",
+    "region": "South",
+    "product": "B",
+    "revenue": 158412,
+    "orders": 1668,
+    "aov": 107
+  },
+  {
+    "month": "2026-07",
+    "region": "South",
+    "product": "C",
+    "revenue": 81657,
+    "orders": 3567,
+    "aov": 78
+  },
+  {
+    "month": "2026-07",
+    "region": "South",
+    "product": "D",
+    "revenue": 166745,
+    "orders": 2449,
+    "aov": 95
+  },
+  {
+    "month": "2026-07",
+    "region": "South",
+    "product": "E",
+    "revenue": 54897,
+    "orders": 3349,
+    "aov": 81
+  },
+  {
+    "month": "2026-07",
+    "region": "East",
+    "product": "A",
+    "revenue": 134702,
+    "orders": 1089,
+    "aov": 158
+  },
+  {
+    "month": "2026-07",
+    "region": "East",
+    "product": "B",
+    "revenue": 84816,
+    "orders": 4245,
+    "aov": 151
+  },
+  {
+    "month": "2026-07",
+    "region": "East",
+    "product": "C",
+    "revenue": 79309,
+    "orders": 3545,
+    "aov": 166
+  },
+  {
+    "month": "2026-07",
+    "region": "East",
+    "product": "D",
+    "revenue": 114636,
+    "orders": 4074,
+    "aov": 55
+  },
+  {
+    "month": "2026-07",
+    "region": "East",
+    "product": "E",
+    "revenue": 188107,
+    "orders": 4388,
+    "aov": 92
+  },
+  {
+    "month": "2026-07",
+    "region": "West",
+    "product": "A",
+    "revenue": 125445,
+    "orders": 3639,
+    "aov": 154
+  },
+  {
+    "month": "2026-07",
+    "region": "West",
+    "product": "B",
+    "revenue": 169102,
+    "orders": 1460,
+    "aov": 137
+  },
+  {
+    "month": "2026-07",
+    "region": "West",
+    "product": "C",
+    "revenue": 75649,
+    "orders": 1578,
+    "aov": 183
+  },
+  {
+    "month": "2026-07",
+    "region": "West",
+    "product": "D",
+    "revenue": 164434,
+    "orders": 3585,
+    "aov": 186
+  },
+  {
+    "month": "2026-07",
+    "region": "West",
+    "product": "E",
+    "revenue": 82531,
+    "orders": 2037,
+    "aov": 93
+  },
+  {
+    "month": "2026-08",
+    "region": "North",
+    "product": "A",
+    "revenue": 161894,
+    "orders": 2529,
+    "aov": 114
+  },
+  {
+    "month": "2026-08",
+    "region": "North",
+    "product": "B",
+    "revenue": 71965,
+    "orders": 2046,
+    "aov": 195
+  },
+  {
+    "month": "2026-08",
+    "region": "North",
+    "product": "C",
+    "revenue": 101920,
+    "orders": 1641,
+    "aov": 123
+  },
+  {
+    "month": "2026-08",
+    "region": "North",
+    "product": "D",
+    "revenue": 103692,
+    "orders": 3553,
+    "aov": 186
+  },
+  {
+    "month": "2026-08",
+    "region": "North",
+    "product": "E",
+    "revenue": 155441,
+    "orders": 2639,
+    "aov": 150
+  },
+  {
+    "month": "2026-08",
+    "region": "South",
+    "product": "A",
+    "revenue": 95548,
+    "orders": 2358,
+    "aov": 95
+  },
+  {
+    "month": "2026-08",
+    "region": "South",
+    "product": "B",
+    "revenue": 84311,
+    "orders": 4162,
+    "aov": 164
+  },
+  {
+    "month": "2026-08",
+    "region": "South",
+    "product": "C",
+    "revenue": 170824,
+    "orders": 3896,
+    "aov": 52
+  },
+  {
+    "month": "2026-08",
+    "region": "South",
+    "product": "D",
+    "revenue": 95500,
+    "orders": 4556,
+    "aov": 189
+  },
+  {
+    "month": "2026-08",
+    "region": "South",
+    "product": "E",
+    "revenue": 167026,
+    "orders": 1689,
+    "aov": 68
+  },
+  {
+    "month": "2026-08",
+    "region": "East",
+    "product": "A",
+    "revenue": 60730,
+    "orders": 2088,
+    "aov": 149
+  },
+  {
+    "month": "2026-08",
+    "region": "East",
+    "product": "B",
+    "revenue": 144799,
+    "orders": 2179,
+    "aov": 167
+  },
+  {
+    "month": "2026-08",
+    "region": "East",
+    "product": "C",
+    "revenue": 50689,
+    "orders": 3023,
+    "aov": 71
+  },
+  {
+    "month": "2026-08",
+    "region": "East",
+    "product": "D",
+    "revenue": 101362,
+    "orders": 2248,
+    "aov": 153
+  },
+  {
+    "month": "2026-08",
+    "region": "East",
+    "product": "E",
+    "revenue": 176044,
+    "orders": 3382,
+    "aov": 124
+  },
+  {
+    "month": "2026-08",
+    "region": "West",
+    "product": "A",
+    "revenue": 144494,
+    "orders": 3753,
+    "aov": 200
+  },
+  {
+    "month": "2026-08",
+    "region": "West",
+    "product": "B",
+    "revenue": 110992,
+    "orders": 1353,
+    "aov": 84
+  },
+  {
+    "month": "2026-08",
+    "region": "West",
+    "product": "C",
+    "revenue": 131613,
+    "orders": 3450,
+    "aov": 169
+  },
+  {
+    "month": "2026-08",
+    "region": "West",
+    "product": "D",
+    "revenue": 114881,
+    "orders": 4491,
+    "aov": 54
+  },
+  {
+    "month": "2026-08",
+    "region": "West",
+    "product": "E",
+    "revenue": 62235,
+    "orders": 4361,
+    "aov": 83
+  }
+]
