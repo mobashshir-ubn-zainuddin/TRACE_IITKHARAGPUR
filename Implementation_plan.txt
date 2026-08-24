@@ -1,0 +1,1592 @@
+You need to build one end-to-end intelligence pipeline where every UI feature is backed by an actual analytical/AI capability.
+
+The key is not to build a huge production system. Build a convincing vertical slice that satisfies every Round 2 requirement and clearly demonstrates:
+
+Data → Signal → Drivers → Evidence → Uncertainty → Narrative → Recommendation → Decision → Feedback                 
+                   
+                   
+                    ┌──────────────────────┐
+                    │  Business Data       │
+                    │                      │
+                    │ Sales / Orders       │
+                    │ Marketing            │
+                    │ Operations           │
+                    │ Business Context     │
+                    └──────────┬───────────┘
+                               │
+                               ▼
+                    ┌──────────────────────┐
+                    │ Data + KPI Layer     │
+                    │                      │
+                    │ KPI definitions      │
+                    │ SQL aggregation      │
+                    │ Data freshness       │
+                    │ Semantic contract    │
+                    └──────────┬───────────┘
+                               │
+                               ▼
+                    ┌──────────────────────┐
+                    │ Signal Engine        │
+                    │                      │
+                    │ anomaly detection    │
+                    │ materiality           │
+                    │ trend detection      │
+                    │ significance         │
+                    └──────────┬───────────┘
+                               │
+                               ▼
+                    ┌──────────────────────┐
+                    │ Driver Engine        │
+                    │                      │
+                    │ contribution         │
+                    │ decomposition        │
+                    │ correlations         │
+                    │ hypotheses           │
+                    └──────────┬───────────┘
+                               │
+                    ┌──────────┴───────────┐
+                    ▼                      ▼
+          ┌─────────────────┐     ┌─────────────────┐
+          │ Evidence/RAG    │     │ Uncertainty     │
+          │                 │     │ Engine          │
+          │ business docs   │     │ confidence      │
+          │ news/context    │     │ contradictions  │
+          │ policies        │     │ abstention      │
+          └────────┬────────┘     └────────┬────────┘
+                   │                       │
+                   └───────────┬───────────┘
+                               ▼
+                    ┌──────────────────────┐
+                    │ LLM Narrative Layer  │
+                    │                      │
+                    │ What happened?       │
+                    │ Why?                 │
+                    │ How certain?         │
+                    └──────────┬───────────┘
+                               │
+                               ▼
+                    ┌──────────────────────┐
+                    │ Recommendation       │
+                    │ Engine               │
+                    │                      │
+                    │ Driver               │
+                    │ Lever                │
+                    │ Action               │
+                    │ Impact               │
+                    │ Owner                │
+                    └──────────┬───────────┘
+                               │
+                               ▼
+              ┌─────────────────────────────────┐
+              │ Decision Workspace              │
+              │                                 │
+              │ Dashboard                       │
+              │ Investigation                   │
+              │ Driver decomposition            │
+              │ Evidence graph                  │
+              │ Chatbot                         │
+              │ Recommendations                 │
+              │ Decision memory                 │
+              └────────────────┬────────────────┘
+                               │
+                               ▼
+                    ┌──────────────────────┐
+                    │ Human Feedback       │
+                    │                      │
+                    │ Accept / Reject      │
+                    │ Override             │
+                    │ Correct explanation  │
+                    └──────────────────────┘
+
+
+Your final prototype should have 7 major modules
+Module	Purpose
+1. Data & KPI Layer	Ground truth
+2. Signal Engine	Detect meaningful changes
+3. Investigation Engine	Find likely causes
+4. Evidence + RAG	Support claims with context
+5. Intelligence Engine	Narrative + uncertainty
+6. Decision Engine	Recommendations + memory
+7. Decision Workspace	Dashboard + graph + chatbot
+
+
+3. Module 1 — Data & KPI Layer
+
+This is where you start.
+
+Do not start with the chatbot.
+
+The LLM cannot be your quantitative source of truth.
+
+Build synthetic business data
+
+Create approximately:
+
+12–18 months
+×
+multiple regions
+×
+multiple products
+×
+multiple channels
+
+For example:
+
+Sales
+date
+region
+product
+channel
+orders
+units
+revenue
+discount
+refunds
+Marketing
+date
+region
+campaign
+spend
+impressions
+clicks
+conversions
+Operations
+date
+region
+product
+inventory
+stockouts
+delivery_time
+External/business context
+date
+region
+event
+description
+impact
+source
+4. Choose your 5 KPIs
+
+Don't implement 15 KPIs.
+
+Use:
+
+Primary
+
+Revenue
+
+Supporting
+
+Orders
+
+AOV
+
+Conversion Rate
+
+Marketing ROI
+
+Relationship:
+
+Revenue
+   │
+   ├── Orders
+   │      │
+   │      └── Conversion Rate
+   │
+   └── AOV
+          │
+          ├── Price
+          └── Product Mix
+
+This gives you a very nice driver tree.
+
+5. Build the KPI semantic contract
+
+This is one of the most important things for the judging criteria.
+
+Create something like:
+
+{
+  "revenue": {
+    "definition": "Net sales revenue",
+    "formula": "gross_sales - discounts - refunds",
+    "grain": "daily",
+    "dimensions": ["region", "product", "channel"],
+    "threshold": 0.05,
+    "owners": ["sales", "finance"],
+    "source": "sales_db"
+  }
+}
+
+Do the same for your KPIs.
+
+The semantic contract should contain:
+
+KPI
+├── definition
+├── formula
+├── source
+├── grain
+├── dimensions
+├── refresh frequency
+├── threshold
+├── owner
+├── access rules
+└── drivers
+
+This directly addresses the problem statement's requirement for a:
+
+lightweight KPI / semantic contract
+
+6. Module 2 — Signal Engine
+
+Now answer:
+
+"Is this KPI movement actually meaningful?"
+
+You need to distinguish:
+
+normal noise
+       vs
+meaningful business movement
+
+Don't simply say:
+
+Revenue decreased 8%
+→ anomaly
+
+Instead calculate multiple signals.
+
+Signal 1 — Relative change
+MoM Change
+=
+(Current - Previous) / Previous
+Signal 2 — Historical deviation
+
+Compare against:
+
+rolling mean
+rolling std
+
+For example:
+
+z = (current - historical_mean) / std
+Signal 3 — Business materiality
+
+An 8% decrease in:
+
+Revenue = ₹100M
+
+is much more important than:
+
+Revenue = ₹10K
+
+So:
+
+Materiality =
+Magnitude × Business Impact
+Final signal
+
+Something like:
+
+Signal Score =
+0.4 × magnitude
++ 0.3 × statistical deviation
++ 0.3 × business materiality
+
+Then:
+
+0–0.3    Normal
+0.3–0.6  Watch
+0.6–0.8  Significant
+0.8–1.0  Critical
+
+This directly answers the judges' question:
+
+How does the engine separate meaningful change from normal noise?
+
+7. Module 3 — Driver Investigation Engine
+
+Now suppose:
+
+Revenue ↓ 8.2%
+
+The system should automatically ask:
+
+What contributes to this?
+
+Break revenue into:
+
+Revenue
+│
+├── Orders
+│
+└── AOV
+      │
+      ├── Price
+      └── Product Mix
+
+Then dimensions:
+
+Region
+Product
+Channel
+Customer Segment
+
+Example:
+
+Revenue ↓ ₹820K
+
+AOV       → -₹520K
+Orders    → -₹300K
+
+Then:
+
+AOV decline
+
+North     → -₹320K
+South     → -₹120K
+West      → -₹80K
+
+Then:
+
+North AOV decline
+
+Premium products ↓ 17%
+Discount rate ↑ 8%
+
+This is your driver decomposition.
+
+8. Build a hypothesis engine
+
+Do not immediately tell the user:
+
+"The reason is X."
+
+Instead generate hypotheses:
+
+H1: AOV decline caused revenue drop
+H2: North India demand decline
+H3: Increased discounting
+H4: Product mix shifted toward low-value products
+H5: Marketing campaign underperformed
+
+Then score them.
+
+For example:
+
+Hypothesis Score =
+Contribution
+×
+Evidence Strength
+×
+Temporal Alignment
+×
+Data Quality
+
+Output:
+
+1. AOV decline          0.91
+2. North region        0.83
+3. Discounting         0.71
+4. Marketing decline   0.42
+9. This is where correlation ≠ causation matters
+
+This is very important for your presentation.
+
+Do NOT tell judges:
+
+"Marketing spend dropped, therefore marketing caused revenue decline."
+
+Instead:
+
+Marketing spend ↓ 12%
+        +
+Conversion ↓ 8%
+        +
+Revenue ↓ 8%
+
+means:
+
+"Marketing decline is temporally aligned with the revenue movement and explains part of the decline, but available evidence is insufficient to establish causality."
+
+That's much stronger.
+
+Use labels:
+
+Observed
+Correlated
+Supported
+Causal evidence
+
+And only use:
+
+"caused by"
+
+when you actually have a causal experiment / quasi-experiment / strong causal evidence.
+
+10. Module 4 — Evidence + RAG
+
+This is where your chatbot becomes useful.
+
+Create a small knowledge base.
+
+For example:
+
+knowledge/
+├── pricing_policy.md
+├── marketing_strategy.md
+├── regional_strategy.md
+├── product_catalog.md
+├── business_rules.md
+├── campaign_notes.md
+└── external_events.md
+
+Example document:
+
+North India Pricing Strategy
+
+Premium product prices were increased by 6%
+starting March 2026.
+
+Management expected limited volume impact
+because premium customers are relatively
+price insensitive.
+
+Now when the system detects:
+
+North revenue ↓
+Premium product volume ↓
+Price ↑
+
+RAG retrieves the relevant business context.
+
+11. Your RAG pipeline
+
+Build:
+
+User Question
+      ↓
+Intent extraction
+      ↓
+KPI / Region / Time extraction
+      ↓
+Retrieve relevant documents
+      ↓
+Retrieve analytical evidence
+      ↓
+Rank evidence
+      ↓
+LLM
+      ↓
+Answer with citations
+
+For the hackathon, you do not need an enormous vector database.
+
+You can use:
+
+SQLite/Postgres
++
+document chunks
++
+embeddings/vector similarity
+
+or even a lightweight retrieval approach initially.
+
+The important part is demonstrating:
+
+The LLM receives retrieved evidence instead of inventing business facts.
+
+12. Evidence scoring
+
+Every evidence item should have something like:
+
+{
+  "source": "sales_db",
+  "claim": "North AOV decreased 12%",
+  "strength": 0.94,
+  "freshness": 0.98,
+  "method": "SQL contribution analysis",
+  "lineage": "sales.orders",
+  "timestamp": "2026-08-24"
+}
+
+Then your UI can show:
+
+Evidence Strength
+█████████░ 91%
+
+Source:
+Sales Database
+
+Method:
+Contribution Analysis
+
+Freshness:
+2 hours ago
+
+This directly addresses the requirement for:
+
+source freshness
+analytical method
+contribution
+confidence
+lineage
+13. Module 5 — Uncertainty Engine
+
+This is not optional.
+
+Your system needs to know when it doesn't know.
+
+Create at least three states:
+
+High confidence
+Confidence: 91%
+
+Evidence is consistent.
+Medium confidence
+Confidence: 64%
+
+Several drivers explain the movement.
+Low confidence
+Confidence: 31%
+
+Evidence is insufficient.
+
+TRACE recommends further investigation.
+14. Build the contradiction detector
+
+Example:
+
+Evidence A:
+Marketing conversion ↓ 10%
+
+Evidence B:
+Marketing attribution data is stale by 9 days
+
+Evidence C:
+Direct traffic increased 18%
+
+Instead of forcing an answer:
+
+⚠ Conflicting evidence
+
+Marketing impact cannot be reliably determined.
+
+Then:
+
+Recommended next step:
+Refresh attribution data before making a budget decision.
+
+This is much better than hallucinating a root cause.
+
+15. Sparse-history scenario
+
+You explicitly need this.
+
+Create a new product:
+
+Product: X-Pro
+Launch: July 2026
+
+Only 2 months of history.
+
+The system should say:
+
+Insufficient historical baseline.
+
+Traditional anomaly score is unreliable.
+
+Confidence: 38%
+
+Then maybe compare against:
+
+similar products
+industry benchmark
+category baseline
+
+This demonstrates that your engine understands data limitations.
+
+16. Module 6 — LLM Storytelling Engine
+
+Now, and only now, use the LLM.
+
+The LLM should receive something like:
+
+{
+  "kpi": "Revenue",
+  "change": -8.2,
+  "drivers": [
+    {
+      "name": "AOV",
+      "contribution": -5.1
+    },
+    {
+      "name": "Orders",
+      "contribution": -3.1
+    }
+  ],
+  "evidence": [...],
+  "uncertainty": {...}
+}
+
+Then generate:
+
+Executive narrative
+
+Revenue declined 8.2% in March, primarily driven by a 12% reduction in AOV in North India and a smaller decline in order volume. The evidence strongly supports the AOV contribution, while the underlying cause of the regional shift remains uncertain.
+
+Not:
+
+"Revenue declined because customers disliked the new pricing."
+
+unless the evidence supports that.
+
+17. Persona-specific narratives
+
+You need at least two personas.
+
+I recommend:
+
+Executive
+
+Shows:
+
+What happened
+Why it matters
+Top 2 drivers
+Recommended action
+Confidence
+Analyst
+
+Shows:
+
+Full decomposition
+Evidence
+Alternative hypotheses
+Data quality
+Methodology
+Lineage
+
+Same underlying intelligence.
+
+Different presentation.
+
+This directly satisfies:
+
+At least two personas receiving different insight narratives or recommended actions.
+
+18. Module 7 — Recommendation Engine
+
+This should be structured, not free-form LLM output.
+
+Use:
+
+Driver
+↓
+Controllable lever
+↓
+Action
+↓
+Expected impact
+↓
+Owner
+↓
+Confidence
+↓
+Monitoring plan
+
+Example:
+
+Driver:
+AOV decline
+
+Lever:
+Pricing / Product Mix
+
+Action:
+Review premium-product pricing in North region
+
+Expected Impact:
+Recover approximately ₹250K–₹350K monthly revenue
+
+Owner:
+Regional Sales Manager
+
+Confidence:
+74%
+
+Monitoring:
+Track AOV + conversion for 14 days
+
+This is exactly aligned with the problem statement.
+
+19. Challenge Conclusion
+
+This is a great differentiator.
+
+Don't let the user simply accept:
+
+"The AI says AOV caused the decline."
+
+Add:
+
+[ Challenge Conclusion ]
+
+Then show:
+
+Why do you think this?
+
+Alternative explanation:
+Marketing campaign performance
+
+What evidence would disprove this?
+
+AOV recovery without pricing changes
+
+The user can:
+
+Accept
+Challenge
+Reject
+
+This makes TRACE feel like an analyst co-pilot, rather than a chatbot.
+
+20. Decision Memory
+
+When the user makes a decision:
+
+Decision:
+Increase North premium product promotion
+
+Owner:
+Regional Sales
+
+Expected impact:
++₹300K/month
+
+Confidence:
+72%
+
+Date:
+24 Aug 2026
+
+Store it.
+
+Later:
+
+Decision Outcome
+
+Expected:
++₹300K
+
+Actual:
++₹240K
+
+Outcome:
+Partially successful
+
+Now you have a feedback loop.
+
+21. Feedback / Learning Loop
+
+Your system should capture:
+
+AI conclusion
+      ↓
+User feedback
+      ↓
+Accept / Reject / Correct
+      ↓
+Store feedback
+      ↓
+Evaluate hypothesis quality
+      ↓
+Improve future recommendations
+
+For the prototype, you don't need to train a model.
+
+Just demonstrate the mechanism.
+
+22. The Chatbot
+
+Yes — you should have one, but don't make it a generic ChatGPT clone.
+
+Call it something like:
+
+TRACE Analyst
+
+The chatbot should be context-aware.
+
+Example:
+
+Why did revenue decline in North India?
+
+TRACE:
+
+Revenue declined 8.2%.
+
+Primary contributors:
+
+1. AOV ↓ 12% → 5.1pp contribution
+2. Orders ↓ 4% → 3.1pp contribution
+
+The strongest evidence points to AOV.
+However, pricing and product-mix effects cannot
+currently be separated with high confidence.
+
+Confidence: 82%
+
+Then:
+
+What evidence supports this?
+
+TRACE:
+
+Evidence 1
+Sales database
+AOV declined 12%
+Method: SQL contribution analysis
+
+Evidence 2
+Pricing records
+Average discount increased 8%
+
+Evidence 3
+Product mix
+Premium product share declined 17%
+
+Then:
+
+What should we do?
+
+TRACE:
+
+Recommended action:
+
+Review premium-product pricing in North India.
+
+Expected impact:
+₹250K–₹350K/month
+
+Owner:
+Regional Sales
+
+Confidence:
+74%
+
+Monitor:
+AOV + conversion for 14 days.
+
+That is your KPI storytelling + RAG + recommendation system in one interaction.
+
+23. Your final UI
+
+I would structure your application like this:
+
+TRACE
+│
+├── Dashboard
+│
+│   ├── Revenue
+│   ├── Orders
+│   ├── AOV
+│   ├── Conversion
+│   ├── Marketing ROI
+│   │
+│   └── Detected Signals
+│
+├── Investigations
+│
+│   └── Revenue ↓ 8.2%
+│       │
+│       ├── Story
+│       ├── Driver Decomposition
+│       ├── Hypotheses
+│       ├── Evidence
+│       ├── Evidence Graph
+│       ├── Uncertainty
+│       ├── Recommendations
+│       └── Challenge Conclusion
+│
+├── TRACE Analyst
+│
+│   └── Conversational investigation
+│
+├── Decisions
+│
+│   ├── Active Decisions
+│   ├── Decision Memory
+│   └── Outcomes
+│
+└── System
+    ├── Data Freshness
+    ├── Model Usage
+    ├── Token Usage
+    ├── Latency
+    └── Cost
+24. Your current project architecture
+
+You already have a Next.js application.
+
+Do not create a separate frontend and backend unless there is a real need.
+
+Next.js can handle both.
+
+I recommend:
+
+trace-app/
+│
+├── src/
+│   │
+│   ├── app/
+│   │   ├── page.tsx
+│   │   │
+│   │   ├── dashboard/
+│   │   │   └── page.tsx
+│   │   │
+│   │   ├── investigate/
+│   │   │   ├── page.tsx
+│   │   │   └── [metric]/
+│   │   │       └── page.tsx
+│   │   │
+│   │   ├── evidence-graph/
+│   │   │   └── page.tsx
+│   │   │
+│   │   ├── chat/
+│   │   │   └── page.tsx
+│   │   │
+│   │   └── api/
+│   │       ├── kpi/
+│   │       ├── signals/
+│   │       ├── hypotheses/
+│   │       ├── evidence/
+│   │       ├── recommendations/
+│   │       ├── decisions/
+│   │       ├── chat/
+│   │       ├── feedback/
+│   │       └── telemetry/
+│   │
+│   ├── components/
+│   │   ├── EvidenceGraph.tsx
+│   │   ├── KPIHero.tsx
+│   │   ├── DriverDecomposition.tsx
+│   │   ├── EvidencePanel.tsx
+│   │   ├── ConfidenceBadge.tsx
+│   │   ├── RecommendationCard.tsx
+│   │   ├── ChatPanel.tsx
+│   │   └── DecisionMemory.tsx
+│   │
+│   └── server/
+│       ├── db.ts
+│       ├── types.ts
+│       │
+│       ├── data/
+│       │   └── generateData.js
+│       │
+│       ├── kpi/
+│       │   └── index.ts
+│       │
+│       ├── signal/
+│       │   └── index.ts
+│       │
+│       ├── hypothesis/
+│       │   └── index.ts
+│       │
+│       ├── evidence/
+│       │   └── index.ts
+│       │
+│       ├── rag/
+│       │   └── index.ts
+│       │
+│       ├── recommendation/
+│       │   └── index.ts
+│       │
+│       ├── uncertainty/
+│       │   └── index.ts
+│       │
+│       └── telemetry/
+│           └── index.ts
+│
+├── knowledge/
+│   ├── pricing.md
+│   ├── marketing.md
+│   ├── business_rules.md
+│   └── ...
+│
+├── db/
+│   └── trace.db
+│
+└── scripts/
+25. What should be deterministic vs AI
+
+This is something you should explicitly show in your presentation.
+
+Task	Technology
+KPI calculation	SQL / TypeScript
+Revenue calculation	Deterministic
+Anomaly detection	Statistics
+Contribution analysis	Deterministic
+Driver decomposition	Analytics
+Correlation	Statistics
+Hypothesis ranking	Rules + statistics
+Evidence scoring	Deterministic
+Data freshness	Deterministic
+Confidence	Deterministic
+RAG retrieval	Retrieval
+Narrative	LLM
+Intent detection	LLM
+Recommendation wording	LLM + rules
+Final action validation	Business rules
+Decision storage	SQLite
+Telemetry	Deterministic
+
+The core philosophy:
+
+LLM interprets analytical results. It does not calculate them.
+
+That sentence is worth putting directly into your presentation.
+
+26. Your 4-day solo development roadmap
+
+Since you're doing everything yourself, sequence matters enormously.
+
+DAY 1 — Foundation + Intelligence
+Morning
+1. Stabilize existing repository
+
+First:
+
+Dashboard
+Investigate
+API routes
+SQLite
+Evidence Graph
+
+must compile.
+
+Don't redesign anything.
+
+Fix the current:
+
+EvidenceGraph
+
+architecture first.
+
+Then:
+
+npm run build
+
+must pass.
+
+Afternoon
+
+Build the synthetic data layer.
+
+Create:
+
+Sales
+Marketing
+Operations
+Business Context
+
+Then:
+
+5 KPIs
+
+and semantic contracts.
+
+Evening
+
+Build:
+
+KPI Engine
+↓
+Signal Engine
+
+Test:
+
+Revenue ↓ 8.2%
+
+and deliberately inject known anomalies.
+
+End of Day 1
+
+You should be able to demonstrate:
+
+Dashboard
+    ↓
+Revenue -8.2%
+    ↓
+SIGNIFICANT ANOMALY
+DAY 2 — Investigation Intelligence
+Morning
+
+Build:
+
+Driver decomposition
+
+Example:
+
+Revenue -8.2%
+
+AOV       -5.1pp
+Orders    -3.1pp
+
+Then dimensions:
+
+North
+South
+West
+East
+Afternoon
+
+Build:
+
+Hypothesis Engine
++
+Evidence scoring
++
+Uncertainty
+
+You should get:
+
+Hypothesis                     Confidence
+
+AOV decline                    91%
+North region demand            83%
+Discounting                    71%
+Marketing underperformance     42%
+Evening
+
+Build:
+
+RAG
+
+Create 5–10 business documents.
+
+Then connect retrieval to the investigation.
+
+End of Day 2
+
+You should have:
+
+Revenue anomaly
+       ↓
+Drivers
+       ↓
+Hypotheses
+       ↓
+Evidence
+       ↓
+Confidence
+DAY 3 — AI + Decision Layer
+
+This is your most important day.
+
+Morning
+
+Build LLM narrative generation.
+
+Input:
+
+structured analytical result
++
+evidence
++
+confidence
+
+Output:
+
+What happened?
+Why?
+What evidence supports it?
+What remains uncertain?
+Afternoon
+
+Build:
+
+Recommendation Engine
+Driver
+↓
+Lever
+↓
+Action
+↓
+Expected impact
+↓
+Owner
+↓
+Confidence
+↓
+Monitoring
+
+Then:
+
+Challenge Conclusion
+[Challenge]
+
+Show alternative hypotheses.
+
+Evening
+
+Build:
+
+TRACE Analyst chatbot
+
+Connect:
+
+Question
+↓
+Intent
+↓
+KPI context
+↓
+Analytical engine
+↓
+RAG
+↓
+LLM
+↓
+Cited answer
+
+Do not allow the chatbot to directly query arbitrary data and hallucinate answers.
+
+Give it structured tools/functions.
+
+DAY 4 — Integration + Hackathon Polish
+Morning
+
+Build:
+
+Decision Memory
+Recommendation
+↓
+User accepts
+↓
+Decision stored
+↓
+Outcome tracked
+
+Then feedback:
+
+Helpful?
+Yes / No
+
+Correct?
+Yes / No
+
+Override?
+Yes / No
+Afternoon
+
+Implement the required edge cases.
+
+Scenario 1
+
+Normal KPI:
+
+No alert
+Scenario 2
+
+Major anomaly:
+
+Revenue ↓ 8%
+Scenario 3
+
+Multi-factor:
+
+AOV ↓
+Orders ↓
+Marketing ↓
+Scenario 4
+
+Ambiguous:
+
+Conflicting evidence
+→ abstain
+Scenario 5
+
+Sparse history:
+
+New product
+→ insufficient baseline
+Scenario 6
+
+Security:
+
+Executive
+→ high-level narrative
+
+Analyst
+→ detailed evidence
+Evening
+
+Build telemetry:
+
+Inference latency
+LLM calls
+Token usage
+Estimated cost
+Retrieval latency
+
+Then final UI polish.
+
+27. The most important demo scenario
+
+Don't demo 20 random things.
+
+Build one killer storyline.
+
+Start with:
+
+Revenue
+₹9.18M
+↓ 8.2%
+HIGH IMPACT
+
+Click:
+
+Investigate
+
+Then:
+
+Revenue declined 8.2%.
+
+Primary driver:
+AOV decline
+
+Secondary driver:
+Order volume
+
+Confidence:
+86%
+
+Click:
+
+Driver Decomposition
+
+Show:
+
+Revenue
+│
+├── AOV       -5.1%
+│    ├── North      -3.2%
+│    ├── South      -1.1%
+│    └── Other      -0.8%
+│
+└── Orders    -3.1%
+
+Then:
+
+Evidence
+Sales DB
+AOV ↓ 12%
+
+Marketing DB
+Conversion ↓ 4%
+
+Pricing document
+Premium pricing increased 6%
+
+Then:
+
+Evidence Graph
+Pricing Increase
+      │
+      ▼
+Premium Product
+      │
+      ▼
+AOV ↓
+      │
+      ▼
+North Revenue ↓
+
+Then:
+
+Uncertainty
+However:
+
+Pricing and product-mix effects cannot
+be completely separated.
+
+Confidence: 74%
+
+Then:
+
+Recommendation
+Review premium-product pricing
+in North India.
+
+Expected recovery:
+₹250K–₹350K/month
+
+Owner:
+Regional Sales
+
+Monitor:
+AOV + conversion for 14 days
+
+Then click:
+
+Challenge Conclusion
+Alternative hypothesis:
+
+Marketing campaign underperformance
+
+Evidence strength:
+42%
+
+Would need:
+Fresh attribution data
+
+Then open:
+
+TRACE Analyst
+
+Ask:
+
+"Why did revenue fall?"
+
+And the chatbot gives the same evidence-backed answer.
+
+That is an excellent end-to-end demo.
+
+28. What NOT to build
+
+This is just as important.
+
+Do not spend your 4 days building:
+
+Kubernetes
+microservices
+complex authentication
+elaborate vector databases
+custom ML models
+complicated causal inference
+real-time streaming
+15 dashboards
+20 KPIs
+fancy agent frameworks
+huge datasets
+production-grade cloud infrastructure
+
+You need depth, not breadth.
+
+29. Your minimum viable final system
+
+If time becomes extremely tight, prioritize exactly this:
+
+                 TRACE
+                   │
+       ┌───────────┴───────────┐
+       │                       │
+   Dashboard               Chatbot
+       │                       │
+       ▼                       ▼
+ KPI anomaly              RAG + LLM
+       │                       │
+       └───────────┬───────────┘
+                   ▼
+            Investigation
+                   │
+          ┌────────┼────────┐
+          ▼        ▼        ▼
+       Drivers  Evidence  Hypotheses
+          │        │        │
+          └────────┼────────┘
+                   ▼
+              Confidence
+                   │
+              ┌────┴────┐
+              ▼         ▼
+        Recommendation  Abstain
+              │
+              ▼
+        Decision Memory
+
+If this works reliably, you have a very strong prototype.
+
+30. The order I recommend you work in RIGHT NOW
+
+Given your current repository state, do not start adding RAG or chatbot yet.
+
+Your immediate sequence should be:
+
+Phase 0 — Stabilize
+1. Fix EvidenceGraph component
+2. npm run build
+3. Verify dashboard
+4. Verify investigate
+5. Verify APIs
+6. Clean .next from Git
+Phase 1
+7. Synthetic dataset
+8. KPI semantic contract
+9. KPI engine
+10. Signal/anomaly engine
+Phase 2
+11. Driver decomposition
+12. Hypothesis engine
+13. Evidence scoring
+14. Uncertainty
+Phase 3
+15. RAG
+16. LLM narrative
+17. Recommendations
+18. Challenge Conclusion
+Phase 4
+19. Chatbot
+20. Decision Memory
+21. Feedback
+22. Telemetry
+Phase 5
+23. Edge-case scenarios
+24. Security demonstration
+25. UI polish
+26. End-to-end testing
+27. Demo storyline
+The core architecture to keep in your head
+
+Don't think:
+
+"I have to build a dashboard, chatbot, RAG, graph, backend..."
+
+Think:
+
+I am building one analytical engine and several interfaces to it.
+
+The dashboard, investigation page, evidence graph, recommendation panel, and chatbot should all ultimately consume the same underlying intelligence.
+
+                   ┌─────────────┐
+                   │   DATA      │
+                   └──────┬──────┘
+                          ↓
+                   ┌─────────────┐
+                   │ KPI ENGINE  │
+                   └──────┬──────┘
+                          ↓
+                   ┌─────────────┐
+                   │ SIGNAL      │
+                   └──────┬──────┘
+                          ↓
+                   ┌─────────────┐
+                   │ DRIVER      │
+                   └──────┬──────┘
+                          ↓
+             ┌────────────┴────────────┐
+             ↓                         ↓
+        ┌─────────┐              ┌────────────┐
+        │ EVIDENCE│              │ UNCERTAINTY│
+        └────┬────┘              └─────┬──────┘
+             └────────────┬────────────┘
+                          ↓
+                    ┌───────────┐
+                    │    LLM    │
+                    └─────┬─────┘
+                          ↓
+              ┌───────────┴───────────┐
+              ↓                       ↓
+        Decision UI               Chatbot
+
+That's the architecture I would build for the hackathon

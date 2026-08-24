@@ -1,0 +1,1602 @@
+[
+  {
+    "id": 1,
+    "text": "Sample InternalReport about Conversion issues observed on 2026-03-02.",
+    "source": "InternalReport",
+    "region": "North",
+    "topic": "Conversion",
+    "date": "2026-08-20"
+  },
+  {
+    "id": 2,
+    "text": "Sample CustomerReview about Inventory issues observed on 2026-06-22.",
+    "source": "CustomerReview",
+    "region": "South",
+    "topic": "Inventory",
+    "date": "2026-08-02"
+  },
+  {
+    "id": 3,
+    "text": "Sample CustomerReview about Conversion issues observed on 2026-07-13.",
+    "source": "CustomerReview",
+    "region": "East",
+    "topic": "Conversion",
+    "date": "2025-11-26"
+  },
+  {
+    "id": 4,
+    "text": "Sample InternalReport about Delivery issues observed on 2026-05-27.",
+    "source": "InternalReport",
+    "region": "West",
+    "topic": "Delivery",
+    "date": "2026-03-27"
+  },
+  {
+    "id": 5,
+    "text": "Sample SupportTicket about Pricing issues observed on 2026-07-03.",
+    "source": "SupportTicket",
+    "region": "West",
+    "topic": "Pricing",
+    "date": "2025-11-28"
+  },
+  {
+    "id": 6,
+    "text": "Sample SupportTicket about Seasonality issues observed on 2026-03-13.",
+    "source": "SupportTicket",
+    "region": "North",
+    "topic": "Seasonality",
+    "date": "2025-10-15"
+  },
+  {
+    "id": 7,
+    "text": "Sample CustomerReview about Pricing issues observed on 2026-04-06.",
+    "source": "CustomerReview",
+    "region": "North",
+    "topic": "Pricing",
+    "date": "2026-05-09"
+  },
+  {
+    "id": 8,
+    "text": "Sample InternalReport about Inventory issues observed on 2025-10-02.",
+    "source": "InternalReport",
+    "region": "South",
+    "topic": "Inventory",
+    "date": "2026-05-26"
+  },
+  {
+    "id": 9,
+    "text": "Sample InternalReport about Seasonality issues observed on 2026-06-19.",
+    "source": "InternalReport",
+    "region": "East",
+    "topic": "Seasonality",
+    "date": "2026-08-04"
+  },
+  {
+    "id": 10,
+    "text": "Sample InternalReport about Delivery issues observed on 2026-04-08.",
+    "source": "InternalReport",
+    "region": "West",
+    "topic": "Delivery",
+    "date": "2026-07-08"
+  },
+  {
+    "id": 11,
+    "text": "Sample CustomerReview about Seasonality issues observed on 2026-03-04.",
+    "source": "CustomerReview",
+    "region": "West",
+    "topic": "Seasonality",
+    "date": "2026-04-25"
+  },
+  {
+    "id": 12,
+    "text": "Sample InternalReport about Seasonality issues observed on 2026-05-01.",
+    "source": "InternalReport",
+    "region": "North",
+    "topic": "Seasonality",
+    "date": "2025-11-30"
+  },
+  {
+    "id": 13,
+    "text": "Sample CustomerReview about Pricing issues observed on 2026-05-04.",
+    "source": "CustomerReview",
+    "region": "North",
+    "topic": "Pricing",
+    "date": "2026-04-02"
+  },
+  {
+    "id": 14,
+    "text": "Sample InternalReport about Pricing issues observed on 2025-12-24.",
+    "source": "InternalReport",
+    "region": "South",
+    "topic": "Pricing",
+    "date": "2026-03-28"
+  },
+  {
+    "id": 15,
+    "text": "Sample CustomerReview about Seasonality issues observed on 2026-04-16.",
+    "source": "CustomerReview",
+    "region": "West",
+    "topic": "Seasonality",
+    "date": "2026-03-14"
+  },
+  {
+    "id": 16,
+    "text": "Sample CustomerReview about Pricing issues observed on 2026-06-28.",
+    "source": "CustomerReview",
+    "region": "North",
+    "topic": "Pricing",
+    "date": "2026-02-27"
+  },
+  {
+    "id": 17,
+    "text": "Sample InternalReport about Seasonality issues observed on 2025-11-19.",
+    "source": "InternalReport",
+    "region": "North",
+    "topic": "Seasonality",
+    "date": "2025-12-26"
+  },
+  {
+    "id": 18,
+    "text": "Sample InternalReport about Pricing issues observed on 2026-07-20.",
+    "source": "InternalReport",
+    "region": "West",
+    "topic": "Pricing",
+    "date": "2026-08-03"
+  },
+  {
+    "id": 19,
+    "text": "Sample CustomerReview about Inventory issues observed on 2026-07-22.",
+    "source": "CustomerReview",
+    "region": "South",
+    "topic": "Inventory",
+    "date": "2026-02-25"
+  },
+  {
+    "id": 20,
+    "text": "Sample InternalReport about Pricing issues observed on 2025-12-21.",
+    "source": "InternalReport",
+    "region": "North",
+    "topic": "Pricing",
+    "date": "2025-12-02"
+  },
+  {
+    "id": 21,
+    "text": "Sample SupportTicket about Delivery issues observed on 2026-06-27.",
+    "source": "SupportTicket",
+    "region": "South",
+    "topic": "Delivery",
+    "date": "2026-01-02"
+  },
+  {
+    "id": 22,
+    "text": "Sample InternalReport about Conversion issues observed on 2026-04-05.",
+    "source": "InternalReport",
+    "region": "North",
+    "topic": "Conversion",
+    "date": "2026-02-03"
+  },
+  {
+    "id": 23,
+    "text": "Sample SupportTicket about Conversion issues observed on 2026-03-14.",
+    "source": "SupportTicket",
+    "region": "West",
+    "topic": "Conversion",
+    "date": "2025-12-08"
+  },
+  {
+    "id": 24,
+    "text": "Sample SupportTicket about Delivery issues observed on 2026-03-28.",
+    "source": "SupportTicket",
+    "region": "South",
+    "topic": "Delivery",
+    "date": "2026-06-02"
+  },
+  {
+    "id": 25,
+    "text": "Sample CustomerReview about Delivery issues observed on 2026-08-08.",
+    "source": "CustomerReview",
+    "region": "North",
+    "topic": "Delivery",
+    "date": "2025-11-25"
+  },
+  {
+    "id": 26,
+    "text": "Sample CustomerReview about Seasonality issues observed on 2026-05-24.",
+    "source": "CustomerReview",
+    "region": "West",
+    "topic": "Seasonality",
+    "date": "2025-10-16"
+  },
+  {
+    "id": 27,
+    "text": "Sample SupportTicket about Inventory issues observed on 2026-04-04.",
+    "source": "SupportTicket",
+    "region": "North",
+    "topic": "Inventory",
+    "date": "2026-02-07"
+  },
+  {
+    "id": 28,
+    "text": "Sample SupportTicket about Inventory issues observed on 2026-03-31.",
+    "source": "SupportTicket",
+    "region": "East",
+    "topic": "Inventory",
+    "date": "2025-12-24"
+  },
+  {
+    "id": 29,
+    "text": "Sample SupportTicket about Seasonality issues observed on 2025-12-13.",
+    "source": "SupportTicket",
+    "region": "North",
+    "topic": "Seasonality",
+    "date": "2026-08-07"
+  },
+  {
+    "id": 30,
+    "text": "Sample SupportTicket about Conversion issues observed on 2026-05-06.",
+    "source": "SupportTicket",
+    "region": "South",
+    "topic": "Conversion",
+    "date": "2026-01-25"
+  },
+  {
+    "id": 31,
+    "text": "Sample SupportTicket about Inventory issues observed on 2026-07-02.",
+    "source": "SupportTicket",
+    "region": "West",
+    "topic": "Inventory",
+    "date": "2026-05-21"
+  },
+  {
+    "id": 32,
+    "text": "Sample SupportTicket about Inventory issues observed on 2026-03-10.",
+    "source": "SupportTicket",
+    "region": "North",
+    "topic": "Inventory",
+    "date": "2026-03-10"
+  },
+  {
+    "id": 33,
+    "text": "Sample CustomerReview about Inventory issues observed on 2025-12-03.",
+    "source": "CustomerReview",
+    "region": "West",
+    "topic": "Inventory",
+    "date": "2026-07-14"
+  },
+  {
+    "id": 34,
+    "text": "Sample CustomerReview about Inventory issues observed on 2025-10-29.",
+    "source": "CustomerReview",
+    "region": "North",
+    "topic": "Inventory",
+    "date": "2026-07-25"
+  },
+  {
+    "id": 35,
+    "text": "Sample CustomerReview about Delivery issues observed on 2026-07-11.",
+    "source": "CustomerReview",
+    "region": "North",
+    "topic": "Delivery",
+    "date": "2026-05-17"
+  },
+  {
+    "id": 36,
+    "text": "Sample SupportTicket about Delivery issues observed on 2026-04-13.",
+    "source": "SupportTicket",
+    "region": "West",
+    "topic": "Delivery",
+    "date": "2025-12-16"
+  },
+  {
+    "id": 37,
+    "text": "Sample CustomerReview about Conversion issues observed on 2025-09-24.",
+    "source": "CustomerReview",
+    "region": "North",
+    "topic": "Conversion",
+    "date": "2026-03-20"
+  },
+  {
+    "id": 38,
+    "text": "Sample InternalReport about Seasonality issues observed on 2026-03-30.",
+    "source": "InternalReport",
+    "region": "West",
+    "topic": "Seasonality",
+    "date": "2026-02-08"
+  },
+  {
+    "id": 39,
+    "text": "Sample CustomerReview about Inventory issues observed on 2026-01-27.",
+    "source": "CustomerReview",
+    "region": "North",
+    "topic": "Inventory",
+    "date": "2026-05-26"
+  },
+  {
+    "id": 40,
+    "text": "Sample InternalReport about Delivery issues observed on 2026-07-29.",
+    "source": "InternalReport",
+    "region": "East",
+    "topic": "Delivery",
+    "date": "2025-12-29"
+  },
+  {
+    "id": 41,
+    "text": "Sample CustomerReview about Conversion issues observed on 2026-02-11.",
+    "source": "CustomerReview",
+    "region": "East",
+    "topic": "Conversion",
+    "date": "2025-11-30"
+  },
+  {
+    "id": 42,
+    "text": "Sample SupportTicket about Pricing issues observed on 2026-08-19.",
+    "source": "SupportTicket",
+    "region": "South",
+    "topic": "Pricing",
+    "date": "2025-12-29"
+  },
+  {
+    "id": 43,
+    "text": "Sample SupportTicket about Inventory issues observed on 2026-07-12.",
+    "source": "SupportTicket",
+    "region": "North",
+    "topic": "Inventory",
+    "date": "2026-02-01"
+  },
+  {
+    "id": 44,
+    "text": "Sample CustomerReview about Seasonality issues observed on 2026-04-07.",
+    "source": "CustomerReview",
+    "region": "South",
+    "topic": "Seasonality",
+    "date": "2025-12-11"
+  },
+  {
+    "id": 45,
+    "text": "Sample InternalReport about Conversion issues observed on 2025-11-17.",
+    "source": "InternalReport",
+    "region": "West",
+    "topic": "Conversion",
+    "date": "2026-05-30"
+  },
+  {
+    "id": 46,
+    "text": "Sample InternalReport about Inventory issues observed on 2026-02-05.",
+    "source": "InternalReport",
+    "region": "North",
+    "topic": "Inventory",
+    "date": "2026-08-08"
+  },
+  {
+    "id": 47,
+    "text": "Sample InternalReport about Seasonality issues observed on 2026-06-10.",
+    "source": "InternalReport",
+    "region": "West",
+    "topic": "Seasonality",
+    "date": "2026-04-23"
+  },
+  {
+    "id": 48,
+    "text": "Sample SupportTicket about Delivery issues observed on 2026-04-02.",
+    "source": "SupportTicket",
+    "region": "East",
+    "topic": "Delivery",
+    "date": "2026-05-29"
+  },
+  {
+    "id": 49,
+    "text": "Sample SupportTicket about Delivery issues observed on 2026-06-29.",
+    "source": "SupportTicket",
+    "region": "East",
+    "topic": "Delivery",
+    "date": "2026-06-17"
+  },
+  {
+    "id": 50,
+    "text": "Sample InternalReport about Delivery issues observed on 2025-12-21.",
+    "source": "InternalReport",
+    "region": "North",
+    "topic": "Delivery",
+    "date": "2026-04-28"
+  },
+  {
+    "id": 51,
+    "text": "Sample SupportTicket about Delivery issues observed on 2026-07-24.",
+    "source": "SupportTicket",
+    "region": "West",
+    "topic": "Delivery",
+    "date": "2026-06-10"
+  },
+  {
+    "id": 52,
+    "text": "Sample InternalReport about Pricing issues observed on 2026-07-11.",
+    "source": "InternalReport",
+    "region": "West",
+    "topic": "Pricing",
+    "date": "2025-12-19"
+  },
+  {
+    "id": 53,
+    "text": "Sample InternalReport about Seasonality issues observed on 2026-07-08.",
+    "source": "InternalReport",
+    "region": "South",
+    "topic": "Seasonality",
+    "date": "2025-11-27"
+  },
+  {
+    "id": 54,
+    "text": "Sample CustomerReview about Conversion issues observed on 2026-04-11.",
+    "source": "CustomerReview",
+    "region": "South",
+    "topic": "Conversion",
+    "date": "2026-05-28"
+  },
+  {
+    "id": 55,
+    "text": "Sample CustomerReview about Delivery issues observed on 2025-11-24.",
+    "source": "CustomerReview",
+    "region": "South",
+    "topic": "Delivery",
+    "date": "2026-01-30"
+  },
+  {
+    "id": 56,
+    "text": "Sample SupportTicket about Conversion issues observed on 2026-03-08.",
+    "source": "SupportTicket",
+    "region": "South",
+    "topic": "Conversion",
+    "date": "2026-04-02"
+  },
+  {
+    "id": 57,
+    "text": "Sample CustomerReview about Inventory issues observed on 2025-12-19.",
+    "source": "CustomerReview",
+    "region": "South",
+    "topic": "Inventory",
+    "date": "2026-07-28"
+  },
+  {
+    "id": 58,
+    "text": "Sample CustomerReview about Inventory issues observed on 2025-11-06.",
+    "source": "CustomerReview",
+    "region": "South",
+    "topic": "Inventory",
+    "date": "2025-10-23"
+  },
+  {
+    "id": 59,
+    "text": "Sample SupportTicket about Conversion issues observed on 2026-01-17.",
+    "source": "SupportTicket",
+    "region": "West",
+    "topic": "Conversion",
+    "date": "2026-02-28"
+  },
+  {
+    "id": 60,
+    "text": "Sample InternalReport about Delivery issues observed on 2026-01-14.",
+    "source": "InternalReport",
+    "region": "South",
+    "topic": "Delivery",
+    "date": "2025-12-29"
+  },
+  {
+    "id": 61,
+    "text": "Sample SupportTicket about Pricing issues observed on 2026-01-19.",
+    "source": "SupportTicket",
+    "region": "North",
+    "topic": "Pricing",
+    "date": "2026-03-21"
+  },
+  {
+    "id": 62,
+    "text": "Sample InternalReport about Delivery issues observed on 2026-03-12.",
+    "source": "InternalReport",
+    "region": "South",
+    "topic": "Delivery",
+    "date": "2026-06-17"
+  },
+  {
+    "id": 63,
+    "text": "Sample CustomerReview about Seasonality issues observed on 2026-06-27.",
+    "source": "CustomerReview",
+    "region": "South",
+    "topic": "Seasonality",
+    "date": "2026-05-06"
+  },
+  {
+    "id": 64,
+    "text": "Sample CustomerReview about Pricing issues observed on 2026-03-21.",
+    "source": "CustomerReview",
+    "region": "West",
+    "topic": "Pricing",
+    "date": "2026-08-20"
+  },
+  {
+    "id": 65,
+    "text": "Sample InternalReport about Pricing issues observed on 2026-06-09.",
+    "source": "InternalReport",
+    "region": "East",
+    "topic": "Pricing",
+    "date": "2025-12-25"
+  },
+  {
+    "id": 66,
+    "text": "Sample SupportTicket about Inventory issues observed on 2026-06-28.",
+    "source": "SupportTicket",
+    "region": "North",
+    "topic": "Inventory",
+    "date": "2026-04-27"
+  },
+  {
+    "id": 67,
+    "text": "Sample SupportTicket about Pricing issues observed on 2026-01-02.",
+    "source": "SupportTicket",
+    "region": "East",
+    "topic": "Pricing",
+    "date": "2026-02-20"
+  },
+  {
+    "id": 68,
+    "text": "Sample CustomerReview about Inventory issues observed on 2025-11-22.",
+    "source": "CustomerReview",
+    "region": "South",
+    "topic": "Inventory",
+    "date": "2025-12-22"
+  },
+  {
+    "id": 69,
+    "text": "Sample CustomerReview about Inventory issues observed on 2026-03-19.",
+    "source": "CustomerReview",
+    "region": "West",
+    "topic": "Inventory",
+    "date": "2026-04-18"
+  },
+  {
+    "id": 70,
+    "text": "Sample SupportTicket about Delivery issues observed on 2026-03-03.",
+    "source": "SupportTicket",
+    "region": "North",
+    "topic": "Delivery",
+    "date": "2026-02-19"
+  },
+  {
+    "id": 71,
+    "text": "Sample SupportTicket about Seasonality issues observed on 2025-11-10.",
+    "source": "SupportTicket",
+    "region": "North",
+    "topic": "Seasonality",
+    "date": "2026-01-21"
+  },
+  {
+    "id": 72,
+    "text": "Sample InternalReport about Conversion issues observed on 2026-03-12.",
+    "source": "InternalReport",
+    "region": "East",
+    "topic": "Conversion",
+    "date": "2026-07-22"
+  },
+  {
+    "id": 73,
+    "text": "Sample CustomerReview about Inventory issues observed on 2026-06-09.",
+    "source": "CustomerReview",
+    "region": "West",
+    "topic": "Inventory",
+    "date": "2026-05-13"
+  },
+  {
+    "id": 74,
+    "text": "Sample SupportTicket about Seasonality issues observed on 2026-02-21.",
+    "source": "SupportTicket",
+    "region": "South",
+    "topic": "Seasonality",
+    "date": "2026-05-24"
+  },
+  {
+    "id": 75,
+    "text": "Sample InternalReport about Seasonality issues observed on 2026-04-02.",
+    "source": "InternalReport",
+    "region": "West",
+    "topic": "Seasonality",
+    "date": "2026-04-09"
+  },
+  {
+    "id": 76,
+    "text": "Sample SupportTicket about Delivery issues observed on 2026-05-19.",
+    "source": "SupportTicket",
+    "region": "East",
+    "topic": "Delivery",
+    "date": "2026-05-20"
+  },
+  {
+    "id": 77,
+    "text": "Sample CustomerReview about Seasonality issues observed on 2026-04-05.",
+    "source": "CustomerReview",
+    "region": "West",
+    "topic": "Seasonality",
+    "date": "2025-10-26"
+  },
+  {
+    "id": 78,
+    "text": "Sample CustomerReview about Conversion issues observed on 2026-02-17.",
+    "source": "CustomerReview",
+    "region": "North",
+    "topic": "Conversion",
+    "date": "2026-03-08"
+  },
+  {
+    "id": 79,
+    "text": "Sample InternalReport about Pricing issues observed on 2026-06-03.",
+    "source": "InternalReport",
+    "region": "East",
+    "topic": "Pricing",
+    "date": "2026-07-15"
+  },
+  {
+    "id": 80,
+    "text": "Sample SupportTicket about Conversion issues observed on 2026-07-29.",
+    "source": "SupportTicket",
+    "region": "South",
+    "topic": "Conversion",
+    "date": "2026-07-05"
+  },
+  {
+    "id": 81,
+    "text": "Sample SupportTicket about Pricing issues observed on 2026-07-06.",
+    "source": "SupportTicket",
+    "region": "West",
+    "topic": "Pricing",
+    "date": "2025-12-17"
+  },
+  {
+    "id": 82,
+    "text": "Sample CustomerReview about Seasonality issues observed on 2026-07-19.",
+    "source": "CustomerReview",
+    "region": "West",
+    "topic": "Seasonality",
+    "date": "2026-05-11"
+  },
+  {
+    "id": 83,
+    "text": "Sample InternalReport about Inventory issues observed on 2026-07-16.",
+    "source": "InternalReport",
+    "region": "South",
+    "topic": "Inventory",
+    "date": "2025-12-27"
+  },
+  {
+    "id": 84,
+    "text": "Sample SupportTicket about Conversion issues observed on 2025-09-24.",
+    "source": "SupportTicket",
+    "region": "West",
+    "topic": "Conversion",
+    "date": "2026-01-23"
+  },
+  {
+    "id": 85,
+    "text": "Sample CustomerReview about Conversion issues observed on 2026-03-14.",
+    "source": "CustomerReview",
+    "region": "South",
+    "topic": "Conversion",
+    "date": "2026-06-27"
+  },
+  {
+    "id": 86,
+    "text": "Sample SupportTicket about Pricing issues observed on 2026-01-17.",
+    "source": "SupportTicket",
+    "region": "West",
+    "topic": "Pricing",
+    "date": "2026-07-31"
+  },
+  {
+    "id": 87,
+    "text": "Sample CustomerReview about Pricing issues observed on 2026-06-16.",
+    "source": "CustomerReview",
+    "region": "North",
+    "topic": "Pricing",
+    "date": "2026-05-18"
+  },
+  {
+    "id": 88,
+    "text": "Sample InternalReport about Delivery issues observed on 2026-06-03.",
+    "source": "InternalReport",
+    "region": "East",
+    "topic": "Delivery",
+    "date": "2025-11-16"
+  },
+  {
+    "id": 89,
+    "text": "Sample SupportTicket about Seasonality issues observed on 2026-06-06.",
+    "source": "SupportTicket",
+    "region": "West",
+    "topic": "Seasonality",
+    "date": "2025-10-17"
+  },
+  {
+    "id": 90,
+    "text": "Sample CustomerReview about Seasonality issues observed on 2025-11-17.",
+    "source": "CustomerReview",
+    "region": "West",
+    "topic": "Seasonality",
+    "date": "2026-04-12"
+  },
+  {
+    "id": 91,
+    "text": "Sample InternalReport about Conversion issues observed on 2026-04-02.",
+    "source": "InternalReport",
+    "region": "North",
+    "topic": "Conversion",
+    "date": "2025-11-13"
+  },
+  {
+    "id": 92,
+    "text": "Sample InternalReport about Inventory issues observed on 2026-06-01.",
+    "source": "InternalReport",
+    "region": "West",
+    "topic": "Inventory",
+    "date": "2026-05-06"
+  },
+  {
+    "id": 93,
+    "text": "Sample InternalReport about Pricing issues observed on 2026-03-19.",
+    "source": "InternalReport",
+    "region": "West",
+    "topic": "Pricing",
+    "date": "2025-10-01"
+  },
+  {
+    "id": 94,
+    "text": "Sample CustomerReview about Conversion issues observed on 2026-03-24.",
+    "source": "CustomerReview",
+    "region": "South",
+    "topic": "Conversion",
+    "date": "2025-11-27"
+  },
+  {
+    "id": 95,
+    "text": "Sample SupportTicket about Pricing issues observed on 2026-07-04.",
+    "source": "SupportTicket",
+    "region": "West",
+    "topic": "Pricing",
+    "date": "2025-09-28"
+  },
+  {
+    "id": 96,
+    "text": "Sample CustomerReview about Inventory issues observed on 2026-01-12.",
+    "source": "CustomerReview",
+    "region": "West",
+    "topic": "Inventory",
+    "date": "2026-03-16"
+  },
+  {
+    "id": 97,
+    "text": "Sample CustomerReview about Delivery issues observed on 2025-10-23.",
+    "source": "CustomerReview",
+    "region": "North",
+    "topic": "Delivery",
+    "date": "2026-01-24"
+  },
+  {
+    "id": 98,
+    "text": "Sample CustomerReview about Inventory issues observed on 2026-02-03.",
+    "source": "CustomerReview",
+    "region": "North",
+    "topic": "Inventory",
+    "date": "2026-01-09"
+  },
+  {
+    "id": 99,
+    "text": "Sample InternalReport about Delivery issues observed on 2026-03-15.",
+    "source": "InternalReport",
+    "region": "North",
+    "topic": "Delivery",
+    "date": "2026-06-11"
+  },
+  {
+    "id": 100,
+    "text": "Sample SupportTicket about Delivery issues observed on 2025-10-08.",
+    "source": "SupportTicket",
+    "region": "South",
+    "topic": "Delivery",
+    "date": "2025-10-11"
+  },
+  {
+    "id": 101,
+    "text": "Sample SupportTicket about Delivery issues observed on 2026-07-14.",
+    "source": "SupportTicket",
+    "region": "East",
+    "topic": "Delivery",
+    "date": "2026-04-10"
+  },
+  {
+    "id": 102,
+    "text": "Sample CustomerReview about Pricing issues observed on 2026-02-07.",
+    "source": "CustomerReview",
+    "region": "West",
+    "topic": "Pricing",
+    "date": "2026-02-28"
+  },
+  {
+    "id": 103,
+    "text": "Sample CustomerReview about Pricing issues observed on 2026-05-06.",
+    "source": "CustomerReview",
+    "region": "South",
+    "topic": "Pricing",
+    "date": "2026-08-19"
+  },
+  {
+    "id": 104,
+    "text": "Sample CustomerReview about Conversion issues observed on 2026-04-28.",
+    "source": "CustomerReview",
+    "region": "East",
+    "topic": "Conversion",
+    "date": "2026-06-16"
+  },
+  {
+    "id": 105,
+    "text": "Sample CustomerReview about Pricing issues observed on 2026-07-21.",
+    "source": "CustomerReview",
+    "region": "East",
+    "topic": "Pricing",
+    "date": "2026-04-25"
+  },
+  {
+    "id": 106,
+    "text": "Sample SupportTicket about Seasonality issues observed on 2026-07-19.",
+    "source": "SupportTicket",
+    "region": "East",
+    "topic": "Seasonality",
+    "date": "2025-10-28"
+  },
+  {
+    "id": 107,
+    "text": "Sample SupportTicket about Inventory issues observed on 2026-01-22.",
+    "source": "SupportTicket",
+    "region": "East",
+    "topic": "Inventory",
+    "date": "2026-03-11"
+  },
+  {
+    "id": 108,
+    "text": "Sample CustomerReview about Delivery issues observed on 2026-01-18.",
+    "source": "CustomerReview",
+    "region": "East",
+    "topic": "Delivery",
+    "date": "2026-05-18"
+  },
+  {
+    "id": 109,
+    "text": "Sample InternalReport about Seasonality issues observed on 2026-01-30.",
+    "source": "InternalReport",
+    "region": "South",
+    "topic": "Seasonality",
+    "date": "2025-11-05"
+  },
+  {
+    "id": 110,
+    "text": "Sample CustomerReview about Conversion issues observed on 2026-02-28.",
+    "source": "CustomerReview",
+    "region": "North",
+    "topic": "Conversion",
+    "date": "2025-12-11"
+  },
+  {
+    "id": 111,
+    "text": "Sample InternalReport about Seasonality issues observed on 2026-03-14.",
+    "source": "InternalReport",
+    "region": "South",
+    "topic": "Seasonality",
+    "date": "2026-08-10"
+  },
+  {
+    "id": 112,
+    "text": "Sample CustomerReview about Conversion issues observed on 2026-07-11.",
+    "source": "CustomerReview",
+    "region": "North",
+    "topic": "Conversion",
+    "date": "2026-04-19"
+  },
+  {
+    "id": 113,
+    "text": "Sample InternalReport about Conversion issues observed on 2025-10-11.",
+    "source": "InternalReport",
+    "region": "North",
+    "topic": "Conversion",
+    "date": "2026-02-14"
+  },
+  {
+    "id": 114,
+    "text": "Sample SupportTicket about Delivery issues observed on 2026-01-14.",
+    "source": "SupportTicket",
+    "region": "South",
+    "topic": "Delivery",
+    "date": "2026-03-12"
+  },
+  {
+    "id": 115,
+    "text": "Sample InternalReport about Inventory issues observed on 2025-10-14.",
+    "source": "InternalReport",
+    "region": "East",
+    "topic": "Inventory",
+    "date": "2026-03-11"
+  },
+  {
+    "id": 116,
+    "text": "Sample CustomerReview about Inventory issues observed on 2025-10-02.",
+    "source": "CustomerReview",
+    "region": "South",
+    "topic": "Inventory",
+    "date": "2026-02-05"
+  },
+  {
+    "id": 117,
+    "text": "Sample SupportTicket about Inventory issues observed on 2026-06-05.",
+    "source": "SupportTicket",
+    "region": "West",
+    "topic": "Inventory",
+    "date": "2025-12-22"
+  },
+  {
+    "id": 118,
+    "text": "Sample SupportTicket about Conversion issues observed on 2026-06-15.",
+    "source": "SupportTicket",
+    "region": "West",
+    "topic": "Conversion",
+    "date": "2025-12-26"
+  },
+  {
+    "id": 119,
+    "text": "Sample InternalReport about Delivery issues observed on 2026-05-27.",
+    "source": "InternalReport",
+    "region": "South",
+    "topic": "Delivery",
+    "date": "2026-04-20"
+  },
+  {
+    "id": 120,
+    "text": "Sample InternalReport about Pricing issues observed on 2026-07-22.",
+    "source": "InternalReport",
+    "region": "East",
+    "topic": "Pricing",
+    "date": "2025-12-12"
+  },
+  {
+    "id": 121,
+    "text": "Sample InternalReport about Pricing issues observed on 2026-02-25.",
+    "source": "InternalReport",
+    "region": "North",
+    "topic": "Pricing",
+    "date": "2026-07-15"
+  },
+  {
+    "id": 122,
+    "text": "Sample SupportTicket about Seasonality issues observed on 2026-03-12.",
+    "source": "SupportTicket",
+    "region": "West",
+    "topic": "Seasonality",
+    "date": "2026-04-08"
+  },
+  {
+    "id": 123,
+    "text": "Sample InternalReport about Inventory issues observed on 2026-03-20.",
+    "source": "InternalReport",
+    "region": "West",
+    "topic": "Inventory",
+    "date": "2026-02-14"
+  },
+  {
+    "id": 124,
+    "text": "Sample InternalReport about Conversion issues observed on 2026-01-22.",
+    "source": "InternalReport",
+    "region": "East",
+    "topic": "Conversion",
+    "date": "2025-12-05"
+  },
+  {
+    "id": 125,
+    "text": "Sample InternalReport about Pricing issues observed on 2026-07-13.",
+    "source": "InternalReport",
+    "region": "North",
+    "topic": "Pricing",
+    "date": "2026-04-07"
+  },
+  {
+    "id": 126,
+    "text": "Sample SupportTicket about Inventory issues observed on 2026-03-22.",
+    "source": "SupportTicket",
+    "region": "West",
+    "topic": "Inventory",
+    "date": "2026-08-07"
+  },
+  {
+    "id": 127,
+    "text": "Sample SupportTicket about Conversion issues observed on 2025-10-27.",
+    "source": "SupportTicket",
+    "region": "South",
+    "topic": "Conversion",
+    "date": "2026-08-13"
+  },
+  {
+    "id": 128,
+    "text": "Sample SupportTicket about Delivery issues observed on 2025-12-29.",
+    "source": "SupportTicket",
+    "region": "East",
+    "topic": "Delivery",
+    "date": "2026-02-21"
+  },
+  {
+    "id": 129,
+    "text": "Sample SupportTicket about Conversion issues observed on 2026-01-17.",
+    "source": "SupportTicket",
+    "region": "East",
+    "topic": "Conversion",
+    "date": "2025-12-18"
+  },
+  {
+    "id": 130,
+    "text": "Sample SupportTicket about Delivery issues observed on 2026-03-26.",
+    "source": "SupportTicket",
+    "region": "West",
+    "topic": "Delivery",
+    "date": "2026-07-16"
+  },
+  {
+    "id": 131,
+    "text": "Sample CustomerReview about Conversion issues observed on 2026-06-28.",
+    "source": "CustomerReview",
+    "region": "West",
+    "topic": "Conversion",
+    "date": "2026-06-26"
+  },
+  {
+    "id": 132,
+    "text": "Sample CustomerReview about Pricing issues observed on 2026-08-18.",
+    "source": "CustomerReview",
+    "region": "North",
+    "topic": "Pricing",
+    "date": "2026-07-11"
+  },
+  {
+    "id": 133,
+    "text": "Sample InternalReport about Inventory issues observed on 2025-10-04.",
+    "source": "InternalReport",
+    "region": "South",
+    "topic": "Inventory",
+    "date": "2026-04-01"
+  },
+  {
+    "id": 134,
+    "text": "Sample SupportTicket about Inventory issues observed on 2026-05-03.",
+    "source": "SupportTicket",
+    "region": "East",
+    "topic": "Inventory",
+    "date": "2026-03-17"
+  },
+  {
+    "id": 135,
+    "text": "Sample SupportTicket about Conversion issues observed on 2026-01-07.",
+    "source": "SupportTicket",
+    "region": "South",
+    "topic": "Conversion",
+    "date": "2026-03-12"
+  },
+  {
+    "id": 136,
+    "text": "Sample CustomerReview about Seasonality issues observed on 2025-12-28.",
+    "source": "CustomerReview",
+    "region": "West",
+    "topic": "Seasonality",
+    "date": "2026-02-13"
+  },
+  {
+    "id": 137,
+    "text": "Sample CustomerReview about Inventory issues observed on 2026-02-01.",
+    "source": "CustomerReview",
+    "region": "South",
+    "topic": "Inventory",
+    "date": "2026-03-06"
+  },
+  {
+    "id": 138,
+    "text": "Sample InternalReport about Conversion issues observed on 2025-10-16.",
+    "source": "InternalReport",
+    "region": "South",
+    "topic": "Conversion",
+    "date": "2026-06-27"
+  },
+  {
+    "id": 139,
+    "text": "Sample SupportTicket about Inventory issues observed on 2026-05-30.",
+    "source": "SupportTicket",
+    "region": "West",
+    "topic": "Inventory",
+    "date": "2025-10-26"
+  },
+  {
+    "id": 140,
+    "text": "Sample InternalReport about Seasonality issues observed on 2026-04-02.",
+    "source": "InternalReport",
+    "region": "North",
+    "topic": "Seasonality",
+    "date": "2025-10-10"
+  },
+  {
+    "id": 141,
+    "text": "Sample CustomerReview about Pricing issues observed on 2026-04-23.",
+    "source": "CustomerReview",
+    "region": "East",
+    "topic": "Pricing",
+    "date": "2026-03-25"
+  },
+  {
+    "id": 142,
+    "text": "Sample InternalReport about Seasonality issues observed on 2025-12-25.",
+    "source": "InternalReport",
+    "region": "East",
+    "topic": "Seasonality",
+    "date": "2025-11-25"
+  },
+  {
+    "id": 143,
+    "text": "Sample CustomerReview about Seasonality issues observed on 2026-06-08.",
+    "source": "CustomerReview",
+    "region": "North",
+    "topic": "Seasonality",
+    "date": "2025-11-10"
+  },
+  {
+    "id": 144,
+    "text": "Sample SupportTicket about Conversion issues observed on 2026-01-15.",
+    "source": "SupportTicket",
+    "region": "North",
+    "topic": "Conversion",
+    "date": "2025-12-29"
+  },
+  {
+    "id": 145,
+    "text": "Sample InternalReport about Conversion issues observed on 2025-10-16.",
+    "source": "InternalReport",
+    "region": "North",
+    "topic": "Conversion",
+    "date": "2026-07-10"
+  },
+  {
+    "id": 146,
+    "text": "Sample CustomerReview about Delivery issues observed on 2025-12-20.",
+    "source": "CustomerReview",
+    "region": "North",
+    "topic": "Delivery",
+    "date": "2026-05-19"
+  },
+  {
+    "id": 147,
+    "text": "Sample SupportTicket about Seasonality issues observed on 2026-03-28.",
+    "source": "SupportTicket",
+    "region": "North",
+    "topic": "Seasonality",
+    "date": "2025-11-26"
+  },
+  {
+    "id": 148,
+    "text": "Sample InternalReport about Conversion issues observed on 2026-03-08.",
+    "source": "InternalReport",
+    "region": "North",
+    "topic": "Conversion",
+    "date": "2025-12-20"
+  },
+  {
+    "id": 149,
+    "text": "Sample InternalReport about Seasonality issues observed on 2025-10-27.",
+    "source": "InternalReport",
+    "region": "South",
+    "topic": "Seasonality",
+    "date": "2026-06-20"
+  },
+  {
+    "id": 150,
+    "text": "Sample SupportTicket about Seasonality issues observed on 2025-10-19.",
+    "source": "SupportTicket",
+    "region": "West",
+    "topic": "Seasonality",
+    "date": "2026-05-03"
+  },
+  {
+    "id": 151,
+    "text": "Sample CustomerReview about Conversion issues observed on 2025-10-28.",
+    "source": "CustomerReview",
+    "region": "West",
+    "topic": "Conversion",
+    "date": "2026-02-17"
+  },
+  {
+    "id": 152,
+    "text": "Sample CustomerReview about Inventory issues observed on 2026-06-14.",
+    "source": "CustomerReview",
+    "region": "East",
+    "topic": "Inventory",
+    "date": "2026-03-10"
+  },
+  {
+    "id": 153,
+    "text": "Sample CustomerReview about Delivery issues observed on 2026-03-15.",
+    "source": "CustomerReview",
+    "region": "South",
+    "topic": "Delivery",
+    "date": "2026-06-17"
+  },
+  {
+    "id": 154,
+    "text": "Sample CustomerReview about Conversion issues observed on 2026-03-15.",
+    "source": "CustomerReview",
+    "region": "West",
+    "topic": "Conversion",
+    "date": "2026-04-04"
+  },
+  {
+    "id": 155,
+    "text": "Sample CustomerReview about Seasonality issues observed on 2026-05-04.",
+    "source": "CustomerReview",
+    "region": "South",
+    "topic": "Seasonality",
+    "date": "2026-07-30"
+  },
+  {
+    "id": 156,
+    "text": "Sample CustomerReview about Seasonality issues observed on 2026-04-06.",
+    "source": "CustomerReview",
+    "region": "South",
+    "topic": "Seasonality",
+    "date": "2026-06-18"
+  },
+  {
+    "id": 157,
+    "text": "Sample CustomerReview about Conversion issues observed on 2025-12-10.",
+    "source": "CustomerReview",
+    "region": "South",
+    "topic": "Conversion",
+    "date": "2026-01-08"
+  },
+  {
+    "id": 158,
+    "text": "Sample CustomerReview about Seasonality issues observed on 2026-06-27.",
+    "source": "CustomerReview",
+    "region": "North",
+    "topic": "Seasonality",
+    "date": "2025-09-30"
+  },
+  {
+    "id": 159,
+    "text": "Sample InternalReport about Pricing issues observed on 2026-05-25.",
+    "source": "InternalReport",
+    "region": "East",
+    "topic": "Pricing",
+    "date": "2026-01-15"
+  },
+  {
+    "id": 160,
+    "text": "Sample CustomerReview about Inventory issues observed on 2026-03-11.",
+    "source": "CustomerReview",
+    "region": "East",
+    "topic": "Inventory",
+    "date": "2026-01-21"
+  },
+  {
+    "id": 161,
+    "text": "Sample InternalReport about Seasonality issues observed on 2026-06-13.",
+    "source": "InternalReport",
+    "region": "West",
+    "topic": "Seasonality",
+    "date": "2026-04-16"
+  },
+  {
+    "id": 162,
+    "text": "Sample InternalReport about Delivery issues observed on 2025-10-26.",
+    "source": "InternalReport",
+    "region": "West",
+    "topic": "Delivery",
+    "date": "2026-01-10"
+  },
+  {
+    "id": 163,
+    "text": "Sample InternalReport about Seasonality issues observed on 2026-01-10.",
+    "source": "InternalReport",
+    "region": "East",
+    "topic": "Seasonality",
+    "date": "2025-12-03"
+  },
+  {
+    "id": 164,
+    "text": "Sample CustomerReview about Seasonality issues observed on 2026-07-25.",
+    "source": "CustomerReview",
+    "region": "North",
+    "topic": "Seasonality",
+    "date": "2025-10-02"
+  },
+  {
+    "id": 165,
+    "text": "Sample SupportTicket about Delivery issues observed on 2026-03-03.",
+    "source": "SupportTicket",
+    "region": "East",
+    "topic": "Delivery",
+    "date": "2026-06-25"
+  },
+  {
+    "id": 166,
+    "text": "Sample InternalReport about Delivery issues observed on 2026-05-08.",
+    "source": "InternalReport",
+    "region": "South",
+    "topic": "Delivery",
+    "date": "2026-04-05"
+  },
+  {
+    "id": 167,
+    "text": "Sample InternalReport about Inventory issues observed on 2026-03-23.",
+    "source": "InternalReport",
+    "region": "South",
+    "topic": "Inventory",
+    "date": "2026-02-22"
+  },
+  {
+    "id": 168,
+    "text": "Sample CustomerReview about Delivery issues observed on 2026-04-09.",
+    "source": "CustomerReview",
+    "region": "South",
+    "topic": "Delivery",
+    "date": "2026-07-30"
+  },
+  {
+    "id": 169,
+    "text": "Sample SupportTicket about Pricing issues observed on 2025-10-02.",
+    "source": "SupportTicket",
+    "region": "East",
+    "topic": "Pricing",
+    "date": "2026-08-13"
+  },
+  {
+    "id": 170,
+    "text": "Sample SupportTicket about Inventory issues observed on 2026-05-09.",
+    "source": "SupportTicket",
+    "region": "North",
+    "topic": "Inventory",
+    "date": "2025-10-30"
+  },
+  {
+    "id": 171,
+    "text": "Sample SupportTicket about Seasonality issues observed on 2026-01-08.",
+    "source": "SupportTicket",
+    "region": "West",
+    "topic": "Seasonality",
+    "date": "2026-04-09"
+  },
+  {
+    "id": 172,
+    "text": "Sample InternalReport about Inventory issues observed on 2025-10-01.",
+    "source": "InternalReport",
+    "region": "West",
+    "topic": "Inventory",
+    "date": "2026-07-15"
+  },
+  {
+    "id": 173,
+    "text": "Sample SupportTicket about Seasonality issues observed on 2026-05-17.",
+    "source": "SupportTicket",
+    "region": "East",
+    "topic": "Seasonality",
+    "date": "2026-01-13"
+  },
+  {
+    "id": 174,
+    "text": "Sample InternalReport about Inventory issues observed on 2026-08-02.",
+    "source": "InternalReport",
+    "region": "West",
+    "topic": "Inventory",
+    "date": "2026-06-18"
+  },
+  {
+    "id": 175,
+    "text": "Sample CustomerReview about Seasonality issues observed on 2025-11-02.",
+    "source": "CustomerReview",
+    "region": "North",
+    "topic": "Seasonality",
+    "date": "2026-03-01"
+  },
+  {
+    "id": 176,
+    "text": "Sample CustomerReview about Delivery issues observed on 2025-11-16.",
+    "source": "CustomerReview",
+    "region": "North",
+    "topic": "Delivery",
+    "date": "2026-03-22"
+  },
+  {
+    "id": 177,
+    "text": "Sample SupportTicket about Seasonality issues observed on 2026-08-01.",
+    "source": "SupportTicket",
+    "region": "South",
+    "topic": "Seasonality",
+    "date": "2025-10-13"
+  },
+  {
+    "id": 178,
+    "text": "Sample InternalReport about Pricing issues observed on 2026-06-29.",
+    "source": "InternalReport",
+    "region": "South",
+    "topic": "Pricing",
+    "date": "2026-04-03"
+  },
+  {
+    "id": 179,
+    "text": "Sample CustomerReview about Delivery issues observed on 2026-04-03.",
+    "source": "CustomerReview",
+    "region": "East",
+    "topic": "Delivery",
+    "date": "2026-06-24"
+  },
+  {
+    "id": 180,
+    "text": "Sample SupportTicket about Conversion issues observed on 2025-11-18.",
+    "source": "SupportTicket",
+    "region": "South",
+    "topic": "Conversion",
+    "date": "2026-05-24"
+  },
+  {
+    "id": 181,
+    "text": "Sample SupportTicket about Pricing issues observed on 2025-10-16.",
+    "source": "SupportTicket",
+    "region": "West",
+    "topic": "Pricing",
+    "date": "2026-01-26"
+  },
+  {
+    "id": 182,
+    "text": "Sample InternalReport about Delivery issues observed on 2025-12-22.",
+    "source": "InternalReport",
+    "region": "West",
+    "topic": "Delivery",
+    "date": "2025-10-21"
+  },
+  {
+    "id": 183,
+    "text": "Sample InternalReport about Inventory issues observed on 2026-08-02.",
+    "source": "InternalReport",
+    "region": "South",
+    "topic": "Inventory",
+    "date": "2026-08-05"
+  },
+  {
+    "id": 184,
+    "text": "Sample InternalReport about Conversion issues observed on 2026-08-08.",
+    "source": "InternalReport",
+    "region": "West",
+    "topic": "Conversion",
+    "date": "2026-05-20"
+  },
+  {
+    "id": 185,
+    "text": "Sample SupportTicket about Conversion issues observed on 2026-02-08.",
+    "source": "SupportTicket",
+    "region": "West",
+    "topic": "Conversion",
+    "date": "2026-06-02"
+  },
+  {
+    "id": 186,
+    "text": "Sample CustomerReview about Delivery issues observed on 2026-01-15.",
+    "source": "CustomerReview",
+    "region": "South",
+    "topic": "Delivery",
+    "date": "2025-12-07"
+  },
+  {
+    "id": 187,
+    "text": "Sample SupportTicket about Pricing issues observed on 2026-02-07.",
+    "source": "SupportTicket",
+    "region": "West",
+    "topic": "Pricing",
+    "date": "2025-11-08"
+  },
+  {
+    "id": 188,
+    "text": "Sample CustomerReview about Conversion issues observed on 2026-07-12.",
+    "source": "CustomerReview",
+    "region": "North",
+    "topic": "Conversion",
+    "date": "2025-11-22"
+  },
+  {
+    "id": 189,
+    "text": "Sample SupportTicket about Seasonality issues observed on 2026-08-11.",
+    "source": "SupportTicket",
+    "region": "East",
+    "topic": "Seasonality",
+    "date": "2025-10-08"
+  },
+  {
+    "id": 190,
+    "text": "Sample SupportTicket about Conversion issues observed on 2026-01-22.",
+    "source": "SupportTicket",
+    "region": "West",
+    "topic": "Conversion",
+    "date": "2025-12-14"
+  },
+  {
+    "id": 191,
+    "text": "Sample InternalReport about Inventory issues observed on 2025-11-27.",
+    "source": "InternalReport",
+    "region": "West",
+    "topic": "Inventory",
+    "date": "2025-11-13"
+  },
+  {
+    "id": 192,
+    "text": "Sample CustomerReview about Inventory issues observed on 2025-11-17.",
+    "source": "CustomerReview",
+    "region": "North",
+    "topic": "Inventory",
+    "date": "2026-05-12"
+  },
+  {
+    "id": 193,
+    "text": "Sample CustomerReview about Pricing issues observed on 2026-02-18.",
+    "source": "CustomerReview",
+    "region": "West",
+    "topic": "Pricing",
+    "date": "2026-01-07"
+  },
+  {
+    "id": 194,
+    "text": "Sample CustomerReview about Delivery issues observed on 2025-10-27.",
+    "source": "CustomerReview",
+    "region": "South",
+    "topic": "Delivery",
+    "date": "2025-12-06"
+  },
+  {
+    "id": 195,
+    "text": "Sample InternalReport about Conversion issues observed on 2026-08-17.",
+    "source": "InternalReport",
+    "region": "East",
+    "topic": "Conversion",
+    "date": "2026-04-15"
+  },
+  {
+    "id": 196,
+    "text": "Sample SupportTicket about Seasonality issues observed on 2026-03-29.",
+    "source": "SupportTicket",
+    "region": "West",
+    "topic": "Seasonality",
+    "date": "2026-03-08"
+  },
+  {
+    "id": 197,
+    "text": "Sample CustomerReview about Conversion issues observed on 2026-03-29.",
+    "source": "CustomerReview",
+    "region": "West",
+    "topic": "Conversion",
+    "date": "2026-04-24"
+  },
+  {
+    "id": 198,
+    "text": "Sample SupportTicket about Pricing issues observed on 2026-07-15.",
+    "source": "SupportTicket",
+    "region": "North",
+    "topic": "Pricing",
+    "date": "2025-11-28"
+  },
+  {
+    "id": 199,
+    "text": "Sample SupportTicket about Pricing issues observed on 2026-05-27.",
+    "source": "SupportTicket",
+    "region": "North",
+    "topic": "Pricing",
+    "date": "2025-10-29"
+  },
+  {
+    "id": 200,
+    "text": "Sample SupportTicket about Conversion issues observed on 2026-07-01.",
+    "source": "SupportTicket",
+    "region": "South",
+    "topic": "Conversion",
+    "date": "2026-05-30"
+  }
+]
