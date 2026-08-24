@@ -5,3 +5,6 @@ trace-app/node_modules/
 # Large/reference files
 TRACE_IITKharagpur.mp4
 TRACE_IITKharagpur.pdf
+
+# next.js
+/.next/
