@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import Link from "next/link";
 import "./globals.css";
 import { Activity } from "lucide-react";
 
@@ -34,7 +35,7 @@ export default function RootLayout({
             <span>TRACE</span>
           </div>
           <nav className="flex gap-6 text-sm font-medium text-muted-foreground">
-            <a href="/" className="hover:text-primary-foreground transition-colors">Dashboard</a>
+            <Link href="/" className="hover:text-primary-foreground transition-colors">Dashboard</Link>
             <a href="#" className="hover:text-primary-foreground transition-colors">Investigations</a>
             <a href="#" className="hover:text-primary-foreground transition-colors">Settings</a>
           </nav>

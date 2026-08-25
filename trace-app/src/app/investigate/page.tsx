@@ -113,7 +113,7 @@ export default function InvestigatePage() {
                   cursor={{ fill: 'var(--muted)' }}
                   contentStyle={{ backgroundColor: 'var(--card)', borderColor: 'var(--border)', borderRadius: '8px' }}
                   itemStyle={{ color: 'var(--foreground)' }}
-                  formatter={(value: any) => value !== undefined ? [`₹${value}M`, 'Contribution'] : ['', '']}
+                  formatter={(value: number | undefined) => value !== undefined ? [`₹${value}M`, 'Contribution'] : ['', '']}
                 />
                 <Bar dataKey="value" radius={[4, 4, 4, 4]}>
                   {decompositionData.map((entry, index) => (

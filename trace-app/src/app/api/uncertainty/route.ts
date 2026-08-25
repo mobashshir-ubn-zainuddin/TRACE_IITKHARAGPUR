@@ -12,7 +12,8 @@ export async function GET(request: Request) {
   try {
     const result = await computeUncertainty(metric, month);
     return NextResponse.json(result);
-  } catch (err: any) {
-    return NextResponse.json({ error: err.message || "Error" }, { status: 500 });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Error";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

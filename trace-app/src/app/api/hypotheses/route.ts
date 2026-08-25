@@ -12,7 +12,8 @@ export async function GET(request: Request) {
   try {
     const results = await scoreHypotheses(metric, month);
     return NextResponse.json(results);
-  } catch (err: any) {
-    return NextResponse.json({ error: err.message || "Error" }, { status: 500 });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Error";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

@@ -49,7 +49,7 @@ export default function InvestigatePage() {
               Investigation Module
             </h2>
             <p className="text-slate-500 dark:text-slate-400 mb-6 max-w-md mx-auto">
-              This is a placeholder for the "WHY" investigation view. The RAG pipeline, hypothesis engine, evidence scoring, and recommendation engine will be implemented here.
+              This is a placeholder for the &quot;WHY&quot; investigation view. The RAG pipeline, hypothesis engine, evidence scoring, and recommendation engine will be implemented here.
             </p>
             <div className="space-y-3 text-left max-w-md mx-auto text-sm">
               <div className="flex items-center gap-3 p-3 bg-slate-50 dark:bg-slate-800 rounded-lg">
