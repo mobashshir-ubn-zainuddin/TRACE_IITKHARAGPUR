@@ -8,3 +8,10 @@ TRACE_IITKharagpur.pdf
 
 # next.js
 /.next/
+
+# opencode
+.opencode/
+
+.env
+.env.local
+graphify-out/
