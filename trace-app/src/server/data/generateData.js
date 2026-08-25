@@ -38,7 +38,9 @@ async function main() {
     DELETE FROM data_sources;
     DELETE FROM products;
     DELETE FROM regions;
-  `);
+  `).catch(() => {
+    // Tables might not exist yet, that's fine
+  });
 
   const regions = [
     { id: 1, name: "North" },

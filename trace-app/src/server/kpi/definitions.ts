@@ -59,8 +59,8 @@ export const KPI_DEFINITIONS: Record<string, KPIDefinition> = {
   conversion: {
     name: 'conversion',
     label: 'Conversion Rate',
-    description: 'Marketing conversions per session',
-    formula: 'SUM(conversions) / SUM(sessions)',
+    description: 'Marketing conversions per session (percentage)',
+    formula: 'SUM(conversions) / SUM(sessions) * 100',
     source: 'marketing_daily',
     sourceColumns: ['conversions', 'sessions'],
     dimensions: ['region', 'product'],
@@ -68,7 +68,7 @@ export const KPI_DEFINITIONS: Record<string, KPIDefinition> = {
     drivers: ['campaign', 'channel', 'traffic_quality'],
     aggregation: 'ratio',
     refreshCadence: 'daily',
-    materialityThreshold: { absolute: 0.02, relative: 0.10 }
+    materialityThreshold: { absolute: 2.0, relative: 0.10 }
   },
   marketingROI: {
     name: 'marketingROI',
@@ -92,4 +92,27 @@ export function getKPIDefinition(name: string): KPIDefinition | undefined {
 
 export function getAllKPIMetrics(): string[] {
   return Object.keys(KPI_DEFINITIONS);
+}
+
+export const METRIC_ALIASES: Record<string, string> = {
+  revenue: 'revenue',
+  Revenue: 'revenue',
+  REVENUE: 'revenue',
+  orders: 'orders',
+  Orders: 'orders',
+  ORDERS: 'orders',
+  aov: 'aov',
+  AOV: 'aov',
+  Aov: 'aov',
+  conversion: 'conversion',
+  Conversion: 'conversion',
+  CONVERSION: 'conversion',
+  marketingROI: 'marketingROI',
+  MarketingROI: 'marketingROI',
+  'marketing roi': 'marketingROI',
+  'Marketing ROI': 'marketingROI',
+};
+
+export function normalizeMetric(metric: string): string {
+  return METRIC_ALIASES[metric] ?? metric.toLowerCase();
 }

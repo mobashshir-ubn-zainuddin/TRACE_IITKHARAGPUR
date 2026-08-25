@@ -19,6 +19,7 @@ export interface KPIResponse {
   metric: string;
   label: string;
   period: string;
+  month: string; // backward compatibility
   value: number;
   previousValue: number;
   changePct: number;
