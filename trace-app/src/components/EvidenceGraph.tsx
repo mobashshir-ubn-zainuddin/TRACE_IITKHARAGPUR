@@ -3,15 +3,19 @@ import { useEffect, useState } from "react";
 import { ReactFlow, Background, Controls, type Edge, type Node } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 
-type EvidenceNode = {
-  id: string;
+interface EvidenceNodeData {
   label: string;
-};
+}
+
+interface EvidenceItem {
+  id: number;
+  topic: string;
+}
 
 export function EvidenceGraph() {
   const [metric, setMetric] = useState<string>("revenue");
   const [month, setMonth] = useState<string>("2024-08");
-  const [nodes, setNodes] = useState<Node[]>([]);
+  const [nodes, setNodes] = useState<Node<EvidenceNodeData>[]>([]);
   const [edges, setEdges] = useState<Edge[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
 
@@ -20,8 +24,8 @@ export function EvidenceGraph() {
       setLoading(true);
       try {
         const res = await fetch(`/api/evidence?kpi=${metric}&month=${month}`);
-        const data = await res.json();
-        const n: Node[] = data.map((e: any, i: number) => ({
+        const data: EvidenceItem[] = await res.json();
+        const n: Node<EvidenceNodeData>[] = data.map((e, i) => ({
           id: e.id.toString(),
           data: { label: e.topic },
           position: { x: i * 150, y: 0 },

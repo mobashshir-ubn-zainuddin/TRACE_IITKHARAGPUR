@@ -4,12 +4,19 @@ import { useEffect, useState } from "react";
 import { LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid, ResponsiveContainer } from "recharts";
 import { Loader2 } from "lucide-react";
 
-type KPIData = {
+interface KPIData {
   month: string;
   value: number;
   is_anomaly: boolean;
   severity?: "low" | "medium" | "high";
-};
+}
+
+interface KPIApiResponse {
+  month: string;
+  value: number;
+  is_anomaly: boolean;
+  severity?: "low" | "medium" | "high";
+}
 
 export default function Dashboard() {
   const [metric, setMetric] = useState<string>("revenue");
@@ -30,7 +37,7 @@ export default function Dashboard() {
         );
         const results = await Promise.all(promises);
         setData(
-          results.map((r: any) => ({
+          results.map((r: KPIApiResponse) => ({
             month: r.month,
             value: r.value,
             is_anomaly: r.is_anomaly,

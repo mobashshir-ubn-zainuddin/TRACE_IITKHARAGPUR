@@ -15,7 +15,7 @@ function cosine(a: number[], b: number[]): number {
   return normA && normB ? dot / (normA * normB) : 0;
 }
 
-let embeddingCache: Record<number, number[]> = {};
+const embeddingCache: Record<number, number[]> = {};
 
 /** Load evidence JSON and lazily compute embeddings */
 export async function loadEvidence(): Promise<EvidenceItem[]> {
@@ -25,7 +25,7 @@ export async function loadEvidence(): Promise<EvidenceItem[]> {
     if (!embeddingCache[item.id]) {
       embeddingCache[item.id] = randomVector();
     }
-    (item as any).embedding = embeddingCache[item.id];
+    item.embedding = embeddingCache[item.id];
   });
   return data;
 }
@@ -40,7 +40,7 @@ export async function searchEvidence(kpiSignal: number, topN = 10): Promise<Evid
   const signalVec = Array(128).fill(kpiSignal / 1e5); // scale down
   const scored = evidence.map((item) => ({
     item,
-    score: cosine((item as any).embedding, signalVec),
+    score: cosine(item.embedding ?? [], signalVec),
   }));
   scored.sort((a, b) => b.score - a.score);
   return scored.slice(0, topN).map((s) => s.item);

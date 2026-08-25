@@ -1,6 +1,4 @@
 // src/server/hypothesis/index.ts
-import { readJSON } from "../utils";
-import type { EvidenceItem } from "../types";
 import { searchEvidence } from "../evidence";
 
 export interface Hypothesis {
@@ -38,7 +36,6 @@ export async function scoreHypotheses(metric: string, month: string): Promise<Hy
     const support = topEvidence.filter((e) =>
       e.topic.toLowerCase().includes(keyword)
     ).length;
-    const contradiction = 0; // placeholder
     const confidence = Math.min(100, Math.round((support / topEvidence.length) * 100));
     return { ...h, confidence };
   });

@@ -28,7 +28,7 @@ function KpiCard({
   value: string, 
   change: string, 
   trend: 'up' | 'down' | 'neutral', 
-  data: any[],
+  data: { val: number }[],
   isAnomaly?: boolean 
 }) {
   const isDown = trend === 'down';
