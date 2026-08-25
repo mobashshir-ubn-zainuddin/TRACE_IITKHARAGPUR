@@ -1,64 +1,400 @@
-// src/server/kpi/index.ts
-import { readJSON } from "../utils";
+import { getDB } from "../db";
+import { getKPIDefinition } from "./definitions";
+import { buildLineage } from "./lineage";
+import { computeDataQuality } from "./quality";
+import { computeFreshness } from "./freshness";
+import type { KPIResponse } from "../types";
 
-type KPIRecord = {
-  month: string; // YYYY-MM
-  region: string;
-  product: string;
-  revenue: number;
-  orders: number;
-  aov: number;
-};
+async function resolveRegionId(region?: string): Promise<number | undefined> {
+  if (!region) return undefined;
+  const db = await getDB();
+  const row = await db.get("SELECT id FROM regions WHERE name = ?", region);
+  return row?.id;
+}
 
-export type KPIResponse = {
-  kpi: string; // e.g., "Revenue"
-  month: string;
-  value: number;
-  change_pct: number; // month‑over‑month percent change
-  is_anomaly: boolean;
-  severity?: "low" | "medium" | "high";
-};
+async function resolveProductId(product?: string): Promise<number | undefined> {
+  if (!product) return undefined;
+  const db = await getDB();
+  const row = await db.get("SELECT id FROM products WHERE name = ?", product);
+  return row?.id;
+}
 
-/**
- * Compute the aggregate KPI for the given metric and month across all regions/products.
- * Supports "revenue", "orders", "aov".
- */
-export async function computeKPI(metric: string, month: string): Promise<KPIResponse> {
-  const data = await readJSON<KPIRecord[]>("kpis.json");
-  const metricKey = metric.toLowerCase();
-  if (!["revenue", "orders", "aov"].includes(metricKey)) {
-    throw new Error(`Unsupported metric ${metric}`);
+function monthToDateRange(month: string): { start: string; end: string } {
+  const [year, monthNum] = month.split("-").map(Number);
+  const start = `${year}-${monthNum.toString().padStart(2, "0")}-01`;
+  const endDate = new Date(year, monthNum, 0);
+  const end = `${year}-${monthNum.toString().padStart(2, "0")}-${endDate.getDate()}`;
+  return { start, end };
+}
+
+function prevMonth(month: string): string {
+  const [year, monthNum] = month.split("-").map(Number);
+  const d = new Date(year, monthNum - 1, 1);
+  return d.toISOString().slice(0, 7);
+}
+
+async function computeRevenue(filters: { month: string; region?: string; product?: string; channel?: string }): Promise<{ current: number; previous: number }> {
+  const db = await getDB();
+  const { start, end } = monthToDateRange(filters.month);
+  const prevMonthStr = prevMonth(filters.month);
+  const { start: prevStart, end: prevEnd } = monthToDateRange(prevMonthStr);
+
+  let whereClause = "WHERE transaction_date BETWEEN ? AND ?";
+  const params: (string | number)[] = [start, end];
+  const prevParams: (string | number)[] = [prevStart, prevEnd];
+
+  if (filters.region) {
+    const regionId = await resolveRegionId(filters.region);
+    if (regionId) {
+      whereClause += " AND region_id = ?";
+      params.push(regionId);
+      prevParams.push(regionId);
+    }
+  }
+  if (filters.product) {
+    const productId = await resolveProductId(filters.product);
+    if (productId) {
+      whereClause += " AND product_id = ?";
+      params.push(productId);
+      prevParams.push(productId);
+    }
+  }
+  if (filters.channel) {
+    whereClause += " AND channel = ?";
+    params.push(filters.channel);
+    prevParams.push(filters.channel);
   }
 
-  const monthData = data.filter((d) => d.month === month);
-  const prevMonth = new Date(month + "-01");
-  prevMonth.setMonth(prevMonth.getMonth() - 1);
-  const prevMonthStr = prevMonth.toISOString().slice(0, 7);
-  const prevData = data.filter((d) => d.month === prevMonthStr);
-
-  const sum = (arr: KPIRecord[]) =>
-    arr.reduce((acc, cur) => acc + (cur as any)[metricKey], 0);
-
-  const curValue = sum(monthData);
-  const prevValue = sum(prevData) || 0;
-  const changePct = prevValue === 0 ? 0 : ((curValue - prevValue) / prevValue) * 100;
-
-  // Simple anomaly detection: flag if absolute change > 20% and Z‑score > 2
-  const allValues = data.filter((d) => d.month === month).map((d) => (d as any)[metricKey]);
-  const mean = allValues.reduce((a, b) => a + b, 0) / allValues.length;
-  const std = Math.sqrt(
-    allValues.reduce((a, b) => a + Math.pow(b - mean, 2), 0) / allValues.length
+  const current = await db.get(
+    `SELECT COALESCE(SUM(net_revenue), 0) as val FROM sales_transactions ${whereClause}`,
+    ...params
   );
-  const z = std === 0 ? 0 : (curValue - mean) / std;
-  const isAnomaly = Math.abs(changePct) > 20 && Math.abs(z) > 2;
-  const severity = Math.abs(changePct) > 30 ? "high" : Math.abs(changePct) > 20 ? "medium" : "low";
+  const previous = await db.get(
+    `SELECT COALESCE(SUM(net_revenue), 0) as val FROM sales_transactions ${whereClause}`,
+    ...prevParams
+  );
+
+  return { current: current?.val || 0, previous: previous?.val || 0 };
+}
+
+async function computeOrders(filters: { month: string; region?: string; product?: string; channel?: string }): Promise<{ current: number; previous: number }> {
+  const db = await getDB();
+  const { start, end } = monthToDateRange(filters.month);
+  const prevMonthStr = prevMonth(filters.month);
+  const { start: prevStart, end: prevEnd } = monthToDateRange(prevMonthStr);
+
+  let whereClause = "WHERE transaction_date BETWEEN ? AND ?";
+  const params: (string | number)[] = [start, end];
+  const prevParams: (string | number)[] = [prevStart, prevEnd];
+
+  if (filters.region) {
+    const regionId = await resolveRegionId(filters.region);
+    if (regionId) {
+      whereClause += " AND region_id = ?";
+      params.push(regionId);
+      prevParams.push(regionId);
+    }
+  }
+  if (filters.product) {
+    const productId = await resolveProductId(filters.product);
+    if (productId) {
+      whereClause += " AND product_id = ?";
+      params.push(productId);
+      prevParams.push(productId);
+    }
+  }
+  if (filters.channel) {
+    whereClause += " AND channel = ?";
+    params.push(filters.channel);
+    prevParams.push(filters.channel);
+  }
+
+  const current = await db.get(
+    `SELECT COUNT(DISTINCT order_id) as val FROM sales_transactions ${whereClause}`,
+    ...params
+  );
+  const previous = await db.get(
+    `SELECT COUNT(DISTINCT order_id) as val FROM sales_transactions ${whereClause}`,
+    ...prevParams
+  );
+
+  return { current: current?.val || 0, previous: previous?.val || 0 };
+}
+
+async function computeAOV(filters: { month: string; region?: string; product?: string; channel?: string }): Promise<{ current: number; previous: number }> {
+  const { current: revenue, previous: prevRevenue } = await computeRevenue(filters);
+  const { current: orders, previous: prevOrders } = await computeOrders(filters);
+  
+  const current = orders > 0 ? revenue / orders : 0;
+  const previous = prevOrders > 0 ? prevRevenue / prevOrders : 0;
+  
+  return { current, previous };
+}
+
+async function computeConversion(filters: { month: string; region?: string; product?: string }): Promise<{ current: number; previous: number }> {
+  const db = await getDB();
+  const { start, end } = monthToDateRange(filters.month);
+  const prevMonthStr = prevMonth(filters.month);
+  const { start: prevStart, end: prevEnd } = monthToDateRange(prevMonthStr);
+
+  let whereClause = "WHERE date BETWEEN ? AND ?";
+  const params: (string | number)[] = [start, end];
+  const prevParams: (string | number)[] = [prevStart, prevEnd];
+
+  if (filters.region) {
+    const regionId = await resolveRegionId(filters.region);
+    if (regionId) {
+      whereClause += " AND region_id = ?";
+      params.push(regionId);
+      prevParams.push(regionId);
+    }
+  }
+  if (filters.product) {
+    const productId = await resolveProductId(filters.product);
+    if (productId) {
+      whereClause += " AND product_id = ?";
+      params.push(productId);
+      prevParams.push(productId);
+    }
+  }
+
+  const current = await db.get(
+    `SELECT 
+      COALESCE(SUM(conversions), 0) as conv,
+      COALESCE(SUM(sessions), 0) as sess
+     FROM marketing_daily ${whereClause}`,
+    ...params
+  );
+  const previous = await db.get(
+    `SELECT 
+      COALESCE(SUM(conversions), 0) as conv,
+      COALESCE(SUM(sessions), 0) as sess
+     FROM marketing_daily ${whereClause}`,
+    ...prevParams
+  );
+
+  const currentVal = current?.sess > 0 ? (current?.conv / current?.sess) * 100 : 0;
+  const previousVal = previous?.sess > 0 ? (previous?.conv / previous?.sess) * 100 : 0;
+
+  return { current: currentVal, previous: previousVal };
+}
+
+async function computeMarketingROI(filters: { month: string; region?: string; product?: string }): Promise<{ current: number; previous: number }> {
+  const db = await getDB();
+  const { start, end } = monthToDateRange(filters.month);
+  const prevMonthStr = prevMonth(filters.month);
+  const { start: prevStart, end: prevEnd } = monthToDateRange(prevMonthStr);
+
+  let whereClause = "WHERE date BETWEEN ? AND ?";
+  const params: (string | number)[] = [start, end];
+  const prevParams: (string | number)[] = [prevStart, prevEnd];
+
+  if (filters.region) {
+    const regionId = await resolveRegionId(filters.region);
+    if (regionId) {
+      whereClause += " AND region_id = ?";
+      params.push(regionId);
+      prevParams.push(regionId);
+    }
+  }
+  if (filters.product) {
+    const productId = await resolveProductId(filters.product);
+    if (productId) {
+      whereClause += " AND product_id = ?";
+      params.push(productId);
+      prevParams.push(productId);
+    }
+  }
+
+  const current = await db.get(
+    `SELECT 
+      COALESCE(SUM(attributed_revenue), 0) as rev,
+      COALESCE(SUM(marketing_spend), 0) as spend
+     FROM marketing_daily ${whereClause}`,
+    ...params
+  );
+  const previous = await db.get(
+    `SELECT 
+      COALESCE(SUM(attributed_revenue), 0) as rev,
+      COALESCE(SUM(marketing_spend), 0) as spend
+     FROM marketing_daily ${whereClause}`,
+    ...prevParams
+  );
+
+  const currentVal = current?.spend > 0 ? current?.rev / current?.spend : 0;
+  const previousVal = previous?.spend > 0 ? previous?.rev / previous?.spend : 0;
+
+  return { current: currentVal, previous: previousVal };
+}
+
+export async function computeKPI(metric: string, month: string, filters?: { region?: string; product?: string; channel?: string }): Promise<KPIResponse> {
+  const def = getKPIDefinition(metric);
+  if (!def) {
+    throw new Error(`Unsupported metric: ${metric}`);
+  }
+
+  const filterObj = { month, ...filters };
+  let result: { current: number; previous: number };
+
+  switch (metric) {
+    case 'revenue':
+      result = await computeRevenue(filterObj);
+      break;
+    case 'orders':
+      result = await computeOrders(filterObj);
+      break;
+    case 'aov':
+      result = await computeAOV(filterObj);
+      break;
+    case 'conversion':
+      result = await computeConversion(filterObj);
+      break;
+    case 'marketingROI':
+      result = await computeMarketingROI(filterObj);
+      break;
+    default:
+      throw new Error(`Unsupported metric: ${metric}`);
+  }
+
+  const changePct = result.previous === 0 ? 0 : ((result.current - result.previous) / result.previous) * 100;
+
+  const quality = await computeDataQuality();
+  const freshness = await computeFreshness();
+
+  const lineage = buildLineage(metric, { month, ...filters });
 
   return {
-    kpi: metric.charAt(0).toUpperCase() + metric.slice(1),
-    month,
-    value: curValue,
-    change_pct: Number(changePct.toFixed(2)),
-    is_anomaly: isAnomaly,
-    severity: isAnomaly ? (severity as any) : undefined,
+    metric: def.name,
+    label: def.label,
+    period: month,
+    value: Math.round(result.current * 100) / 100,
+    previousValue: Math.round(result.previous * 100) / 100,
+    changePct: Math.round(changePct * 100) / 100,
+    unit: def.unit,
+    dimensions: { region: filters?.region, product: filters?.product, channel: filters?.channel },
+    source: { table: def.source, columns: def.sourceColumns },
+    lineage: { formula: def.formula, filters: { month, ...filters }, generatedAt: lineage.generatedAt },
+    quality: { status: quality.status, completenessPct: quality.completenessPct },
+    freshness: { status: freshness[0]?.freshnessStatus || 'fresh', source: freshness[0]?.source || 'unknown' },
+    is_anomaly: Math.abs(changePct) > 20,
+    severity: Math.abs(changePct) > 30 ? 'high' : Math.abs(changePct) > 20 ? 'medium' : 'low'
   };
+}
+
+export async function getKPIHistory(metric: string, filters?: { region?: string; product?: string; start?: string; end?: string }): Promise<Array<{ period: string; value: number }>> {
+  const months = filters?.start && filters?.end 
+    ? getMonthsInRange(filters.start, filters.end)
+    : getLastNMonths(12);
+
+  const results = [];
+  for (const month of months) {
+    try {
+      const kpi = await computeKPI(metric, month, { region: filters?.region, product: filters?.product });
+      results.push({ period: month, value: kpi.value });
+    } catch {
+      results.push({ period: month, value: 0 });
+    }
+  }
+  return results;
+}
+
+function getLastNMonths(n: number): string[] {
+  const months: string[] = [];
+  const now = new Date();
+  for (let i = n - 1; i >= 0; i--) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    months.push(d.toISOString().slice(0, 7));
+  }
+  return months;
+}
+
+function getMonthsInRange(start: string, end: string): string[] {
+  const months: string[] = [];
+  const [startYear, startMonth] = start.split("-").map(Number);
+  const [endYear, endMonth] = end.split("-").map(Number);
+  
+  for (let y = startYear; y <= endYear; y++) {
+    const mStart = y === startYear ? startMonth : 1;
+    const mEnd = y === endYear ? endMonth : 12;
+    for (let m = mStart; m <= mEnd; m++) {
+      months.push(`${y}-${m.toString().padStart(2, "0")}`);
+    }
+  }
+  return months;
+}
+
+export async function getKPIBreakdown(metric: string, month: string, dimension: string, filters?: { region?: string; product?: string }): Promise<Array<{ dimensionValue: string; value: number; contributionPct: number }>> {
+  const db = await getDB();
+  const { start, end } = monthToDateRange(month);
+
+  let dimensionColumn: string;
+
+  switch (dimension) {
+    case 'region':
+      dimensionColumn = "r.name";
+      break;
+    case 'product':
+      dimensionColumn = "p.name";
+      break;
+    case 'channel':
+      dimensionColumn = "st.channel";
+      break;
+    default:
+      throw new Error(`Unsupported dimension: ${dimension}`);
+  }
+
+  let whereClause = "WHERE st.transaction_date BETWEEN ? AND ?";
+  const params: (string | number)[] = [start, end];
+
+  if (filters?.region) {
+    const regionId = await resolveRegionId(filters.region);
+    if (regionId) {
+      whereClause += " AND st.region_id = ?";
+      params.push(regionId);
+    }
+  }
+  if (filters?.product) {
+    const productId = await resolveProductId(filters.product);
+    if (productId) {
+      whereClause += " AND st.product_id = ?";
+      params.push(productId);
+    }
+  }
+
+  let selectClause = "";
+
+  if (metric === 'revenue') {
+    selectClause = `SUM(st.net_revenue) as val`;
+  } else if (metric === 'orders') {
+    selectClause = `COUNT(DISTINCT st.order_id) as val`;
+  } else if (metric === 'aov') {
+    selectClause = `CASE WHEN COUNT(DISTINCT st.order_id) > 0 THEN SUM(st.net_revenue) / COUNT(DISTINCT st.order_id) ELSE 0 END as val`;
+  } else {
+    throw new Error(`Breakdown not supported for metric: ${metric}`);
+  }
+
+  let joinClause = "";
+  if (dimension === 'region') {
+    joinClause = "JOIN regions r ON st.region_id = r.id";
+  } else if (dimension === 'product') {
+    joinClause = "JOIN products p ON st.product_id = p.id";
+  }
+
+  const query = `
+    SELECT ${dimensionColumn} as dimension_value, ${selectClause}
+    FROM sales_transactions st
+    ${joinClause}
+    ${whereClause}
+    GROUP BY ${dimensionColumn}
+    ORDER BY val DESC
+  `;
+
+  const rows = await db.all(query, ...params);
+  const total = rows.reduce((sum, r) => sum + (r.val || 0), 0);
+
+  return rows.map(r => ({
+    dimensionValue: r.dimension_value,
+    value: Math.round((r.val || 0) * 100) / 100,
+    contributionPct: total > 0 ? Math.round(((r.val || 0) / total) * 10000) / 100 : 0
+  }));
 }
