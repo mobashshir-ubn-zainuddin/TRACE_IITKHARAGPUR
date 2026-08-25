@@ -15,6 +15,21 @@ export interface DecisionItem {
   timestamp: string;
 }
 
+export interface BaselineResult {
+  mean: number;
+  median: number;
+  stdDev: number;
+  mad?: number;
+  percentiles?: {
+    p10: number;
+    p25: number;
+    p50: number;
+    p75: number;
+    p90: number;
+  };
+  historyLength: number;
+}
+
 export interface KPIResponse {
   metric: string;
   label: string;

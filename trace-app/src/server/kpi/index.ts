@@ -297,11 +297,128 @@ export async function getKPIHistory(metric: string, filters?: { region?: string;
     ? getMonthsInRange(filters.start, filters.end)
     : getLastNMonths(12);
 
-  const results = [];
-  for (const month of months) {
-    const kpi = await computeKPI(normalizedMetric, month, { region: filters?.region, product: filters?.product });
-    results.push({ period: month, value: kpi.value });
+  return getKPIHistoryBatched(normalizedMetric, months, filters);
+}
+
+export async function getKPIHistoryBatched(metric: string, months: string[], filters?: { region?: string; product?: string; channel?: string }): Promise<Array<{ period: string; value: number }>> {
+  const normalizedMetric = normalizeMetric(metric);
+  const def = getKPIDefinition(normalizedMetric);
+  if (!def) {
+    throw new Error(`Unsupported metric: ${metric}`);
   }
+
+  const db = await getDB();
+  const results: Array<{ period: string; value: number }> = [];
+
+  if (normalizedMetric === 'revenue' || normalizedMetric === 'orders') {
+    const column = normalizedMetric === 'revenue' ? 'SUM(net_revenue)' : 'COUNT(DISTINCT order_id)';
+    const regionId = filters?.region ? await resolveRegionId(filters.region) : undefined;
+    const productId = filters?.product ? await resolveProductId(filters.product) : undefined;
+
+    let whereClause = "";
+    const params: (string | number)[] = [];
+    const monthConditions: string[] = [];
+
+    for (const month of months) {
+      const { start, end } = monthToDateRange(month);
+      monthConditions.push(`(transaction_date BETWEEN ? AND ?`);
+      params.push(start, end);
+      if (regionId) {
+        monthConditions[monthConditions.length - 1] += ` AND region_id = ?`;
+        params.push(regionId);
+      }
+      if (productId) {
+        monthConditions[monthConditions.length - 1] += ` AND product_id = ?`;
+        params.push(productId);
+      }
+      if (filters?.channel) {
+        monthConditions[monthConditions.length - 1] += ` AND channel = ?`;
+        params.push(filters.channel);
+      }
+      monthConditions[monthConditions.length - 1] += `)`;
+    }
+
+    whereClause = monthConditions.join(" OR ");
+
+    const query = `SELECT 
+      strftime('%Y-%m', transaction_date) as period,
+      ${column} as val
+    FROM sales_transactions
+    WHERE ${whereClause}
+    GROUP BY strftime('%Y-%m', transaction_date)
+    ORDER BY period`;
+
+    const rows = await db.all(query, ...params);
+    const rowMap = new Map(rows.map(r => [r.period, r.val || 0]));
+
+    for (const month of months) {
+      results.push({ period: month, value: rowMap.get(month) || 0 });
+    }
+  } else if (normalizedMetric === 'aov') {
+    const revenueHistory = await getKPIHistoryBatched('revenue', months, filters);
+    const ordersHistory = await getKPIHistoryBatched('orders', months, filters);
+    const revenueMap = new Map(revenueHistory.map(r => [r.period, r.value]));
+    const ordersMap = new Map(ordersHistory.map(r => [r.period, r.value]));
+    
+    for (const month of months) {
+      const revenue = revenueMap.get(month) || 0;
+      const orders = ordersMap.get(month) || 0;
+      results.push({ period: month, value: orders > 0 ? revenue / orders : 0 });
+    }
+  } else if (normalizedMetric === 'conversion' || normalizedMetric === 'marketingROI') {
+    const table = 'marketing_daily';
+    const regionId = filters?.region ? await resolveRegionId(filters.region) : undefined;
+    const productId = filters?.product ? await resolveProductId(filters.product) : undefined;
+
+    let selectClause = "";
+    if (normalizedMetric === 'conversion') {
+      selectClause = `CASE WHEN SUM(sessions) > 0 THEN SUM(conversions) * 100.0 / SUM(sessions) ELSE 0 END`;
+    } else {
+      selectClause = `CASE WHEN SUM(marketing_spend) > 0 THEN SUM(attributed_revenue) * 1.0 / SUM(marketing_spend) ELSE 0 END`;
+    }
+
+    let whereClause = "";
+    const params: (string | number)[] = [];
+    const monthConditions: string[] = [];
+
+    for (const month of months) {
+      const { start, end } = monthToDateRange(month);
+      monthConditions.push(`(date BETWEEN ? AND ?`);
+      params.push(start, end);
+      if (regionId) {
+        monthConditions[monthConditions.length - 1] += ` AND region_id = ?`;
+        params.push(regionId);
+      }
+      if (productId) {
+        monthConditions[monthConditions.length - 1] += ` AND product_id = ?`;
+        params.push(productId);
+      }
+      monthConditions[monthConditions.length - 1] += `)`;
+    }
+
+    whereClause = monthConditions.join(" OR ");
+
+    const query = `SELECT 
+      strftime('%Y-%m', date) as period,
+      ${selectClause} as val
+    FROM marketing_daily
+    WHERE ${whereClause}
+    GROUP BY strftime('%Y-%m', date)
+    ORDER BY period`;
+
+    const rows = await db.all(query, ...params);
+    const rowMap = new Map(rows.map(r => [r.period, r.val || 0]));
+
+    for (const month of months) {
+      results.push({ period: month, value: rowMap.get(month) || 0 });
+    }
+  } else {
+    for (const month of months) {
+      const kpi = await computeKPI(normalizedMetric, month, { region: filters?.region, product: filters?.product, channel: filters?.channel });
+      results.push({ period: month, value: kpi.value });
+    }
+  }
+
   return results;
 }
 

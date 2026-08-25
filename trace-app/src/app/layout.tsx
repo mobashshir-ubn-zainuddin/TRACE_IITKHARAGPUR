@@ -35,9 +35,9 @@ export default function RootLayout({
             <span>TRACE</span>
           </div>
           <nav className="flex gap-6 text-sm font-medium text-muted-foreground">
-            <Link href="/" className="hover:text-primary-foreground transition-colors">Dashboard</Link>
-            <a href="#" className="hover:text-primary-foreground transition-colors">Investigations</a>
-            <a href="#" className="hover:text-primary-foreground transition-colors">Settings</a>
+            <Link href="/dashboard" className="hover:text-primary-foreground transition-colors">Dashboard</Link>
+            <Link href="/investigate" className="hover:text-primary-foreground transition-colors">Investigations</Link>
+            <Link href="#" className="hover:text-primary-foreground transition-colors">Settings</Link>
           </nav>
         </header>
         <main className="flex-1 w-full max-w-7xl mx-auto p-6 md:p-8">

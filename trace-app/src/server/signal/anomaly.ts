@@ -1,7 +1,6 @@
 import { getKPIDefinition, normalizeMetric } from "../kpi/definitions";
-import { computeBaseline } from "./baseline";
+import type { KPIResponse, BaselineResult } from "../types";
 import { getSignalConfig } from "./config";
-import type { KPIResponse } from "../types";
 
 export interface AnomalyResult {
   isAnomaly: boolean;
@@ -13,41 +12,44 @@ export interface AnomalyResult {
 
 export async function detectAnomaly(
   kpiResponse: KPIResponse,
-  filters?: { region?: string; product?: string; channel?: string }
+  filters?: { region?: string; product?: string; channel?: string },
+  baseline?: BaselineResult
 ): Promise<AnomalyResult> {
-  // Calculate baseline from historical data
-  const baseline = await computeBaseline(kpiResponse.metric, kpiResponse.period, getSignalConfig().baselineWindowMonths, filters);
+  const config = getSignalConfig();
 
-  if (baseline.historyLength < getSignalConfig().minHistoryPeriods) {
+  // Use provided baseline or compute new one
+  let computedBaseline = baseline;
+  if (!computedBaseline) {
+    const { computeBaseline } = await import("./baseline");
+    computedBaseline = await computeBaseline(kpiResponse.metric, kpiResponse.period, config.baselineWindowMonths, filters);
+  }
+
+  if (computedBaseline.historyLength < config.minHistoryPeriods) {
     return {
       isAnomaly: false,
       statisticalSignificance: "none",
     };
   }
 
-  // Calculate deviation from baseline mean
-  const deviationPct = baseline.mean !== 0 
-    ? ((kpiResponse.value - baseline.mean) / baseline.mean) * 100 
+  const deviationPct = computedBaseline.mean !== 0 
+    ? ((kpiResponse.value - computedBaseline.mean) / computedBaseline.mean) * 100 
     : 0;
 
-  // Standard z-score
   let zScore: number | undefined;
-  if (baseline.stdDev > 0) {
-    zScore = (kpiResponse.value - baseline.mean) / baseline.stdDev;
+  if (computedBaseline.stdDev > 0) {
+    zScore = (kpiResponse.value - computedBaseline.mean) / computedBaseline.stdDev;
   }
 
-  // Robust z-score using median and MAD
   let robustZScore: number | undefined;
-  if (baseline.mad !== undefined && baseline.mad > 0) {
-    robustZScore = 0.6745 * (kpiResponse.value - baseline.median) / baseline.mad;
+  if (computedBaseline.mad !== undefined && computedBaseline.mad > 0) {
+    robustZScore = 0.6745 * (kpiResponse.value - computedBaseline.median) / computedBaseline.mad;
   }
 
-  // Determine statistical significance
   const absZ = Math.abs(zScore ?? 0);
   const absRobustZ = Math.abs(robustZScore ?? 0);
   
   let statisticalSignificance: "none" | "low" | "medium" | "high" = "none";
-  const zThresholds = getSignalConfig().zScoreThresholds;
+  const zThresholds = config.zScoreThresholds;
   
   const maxAbsZ = Math.max(absZ, absRobustZ);
   if (maxAbsZ >= zThresholds.high) {
@@ -58,9 +60,6 @@ export async function detectAnomaly(
     statisticalSignificance = "low";
   }
 
-  // Check for seasonality-adjusted anomaly
-  await detectSeasonality(kpiResponse.metric, kpiResponse.period, filters);
-  
   const isAnomaly = 
     statisticalSignificance !== "none" && 
     (Math.abs(kpiResponse.changePct) > 5 || statisticalSignificance === "high");
@@ -72,39 +71,4 @@ export async function detectAnomaly(
     deviationPct,
     statisticalSignificance,
   };
-}
-
-async function detectSeasonality(
-  metric: string,
-  period: string,
-  filters?: { region?: string; product?: string; channel?: string }
-): Promise<{ adjusted: boolean; yoyChangePct?: number }> {
-  const config = getSignalConfig();
-  if (!config.seasonality.enabled) {
-    return { adjusted: false };
-  }
-
-  const def = getKPIDefinition(metric);
-  if (!def) return { adjusted: false };
-
-  // Get YoY comparison if we have enough history (12+ months)
-  const currentYear = parseInt(period.split("-")[0]);
-  const prevYear = currentYear - 1;
-  const prevYearPeriod = `${prevYear}-${period.split("-")[1]}`;
-
-  const { computeKPI } = await import("../kpi");
-  
-  try {
-    const currentKPI = await computeKPI(metric, period);
-    const prevYearKPI = await computeKPI(metric, prevYearPeriod);
-    
-    if (prevYearKPI.value > 0) {
-      const yoyChangePct = ((currentKPI.value - prevYearKPI.value) / prevYearKPI.value) * 100;
-      return { adjusted: true, yoyChangePct };
-    }
-  } catch {
-    // Ignore errors, return unadjusted
-  }
-
-  return { adjusted: false };
 }
