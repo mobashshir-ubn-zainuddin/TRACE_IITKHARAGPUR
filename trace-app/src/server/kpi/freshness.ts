@@ -11,19 +11,31 @@ export interface SourceFreshness {
   hoursSinceRefresh: number;
 }
 
+// Explicit mapping from KPI source table to data_sources.name
+const SOURCE_TABLE_TO_DATA_SOURCE: Record<string, string> = {
+  'sales_transactions': 'Sales System',
+  'marketing_daily': 'Marketing Platform',
+  'operations_daily': 'Operations System',
+};
+
 export async function computeFreshness(metric?: string): Promise<SourceFreshness[]> {
   const db = await getDB();
   const sources = await db.all("SELECT * FROM data_sources");
   const now = new Date();
 
-  // If metric is provided, filter to only the relevant source
+  // If metric is provided, filter to only the relevant source using explicit mapping
   let relevantSources = sources;
   if (metric) {
     const def = getKPIDefinition(metric);
     if (def) {
-      relevantSources = sources.filter(s => s.source_type === def.source.split('_')[0] || s.name.toLowerCase().includes(def.source.split('_')[0]));
-      if (relevantSources.length === 0) {
-        relevantSources = sources; // fallback to all sources
+      const sourceName = SOURCE_TABLE_TO_DATA_SOURCE[def.source];
+      if (sourceName) {
+        relevantSources = sources.filter(s => s.name === sourceName);
+        if (relevantSources.length === 0) {
+          throw new Error(`No data source found for KPI source table: ${def.source}`);
+        }
+      } else {
+        throw new Error(`No data source mapping for KPI source table: ${def.source}`);
       }
     }
   }

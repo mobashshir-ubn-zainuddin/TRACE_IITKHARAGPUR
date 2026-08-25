@@ -94,9 +94,28 @@ export interface DataQualityResponse {
   referentialIntegrityPct: number;
   status: 'good' | 'warning' | 'critical';
   details: {
-    salesTransactions: { total: number; nullNetRevenue: number; nullOrderId: number; duplicateOrderId: number };
-    marketingDaily: { total: number; nullSessions: number; nullConversions: number };
-    operationsDaily: { total: number; nullStockoutRate: number; invalidStockoutRate: number };
+    salesTransactions: { 
+      total: number; 
+      nullNetRevenue: number; 
+      nullOrderId: number; 
+      duplicateTransactionId: number; 
+      orphanRegionId: number;
+      orphanProductId: number;
+    };
+    marketingDaily: { 
+      total: number; 
+      nullSessions: number; 
+      nullConversions: number;
+      orphanRegionId: number;
+      orphanProductId: number;
+    };
+    operationsDaily: { 
+      total: number; 
+      nullStockoutRate: number; 
+      invalidStockoutRate: number;
+      orphanRegionId: number;
+      orphanProductId: number;
+    };
   };
 }
 
