@@ -1,4 +1,5 @@
 import { getDB } from "../db";
+import { getKPIDefinition } from "./definitions";
 
 export interface SourceFreshness {
   source: string;
@@ -10,22 +11,37 @@ export interface SourceFreshness {
   hoursSinceRefresh: number;
 }
 
-export async function computeFreshness(): Promise<SourceFreshness[]> {
+export async function computeFreshness(metric?: string): Promise<SourceFreshness[]> {
   const db = await getDB();
   const sources = await db.all("SELECT * FROM data_sources");
   const now = new Date();
 
-  return sources.map(s => {
+  // If metric is provided, filter to only the relevant source
+  let relevantSources = sources;
+  if (metric) {
+    const def = getKPIDefinition(metric);
+    if (def) {
+      relevantSources = sources.filter(s => s.source_type === def.source.split('_')[0] || s.name.toLowerCase().includes(def.source.split('_')[0]));
+      if (relevantSources.length === 0) {
+        relevantSources = sources; // fallback to all sources
+      }
+    }
+  }
+
+  return relevantSources.map(s => {
     const lastRefresh = new Date(s.last_refreshed_at);
     const hoursSince = (now.getTime() - lastRefresh.getTime()) / (1000 * 60 * 60);
     
+    // Handle future timestamps
+    const safeHoursSince = hoursSince < 0 ? 0 : hoursSince;
+    
     let status: 'fresh' | 'stale' | 'critical' = 'fresh';
-    if (s.refresh_cadence === 'near-real-time' && hoursSince > 2) status = 'stale';
-    if (s.refresh_cadence === 'near-real-time' && hoursSince > 6) status = 'critical';
-    if (s.refresh_cadence === 'daily' && hoursSince > 36) status = 'stale';
-    if (s.refresh_cadence === 'daily' && hoursSince > 72) status = 'critical';
-    if (s.refresh_cadence === '6-hourly' && hoursSince > 12) status = 'stale';
-    if (s.refresh_cadence === '6-hourly' && hoursSince > 24) status = 'critical';
+    if (s.refresh_cadence === 'near-real-time' && safeHoursSince > 2) status = 'stale';
+    if (s.refresh_cadence === 'near-real-time' && safeHoursSince > 6) status = 'critical';
+    if (s.refresh_cadence === 'daily' && safeHoursSince > 36) status = 'stale';
+    if (s.refresh_cadence === 'daily' && safeHoursSince > 72) status = 'critical';
+    if (s.refresh_cadence === '6-hourly' && safeHoursSince > 12) status = 'stale';
+    if (s.refresh_cadence === '6-hourly' && safeHoursSince > 24) status = 'critical';
 
     return {
       source: s.name,
@@ -34,7 +50,7 @@ export async function computeFreshness(): Promise<SourceFreshness[]> {
       refreshCadence: s.refresh_cadence,
       lastRefreshedAt: s.last_refreshed_at,
       freshnessStatus: status,
-      hoursSinceRefresh: Math.round(hoursSince * 10) / 10
+      hoursSinceRefresh: Math.round(safeHoursSince * 10) / 10
     };
   });
 }

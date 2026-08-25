@@ -1,5 +1,5 @@
 import { getDB } from "../db";
-import { getKPIDefinition } from "./definitions";
+import { getKPIDefinition, normalizeMetric } from "./definitions";
 import { buildLineage } from "./lineage";
 import { computeDataQuality } from "./quality";
 import { computeFreshness } from "./freshness";
@@ -9,28 +9,40 @@ async function resolveRegionId(region?: string): Promise<number | undefined> {
   if (!region) return undefined;
   const db = await getDB();
   const row = await db.get("SELECT id FROM regions WHERE name = ?", region);
-  return row?.id;
+  if (!row) {
+    throw new Error(`Unknown region: ${region}`);
+  }
+  return row.id;
 }
 
 async function resolveProductId(product?: string): Promise<number | undefined> {
   if (!product) return undefined;
   const db = await getDB();
   const row = await db.get("SELECT id FROM products WHERE name = ?", product);
-  return row?.id;
+  if (!row) {
+    throw new Error(`Unknown product: ${product}`);
+  }
+  return row.id;
 }
 
 function monthToDateRange(month: string): { start: string; end: string } {
   const [year, monthNum] = month.split("-").map(Number);
   const start = `${year}-${monthNum.toString().padStart(2, "0")}-01`;
   const endDate = new Date(year, monthNum, 0);
-  const end = `${year}-${monthNum.toString().padStart(2, "0")}-${endDate.getDate()}`;
+  const endDay = endDate.getDate().toString().padStart(2, "0");
+  const end = `${year}-${monthNum.toString().padStart(2, "0")}-${endDay}`;
   return { start, end };
 }
 
 function prevMonth(month: string): string {
   const [year, monthNum] = month.split("-").map(Number);
-  const d = new Date(year, monthNum - 1, 1);
-  return d.toISOString().slice(0, 7);
+  let prevYear = year;
+  let prevMonthNum = monthNum - 1;
+  if (prevMonthNum === 0) {
+    prevMonthNum = 12;
+    prevYear = year - 1;
+  }
+  return `${prevYear}-${prevMonthNum.toString().padStart(2, "0")}`;
 }
 
 async function computeRevenue(filters: { month: string; region?: string; product?: string; channel?: string }): Promise<{ current: number; previous: number }> {
@@ -228,7 +240,8 @@ async function computeMarketingROI(filters: { month: string; region?: string; pr
 }
 
 export async function computeKPI(metric: string, month: string, filters?: { region?: string; product?: string; channel?: string }): Promise<KPIResponse> {
-  const def = getKPIDefinition(metric);
+  const normalizedMetric = normalizeMetric(metric);
+  const def = getKPIDefinition(normalizedMetric);
   if (!def) {
     throw new Error(`Unsupported metric: ${metric}`);
   }
@@ -236,7 +249,7 @@ export async function computeKPI(metric: string, month: string, filters?: { regi
   const filterObj = { month, ...filters };
   let result: { current: number; previous: number };
 
-  switch (metric) {
+  switch (normalizedMetric) {
     case 'revenue':
       result = await computeRevenue(filterObj);
       break;
@@ -253,20 +266,21 @@ export async function computeKPI(metric: string, month: string, filters?: { regi
       result = await computeMarketingROI(filterObj);
       break;
     default:
-      throw new Error(`Unsupported metric: ${metric}`);
+      throw new Error(`Unsupported metric: ${normalizedMetric}`);
   }
 
   const changePct = result.previous === 0 ? 0 : ((result.current - result.previous) / result.previous) * 100;
 
   const quality = await computeDataQuality();
-  const freshness = await computeFreshness();
+  const freshness = await computeFreshness(normalizedMetric);
 
-  const lineage = buildLineage(metric, { month, ...filters });
+  const lineage = buildLineage(normalizedMetric, { month, ...filters });
 
   return {
     metric: def.name,
     label: def.label,
     period: month,
+    month: month, // backward compatibility
     value: Math.round(result.current * 100) / 100,
     previousValue: Math.round(result.previous * 100) / 100,
     changePct: Math.round(changePct * 100) / 100,
@@ -282,6 +296,12 @@ export async function computeKPI(metric: string, month: string, filters?: { regi
 }
 
 export async function getKPIHistory(metric: string, filters?: { region?: string; product?: string; start?: string; end?: string }): Promise<Array<{ period: string; value: number }>> {
+  const normalizedMetric = normalizeMetric(metric);
+  const def = getKPIDefinition(normalizedMetric);
+  if (!def) {
+    throw new Error(`Unsupported metric: ${metric}`);
+  }
+
   const months = filters?.start && filters?.end 
     ? getMonthsInRange(filters.start, filters.end)
     : getLastNMonths(12);
@@ -289,7 +309,7 @@ export async function getKPIHistory(metric: string, filters?: { region?: string;
   const results = [];
   for (const month of months) {
     try {
-      const kpi = await computeKPI(metric, month, { region: filters?.region, product: filters?.product });
+      const kpi = await computeKPI(normalizedMetric, month, { region: filters?.region, product: filters?.product });
       results.push({ period: month, value: kpi.value });
     } catch {
       results.push({ period: month, value: 0 });
@@ -324,6 +344,12 @@ function getMonthsInRange(start: string, end: string): string[] {
 }
 
 export async function getKPIBreakdown(metric: string, month: string, dimension: string, filters?: { region?: string; product?: string }): Promise<Array<{ dimensionValue: string; value: number; contributionPct: number }>> {
+  const normalizedMetric = normalizeMetric(metric);
+  const def = getKPIDefinition(normalizedMetric);
+  if (!def) {
+    throw new Error(`Unsupported metric: ${metric}`);
+  }
+
   const db = await getDB();
   const { start, end } = monthToDateRange(month);
 
@@ -363,14 +389,14 @@ export async function getKPIBreakdown(metric: string, month: string, dimension: 
 
   let selectClause = "";
 
-  if (metric === 'revenue') {
+  if (normalizedMetric === 'revenue') {
     selectClause = `SUM(st.net_revenue) as val`;
-  } else if (metric === 'orders') {
+  } else if (normalizedMetric === 'orders') {
     selectClause = `COUNT(DISTINCT st.order_id) as val`;
-  } else if (metric === 'aov') {
+  } else if (normalizedMetric === 'aov') {
     selectClause = `CASE WHEN COUNT(DISTINCT st.order_id) > 0 THEN SUM(st.net_revenue) / COUNT(DISTINCT st.order_id) ELSE 0 END as val`;
   } else {
-    throw new Error(`Breakdown not supported for metric: ${metric}`);
+    throw new Error(`Breakdown not supported for metric: ${normalizedMetric}`);
   }
 
   let joinClause = "";

@@ -1,14 +1,15 @@
 import { NextResponse } from "next/server";
-import { getKPIDefinition, getAllKPIMetrics } from "@/server/kpi/definitions";
+import { getKPIDefinition, getAllKPIMetrics, normalizeMetric } from "@/server/kpi/definitions";
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
-  const metric = searchParams.get("metric");
+  const rawMetric = searchParams.get("metric");
 
-  if (metric) {
+  if (rawMetric) {
+    const metric = normalizeMetric(rawMetric);
     const def = getKPIDefinition(metric);
     if (!def) {
-      return NextResponse.json({ error: `Unknown metric: ${metric}` }, { status: 404 });
+      return NextResponse.json({ error: `Unknown metric: ${rawMetric}` }, { status: 404 });
     }
     return NextResponse.json({
       metric: def.name,
