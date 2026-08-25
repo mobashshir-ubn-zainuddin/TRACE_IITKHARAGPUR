@@ -270,8 +270,17 @@ export async function computeKPI(metric: string, month: string, filters?: { regi
     dimensions: { region: filters?.region, product: filters?.product, channel: filters?.channel },
     source: { table: def.source, columns: def.sourceColumns },
     lineage: { formula: def.formula, filters: { month, ...filters }, generatedAt: lineage.generatedAt },
-    quality: { status: quality.status, completenessPct: quality.completenessPct },
-    freshness: { status: relevantFreshness?.freshnessStatus || 'fresh', source: relevantFreshness?.source || 'unknown' },
+    quality,
+    freshness: relevantFreshness ? { ...relevantFreshness, status: relevantFreshness.freshnessStatus } : { 
+      source: 'unknown', 
+      sourceType: 'unknown', 
+      grain: 'unknown', 
+      refreshCadence: 'unknown', 
+      lastRefreshedAt: new Date().toISOString(), 
+      freshnessStatus: 'critical', 
+      hoursSinceRefresh: 0,
+      status: 'critical'
+    },
     is_anomaly: Math.abs(changePct) > 20,
     severity: Math.abs(changePct) > 30 ? 'high' : Math.abs(changePct) > 20 ? 'medium' : 'low'
   };
