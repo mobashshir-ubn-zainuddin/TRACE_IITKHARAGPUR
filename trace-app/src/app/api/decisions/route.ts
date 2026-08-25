@@ -6,8 +6,9 @@ export async function GET() {
   try {
     const decisions = await getDecisions();
     return NextResponse.json(decisions);
-  } catch (err: any) {
-    return NextResponse.json({ error: err.message || "Error" }, { status: 500 });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Error";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }
 
@@ -25,7 +26,8 @@ export async function POST(request: Request) {
     };
     await addDecision(decision);
     return NextResponse.json({ success: true });
-  } catch (err: any) {
-    return NextResponse.json({ error: err.message || "Error" }, { status: 500 });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Error";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

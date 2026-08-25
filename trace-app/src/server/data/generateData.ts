@@ -1,10 +1,10 @@
-const sqlite3 = require('sqlite3');
-const { open } = require('sqlite');
-const path = require('path');
+import sqlite3 from 'sqlite3';
+import { open } from 'sqlite';
+import path from 'path';
 
 const dbPath = path.join(process.cwd(), 'db', 'trace.db');
 
-function seededRandom(seed) {
+function seededRandom(seed: number): () => number {
   let s = seed >>> 0;
   return () => {
     s = (s * 1664525 + 1013904223) >>> 0;
@@ -14,15 +14,15 @@ function seededRandom(seed) {
 
 const rand = seededRandom(42);
 
-function randomBetween(min, max) {
+function randomBetween(min: number, max: number): number {
   return min + rand() * (max - min);
 }
 
-function randomInt(min, max) {
+function randomInt(min: number, max: number): number {
   return Math.floor(randomBetween(min, max + 1));
 }
 
-function pickOne(arr) {
+function pickOne<T>(arr: T[]): T {
   return arr[randomInt(0, arr.length - 1)];
 }
 
@@ -86,7 +86,7 @@ async function main() {
   const channels = ["Online", "Retail", "Partner"];
   let orderCounter = 10000;
 
-  const baseParams = {};
+  const baseParams: Record<number, Record<number, { baseOrders: number; basePrice: number; seasonality: number }>> = {};
   for (const region of regions) {
     baseParams[region.id] = {};
     for (const product of products) {
@@ -97,9 +97,9 @@ async function main() {
     }
   }
 
-  const salesBatch = [];
-  const marketingBatch = [];
-  const opsBatch = [];
+  const salesBatch: Array<[string, string, number, number, string, number, number, number, number]> = [];
+  const marketingBatch: Array<[string, number, number, number, number, number, number]> = [];
+  const opsBatch: Array<[string, number, number, number, number, number]> = [];
 
   for (const month of months) {
     const [yearStr, monthStr] = month.split("-");

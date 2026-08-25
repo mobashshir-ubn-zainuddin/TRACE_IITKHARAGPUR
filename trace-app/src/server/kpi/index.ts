@@ -3,6 +3,7 @@ import { getKPIDefinition, normalizeMetric } from "./definitions";
 import { buildLineage } from "./lineage";
 import { computeDataQuality } from "./quality";
 import { computeFreshness } from "./freshness";
+import { monthToDateRange, prevMonth } from "../utils/dateUtils";
 import type { KPIResponse } from "../types";
 
 async function resolveRegionId(region?: string): Promise<number | undefined> {
@@ -23,26 +24,6 @@ async function resolveProductId(product?: string): Promise<number | undefined> {
     throw new Error(`Unknown product: ${product}`);
   }
   return row.id;
-}
-
-function monthToDateRange(month: string): { start: string; end: string } {
-  const [year, monthNum] = month.split("-").map(Number);
-  const start = `${year}-${monthNum.toString().padStart(2, "0")}-01`;
-  const endDate = new Date(year, monthNum, 0);
-  const endDay = endDate.getDate().toString().padStart(2, "0");
-  const end = `${year}-${monthNum.toString().padStart(2, "0")}-${endDay}`;
-  return { start, end };
-}
-
-function prevMonth(month: string): string {
-  const [year, monthNum] = month.split("-").map(Number);
-  let prevYear = year;
-  let prevMonthNum = monthNum - 1;
-  if (prevMonthNum === 0) {
-    prevMonthNum = 12;
-    prevYear = year - 1;
-  }
-  return `${prevYear}-${prevMonthNum.toString().padStart(2, "0")}`;
 }
 
 async function computeRevenue(filters: { month: string; region?: string; product?: string; channel?: string }): Promise<{ current: number; previous: number }> {
@@ -273,6 +254,7 @@ export async function computeKPI(metric: string, month: string, filters?: { regi
 
   const quality = await computeDataQuality();
   const freshness = await computeFreshness(normalizedMetric);
+  const relevantFreshness = freshness[0];
 
   const lineage = buildLineage(normalizedMetric, { month, ...filters });
 
@@ -289,7 +271,7 @@ export async function computeKPI(metric: string, month: string, filters?: { regi
     source: { table: def.source, columns: def.sourceColumns },
     lineage: { formula: def.formula, filters: { month, ...filters }, generatedAt: lineage.generatedAt },
     quality: { status: quality.status, completenessPct: quality.completenessPct },
-    freshness: { status: freshness[0]?.freshnessStatus || 'fresh', source: freshness[0]?.source || 'unknown' },
+    freshness: { status: relevantFreshness?.freshnessStatus || 'fresh', source: relevantFreshness?.source || 'unknown' },
     is_anomaly: Math.abs(changePct) > 20,
     severity: Math.abs(changePct) > 30 ? 'high' : Math.abs(changePct) > 20 ? 'medium' : 'low'
   };
@@ -308,12 +290,8 @@ export async function getKPIHistory(metric: string, filters?: { region?: string;
 
   const results = [];
   for (const month of months) {
-    try {
-      const kpi = await computeKPI(normalizedMetric, month, { region: filters?.region, product: filters?.product });
-      results.push({ period: month, value: kpi.value });
-    } catch {
-      results.push({ period: month, value: 0 });
-    }
+    const kpi = await computeKPI(normalizedMetric, month, { region: filters?.region, product: filters?.product });
+    results.push({ period: month, value: kpi.value });
   }
   return results;
 }
@@ -353,74 +331,140 @@ export async function getKPIBreakdown(metric: string, month: string, dimension: 
   const db = await getDB();
   const { start, end } = monthToDateRange(month);
 
-  let dimensionColumn: string;
+  // Handle metrics from sales_transactions
+  if (normalizedMetric === 'revenue' || normalizedMetric === 'orders' || normalizedMetric === 'aov') {
+    let dimensionColumn: string;
 
-  switch (dimension) {
-    case 'region':
-      dimensionColumn = "r.name";
-      break;
-    case 'product':
-      dimensionColumn = "p.name";
-      break;
-    case 'channel':
-      dimensionColumn = "st.channel";
-      break;
-    default:
-      throw new Error(`Unsupported dimension: ${dimension}`);
-  }
-
-  let whereClause = "WHERE st.transaction_date BETWEEN ? AND ?";
-  const params: (string | number)[] = [start, end];
-
-  if (filters?.region) {
-    const regionId = await resolveRegionId(filters.region);
-    if (regionId) {
-      whereClause += " AND st.region_id = ?";
-      params.push(regionId);
+    switch (dimension) {
+      case 'region':
+        dimensionColumn = "r.name";
+        break;
+      case 'product':
+        dimensionColumn = "p.name";
+        break;
+      case 'channel':
+        dimensionColumn = "st.channel";
+        break;
+      default:
+        throw new Error(`Unsupported dimension: ${dimension}`);
     }
-  }
-  if (filters?.product) {
-    const productId = await resolveProductId(filters.product);
-    if (productId) {
-      whereClause += " AND st.product_id = ?";
-      params.push(productId);
+
+    let whereClause = "WHERE st.transaction_date BETWEEN ? AND ?";
+    const params: (string | number)[] = [start, end];
+
+    if (filters?.region) {
+      const regionId = await resolveRegionId(filters.region);
+      if (regionId) {
+        whereClause += " AND st.region_id = ?";
+        params.push(regionId);
+      }
     }
+    if (filters?.product) {
+      const productId = await resolveProductId(filters.product);
+      if (productId) {
+        whereClause += " AND st.product_id = ?";
+        params.push(productId);
+      }
+    }
+
+    let selectClause = "";
+
+    if (normalizedMetric === 'revenue') {
+      selectClause = `SUM(st.net_revenue) as val`;
+    } else if (normalizedMetric === 'orders') {
+      selectClause = `COUNT(DISTINCT st.order_id) as val`;
+    } else if (normalizedMetric === 'aov') {
+      selectClause = `CASE WHEN COUNT(DISTINCT st.order_id) > 0 THEN SUM(st.net_revenue) / COUNT(DISTINCT st.order_id) ELSE 0 END as val`;
+    }
+
+    let joinClause = "";
+    if (dimension === 'region') {
+      joinClause = "JOIN regions r ON st.region_id = r.id";
+    } else if (dimension === 'product') {
+      joinClause = "JOIN products p ON st.product_id = p.id";
+    }
+
+    const query = `
+      SELECT ${dimensionColumn} as dimension_value, ${selectClause}
+      FROM sales_transactions st
+      ${joinClause}
+      ${whereClause}
+      GROUP BY ${dimensionColumn}
+      ORDER BY val DESC
+    `;
+
+    const rows = await db.all(query, ...params);
+    const total = rows.reduce((sum, r) => sum + (r.val || 0), 0);
+
+    return rows.map(r => ({
+      dimensionValue: r.dimension_value,
+      value: Math.round((r.val || 0) * 100) / 100,
+      contributionPct: total > 0 ? Math.round(((r.val || 0) / total) * 10000) / 100 : 0
+    }));
   }
 
-  let selectClause = "";
+  // Handle metrics from marketing_daily
+  if (normalizedMetric === 'conversion' || normalizedMetric === 'marketingROI') {
+    let dimensionColumn: string;
+    let joinClause = "";
 
-  if (normalizedMetric === 'revenue') {
-    selectClause = `SUM(st.net_revenue) as val`;
-  } else if (normalizedMetric === 'orders') {
-    selectClause = `COUNT(DISTINCT st.order_id) as val`;
-  } else if (normalizedMetric === 'aov') {
-    selectClause = `CASE WHEN COUNT(DISTINCT st.order_id) > 0 THEN SUM(st.net_revenue) / COUNT(DISTINCT st.order_id) ELSE 0 END as val`;
-  } else {
-    throw new Error(`Breakdown not supported for metric: ${normalizedMetric}`);
+    switch (dimension) {
+      case 'region':
+        dimensionColumn = "r.name";
+        joinClause = "JOIN regions r ON md.region_id = r.id";
+        break;
+      case 'product':
+        dimensionColumn = "p.name";
+        joinClause = "JOIN products p ON md.product_id = p.id";
+        break;
+      default:
+        throw new Error(`Unsupported dimension for ${normalizedMetric}: ${dimension}. Supported: region, product`);
+    }
+
+    let whereClause = "WHERE md.date BETWEEN ? AND ?";
+    const params: (string | number)[] = [start, end];
+
+    if (filters?.region) {
+      const regionId = await resolveRegionId(filters.region);
+      if (regionId) {
+        whereClause += " AND md.region_id = ?";
+        params.push(regionId);
+      }
+    }
+    if (filters?.product) {
+      const productId = await resolveProductId(filters.product);
+      if (productId) {
+        whereClause += " AND md.product_id = ?";
+        params.push(productId);
+      }
+    }
+
+    let selectClause = "";
+    if (normalizedMetric === 'conversion') {
+      selectClause = `CASE WHEN SUM(md.sessions) > 0 THEN SUM(md.conversions) * 100.0 / SUM(md.sessions) ELSE 0 END as val`;
+    } else if (normalizedMetric === 'marketingROI') {
+      selectClause = `CASE WHEN SUM(md.marketing_spend) > 0 THEN SUM(md.attributed_revenue) * 1.0 / SUM(md.marketing_spend) ELSE 0 END as val`;
+    }
+
+    const query = `
+      SELECT ${dimensionColumn} as dimension_value, ${selectClause}
+      FROM marketing_daily md
+      ${joinClause}
+      ${whereClause}
+      GROUP BY ${dimensionColumn}
+      ORDER BY val DESC
+    `;
+
+    const rows = await db.all(query, ...params);
+    
+    // For conversion and marketingROI, contribution doesn't make sense as a percentage of total
+    // Return the raw values
+    return rows.map(r => ({
+      dimensionValue: r.dimension_value,
+      value: Math.round((r.val || 0) * 100) / 100,
+      contributionPct: 0 // Not applicable for rate/ratio metrics
+    }));
   }
 
-  let joinClause = "";
-  if (dimension === 'region') {
-    joinClause = "JOIN regions r ON st.region_id = r.id";
-  } else if (dimension === 'product') {
-    joinClause = "JOIN products p ON st.product_id = p.id";
-  }
-
-  const query = `
-    SELECT ${dimensionColumn} as dimension_value, ${selectClause}
-    FROM sales_transactions st
-    ${joinClause}
-    ${whereClause}
-    GROUP BY ${dimensionColumn}
-    ORDER BY val DESC
-  `;
-
-  const rows = await db.all(query, ...params);
-  const total = rows.reduce((sum, r) => sum + (r.val || 0), 0);
-
-  return rows.map(r => ({
-    dimensionValue: r.dimension_value,
-    value: Math.round((r.val || 0) * 100) / 100,
-    contributionPct: total > 0 ? Math.round(((r.val || 0) / total) * 10000) / 100 : 0
-  }));
+  throw new Error(`Breakdown not supported for metric: ${normalizedMetric}`);
 }

@@ -1,10 +1,7 @@
 import { NextResponse } from "next/server";
 import { getKPIHistory } from "@/server/kpi";
 import { getKPIDefinition, normalizeMetric } from "@/server/kpi/definitions";
-
-function validateMonth(month: string): boolean {
-  return /^\d{4}-\d{2}$/.test(month);
-}
+import { validateMonth } from "@/server/utils/dateUtils";
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -21,10 +18,10 @@ export async function GET(request: Request) {
   }
 
   if (start && !validateMonth(start)) {
-    return NextResponse.json({ error: "Invalid start month format. Use YYYY-MM" }, { status: 400 });
+    return NextResponse.json({ error: "Invalid start month format. Use YYYY-MM with month 01-12" }, { status: 400 });
   }
   if (end && !validateMonth(end)) {
-    return NextResponse.json({ error: "Invalid end month format. Use YYYY-MM" }, { status: 400 });
+    return NextResponse.json({ error: "Invalid end month format. Use YYYY-MM with month 01-12" }, { status: 400 });
   }
 
   try {
