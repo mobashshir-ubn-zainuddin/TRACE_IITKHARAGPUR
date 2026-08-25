@@ -1,4 +1,5 @@
 import { getKPIDefinition, normalizeMetric } from "../kpi/definitions";
+import { getKPIHistoryBatched } from "../kpi";
 
 export interface BaselineResult {
   mean: number;
@@ -56,20 +57,17 @@ export async function computeBaseline(
     throw new Error(`Unsupported metric: ${metric}`);
   }
 
-  const { computeKPI } = await import("../kpi");
   const months = getTrailingMonths(period, windowMonths);
 
-  const values: number[] = [];
-  for (const month of months) {
-    try {
-      const kpi = await computeKPI(metric, month, filters);
-      if (kpi.value !== undefined && kpi.value !== null) {
-        values.push(kpi.value);
-      }
-    } catch {
-      // Skip months with errors
-    }
-  }
+  const history = await getKPIHistoryBatched(
+    normalizedMetric,
+    months,
+    filters
+  );
+
+  const values = history
+    .map(item => item.value)
+    .filter(value => Number.isFinite(value));
 
   if (values.length === 0) {
     return {

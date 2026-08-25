@@ -1,17 +1,10 @@
 "use client";
 // src/app/dashboard/page.tsx
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef, useCallback, useMemo } from "react";
 import { LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid, ResponsiveContainer } from "recharts";
 import { Loader2, AlertTriangle, CheckCircle, TrendingDown, TrendingUp, Minus, Target } from "lucide-react";
 
 interface KPIData {
-  month: string;
-  value: number;
-  is_anomaly: boolean;
-  severity?: "low" | "medium" | "high";
-}
-
-interface KPIApiResponse {
   month: string;
   value: number;
   is_anomaly: boolean;
@@ -122,6 +115,14 @@ function getMetricLabel(metric: string): string {
   }
 }
 
+function getDirectionText(direction: "up" | "down" | "flat", metricLabel: string): string {
+  switch (direction) {
+    case "down": return `${metricLabel} decreased`;
+    case "up": return `${metricLabel} increased`;
+    case "flat": return `${metricLabel} remained flat`;
+  }
+}
+
 function SignalBadge({ status, priority, signalStrength, confidence }: { 
   status: string; 
   priority: string; 
@@ -177,6 +178,7 @@ function CurrentSignalSection({ signal, loading, error }: {
     deviation, seasonality, baseline
   } = signal;
 
+  const metricLabel = getMetricLabel(signal.metric);
   const directionIcon = changePct > 0 ? <TrendingUp className="w-5 h-5 text-green-600" /> : changePct < 0 ? <TrendingDown className="w-5 h-5 text-red-600" /> : <Minus className="w-5 h-5 text-gray-600" />;
 
   return (
@@ -184,7 +186,7 @@ function CurrentSignalSection({ signal, loading, error }: {
       <div className="flex items-start justify-between mb-4">
         <div>
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Current Signal</h3>
-          <p className="text-sm text-gray-500 dark:text-gray-400">Period: {signal.period} | Metric: {getMetricLabel(signal.metric)}</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400">Period: {signal.period} | Metric: {metricLabel}</p>
         </div>
         <SignalBadge status={status} priority={priority} signalStrength={signalStrength} confidence={confidence} />
       </div>
@@ -230,7 +232,7 @@ function CurrentSignalSection({ signal, loading, error }: {
           <Target className="w-4 h-4 text-blue-600" /> Why This Matters
         </h4>
         <p className="text-sm text-gray-600 dark:text-gray-300 mb-2">
-          {explanation.summary.direction === "down" ? "Revenue decreased" : explanation.summary.direction === "up" ? "Revenue increased" : "Revenue remained flat"} 
+          {getDirectionText(explanation.summary.direction, metricLabel)} 
           {Math.abs(explanation.summary.magnitudePct).toFixed(2)}% 
           ({explanation.summary.materiality} materiality, {explanation.summary.statisticalSignificance} statistical significance).
         </p>
@@ -376,6 +378,75 @@ function SignalHistorySection({ history, loading, error }: {
   );
 }
 
+// Helper hook for fetch with AbortController and generation tracking
+function useFetchWithAbort<T>() {
+  const abortControllerRef = useRef<AbortController | null>(null);
+  const generationRef = useRef<number>(0);
+
+  const fetchWithAbort = useCallback(
+    async (
+      url: string,
+      options?: RequestInit
+    ): Promise<T | null> => {
+
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+
+      const controller = new AbortController();
+      abortControllerRef.current = controller;
+
+      const currentGeneration = ++generationRef.current;
+
+      try {
+        const response = await fetch(url, {
+          ...options,
+          signal: controller.signal,
+        });
+
+        if (currentGeneration !== generationRef.current) {
+          return null;
+        }
+
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}`);
+        }
+
+        return await response.json();
+
+      } catch (e) {
+
+        if (e instanceof Error && e.name === "AbortError") {
+          return null;
+        }
+
+        if (currentGeneration !== generationRef.current) {
+          return null;
+        }
+
+        throw e;
+      }
+    },
+    []
+  );
+
+  const cancel = useCallback(() => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+
+    generationRef.current++;
+  }, []);
+
+  return useMemo(
+    () => ({
+      fetchWithAbort,
+      cancel,
+    }),
+    [fetchWithAbort, cancel]
+  );
+}
+
 export default function Dashboard() {
   const [metric, setMetric] = useState<string>("revenue");
   const [data, setData] = useState<KPIData[]>([]);
@@ -391,38 +462,77 @@ export default function Dashboard() {
   const [topSignalsError, setTopSignalsError] = useState<string | null>(null);
   
   const [signalHistory, setSignalHistory] = useState<SignalHistoryItem[]>([]);
-  const [signalHistoryLoading, setSignalHistoryLoading] = useState<boolean>(false);
+
+  // Request management
+  const signalFetch = useFetchWithAbort<KPISignal>();
+  const topSignalsFetch = useFetchWithAbort<{ signals: TopSignal[] }>();
+  const historyFetch = useFetchWithAbort<{ history: SignalHistoryItem[] }>();
+
+  // Cancel all in-flight requests when metric changes
+  useEffect(() => {
+    signalFetch.cancel();
+    historyFetch.cancel();
+    
+    // Use setTimeout to avoid synchronous setState in effect
+    setTimeout(() => {
+      setSignal(null);
+      setSignalError(null);
+      setSignalHistory([]);
+    }, 0);
+  }, [metric]);
 
   // Derive the latest period from the data
   const latestPeriod = data.length > 0 ? data[data.length - 1].month : new Date().toISOString().slice(0, 7);
 
+  // Fetch KPI history for chart
   useEffect(() => {
+    let mounted = true;
+    let currentGeneration = 0;
+
     async function fetchKPI() {
       setLoading(true);
+      currentGeneration++;
+      const gen = currentGeneration;
+      
       try {
-        const months = Array.from({ length: 12 }, (_, i) => {
-          const d = new Date();
-          d.setMonth(d.getMonth() - (11 - i));
-          return d.toISOString().slice(0, 7);
-        });
-        const promises = months.map((m) =>
-          fetch(`/api/kpi?metric=${metric}&month=${m}`).then((r) => r.json())
-        );
-        const results = await Promise.all(promises);
-        const mappedData = results.map((r: KPIApiResponse) => ({
-          month: r.month,
-          value: r.value,
-          is_anomaly: r.is_anomaly,
-          severity: r.severity,
-        }));
-        setData(mappedData);
+        // Use single batched history request instead of 12 individual requests
+        const startMonth = new Date();
+        startMonth.setMonth(startMonth.getMonth() - 11);
+        const start = startMonth.toISOString().slice(0, 7);
+        const end = new Date().toISOString().slice(0, 7);
+        
+        const response = await fetch(`/api/kpi/history?metric=${metric}&start=${start}&end=${end}`);
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        
+        const data = await response.json();
+        
+        if (!mounted || gen !== currentGeneration) return;
+        
+        const mappedData = (data.periods || [])
+          .map((r: { period: string; value: number }) => ({
+            month: r.period,
+            value: r.value,
+            is_anomaly: false, // Will be computed by signal engine
+            severity: undefined,
+          }))
+          .sort((a: KPIData, b: KPIData) => a.month.localeCompare(b.month));
+
+        if (mounted && gen === currentGeneration) {
+          setData(mappedData);
+        }
       } catch (e) {
-        console.error(e);
+        if (mounted && gen === currentGeneration) {
+          console.error(e);
+        }
       } finally {
-        setLoading(false);
+        if (mounted && gen === currentGeneration) {
+          setLoading(false);
+        }
       }
     }
+
     fetchKPI();
+    return () => { mounted = false; };
   }, [metric]);
 
   // Fetch current signal for the selected metric and latest period
@@ -433,18 +543,18 @@ export default function Dashboard() {
       setSignalLoading(true);
       setSignalError(null);
       try {
-        const res = await fetch(`/api/signals?metric=${metric}&period=${latestPeriod}`);
-        if (!res.ok) throw new Error(`Failed to fetch signal: ${res.status}`);
-        const data = await res.json();
-        setSignal(data);
+        const data = await signalFetch.fetchWithAbort(`/api/signals?metric=${metric}&period=${latestPeriod}`);
+        if (data) setSignal(data);
       } catch (e) {
-        setSignalError(e instanceof Error ? e.message : "Failed to load signal");
+        if (e instanceof Error && e.name !== 'AbortError') {
+          setSignalError(e.message);
+        }
       } finally {
         setSignalLoading(false);
       }
     }
     fetchSignal();
-  }, [metric, latestPeriod]);
+  }, [metric, latestPeriod, signalFetch]);
 
   // Fetch top signals for the latest period
   useEffect(() => {
@@ -454,36 +564,46 @@ export default function Dashboard() {
       setTopSignalsLoading(true);
       setTopSignalsError(null);
       try {
-        const res = await fetch(`/api/signals/top?period=${latestPeriod}&limit=10`);
-        if (!res.ok) throw new Error(`Failed to fetch top signals: ${res.status}`);
-        const data = await res.json();
-        setTopSignals(data.signals || []);
+        const data = await topSignalsFetch.fetchWithAbort(`/api/signals/top?period=${latestPeriod}&limit=10`);
+        if (data) setTopSignals(data.signals || []);
       } catch (e) {
-        setTopSignalsError(e instanceof Error ? e.message : "Failed to load top signals");
+        if (e instanceof Error && e.name !== 'AbortError') {
+          setTopSignalsError(e.message);
+        }
       } finally {
         setTopSignalsLoading(false);
       }
     }
     fetchTopSignals();
-  }, [latestPeriod]);
+  }, [latestPeriod, topSignalsFetch]);
 
   // Fetch signal history for the selected metric
+  // Temporarily disabled to prevent blocking initial dashboard load
+  // useEffect(() => {
+  //   async function fetchSignalHistory() {
+  //     setSignalHistoryLoading(true);
+  //     try {
+  //       const data = await historyFetch.fetchWithAbort(`/api/signals/history?metric=${metric}`);
+  //       if (data) setSignalHistory(data.history || []);
+  //     } catch (e) {
+  //       if (e instanceof Error && e.name !== 'AbortError') {
+  //         console.error("Signal history error:", e);
+  //       }
+  //     } finally {
+  //       setSignalHistoryLoading(false);
+  //     }
+  //   }
+  //   fetchSignalHistory();
+  // }, [metric, historyFetch]);
+
+  // Cleanup on unmount
   useEffect(() => {
-    async function fetchSignalHistory() {
-      setSignalHistoryLoading(true);
-      try {
-        const res = await fetch(`/api/signals/history?metric=${metric}`);
-        if (!res.ok) throw new Error(`Failed to fetch signal history: ${res.status}`);
-        const data = await res.json();
-        setSignalHistory(data.history || []);
-      } catch (e) {
-        console.error("Signal history error:", e);
-      } finally {
-        setSignalHistoryLoading(false);
-      }
-    }
-    fetchSignalHistory();
-  }, [metric]);
+    return () => {
+      signalFetch.cancel();
+      topSignalsFetch.cancel();
+      historyFetch.cancel();
+    };
+  }, []);
 
   return (
     <section className="p-8 min-h-screen bg-zinc-100 dark:bg-zinc-900">
@@ -531,7 +651,7 @@ export default function Dashboard() {
       {/* Module 2: Signal History Section (Optional) */}
       <SignalHistorySection 
         history={signalHistory} 
-        loading={signalHistoryLoading} 
+        loading={false} 
         error={null}
       />
 
