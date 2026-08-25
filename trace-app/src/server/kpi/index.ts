@@ -239,6 +239,73 @@ async function computeMarketingROI(filters: { month: string; region?: string; pr
   return { current: currentVal, previous: previousVal };
 }
 
+export async function computeCurrentValue(normalizedMetric: string, filterObj: { month: string; region?: string; product?: string; channel?: string }): Promise<number> {
+  switch (normalizedMetric) {
+    case 'revenue':
+      return (await computeRevenue(filterObj)).current;
+    case 'orders':
+      return (await computeOrders(filterObj)).current;
+    case 'aov':
+      return (await computeAOV(filterObj)).current;
+    case 'conversion':
+      return (await computeConversion(filterObj)).current;
+    case 'marketingROI':
+      return (await computeMarketingROI(filterObj)).current;
+    default:
+      throw new Error(`Unsupported metric: ${normalizedMetric}`);
+  }
+}
+
+export function shiftMonth(month: string, delta: number): string {
+  const [year, monthNum] = month.split("-").map(Number);
+  const d = new Date(year, monthNum - 1 + delta, 1);
+  return `${d.getFullYear()}-${(d.getMonth() + 1).toString().padStart(2, "0")}`;
+}
+
+function mean(values: number[]): number {
+  return values.length ? values.reduce((a, b) => a + b, 0) / values.length : 0;
+}
+
+function stdDev(values: number[], m: number): number {
+  if (values.length < 2) return 0;
+  const variance = values.reduce((a, b) => a + (b - m) ** 2, 0) / values.length;
+  return Math.sqrt(variance);
+}
+
+export interface KPIBaseline {
+  mean: number;
+  std: number;
+  sampleSize: number;
+  months: string[];
+}
+
+/**
+ * Rolling historical baseline for a metric, computed from up to `windowSize`
+ * months strictly before `month` (same filters). Used to judge whether a
+ * month-over-month change is a real anomaly or normal business noise.
+ */
+export async function computeBaseline(
+  normalizedMetric: string,
+  month: string,
+  filters?: { region?: string; product?: string; channel?: string },
+  windowSize = 6
+): Promise<KPIBaseline> {
+  const months: string[] = [];
+  for (let i = windowSize; i >= 1; i--) {
+    months.push(shiftMonth(month, -i));
+  }
+  const values: number[] = [];
+  for (const m of months) {
+    try {
+      values.push(await computeCurrentValue(normalizedMetric, { month: m, ...filters }));
+    } catch {
+      // Skip months where the filter combination has no data (e.g. before launch).
+    }
+  }
+  const m = mean(values);
+  return { mean: m, std: stdDev(values, m), sampleSize: values.length, months };
+}
+
 export async function computeKPI(metric: string, month: string, filters?: { region?: string; product?: string; channel?: string }): Promise<KPIResponse> {
   const normalizedMetric = normalizeMetric(metric);
   const def = getKPIDefinition(normalizedMetric);
@@ -276,6 +343,29 @@ export async function computeKPI(metric: string, month: string, filters?: { regi
 
   const lineage = buildLineage(normalizedMetric, { month, ...filters });
 
+  // Statistical significance: is this month unusual relative to its own trailing
+  // history, not just relative to last month? A single-month dip/spike can be
+  // noise; a multi-sigma deviation from the rolling baseline is a real signal.
+  const baseline = await computeBaseline(normalizedMetric, month, filters);
+  const zScore = baseline.std > 0 ? (result.current - baseline.mean) / baseline.std : 0;
+  const baselineDeltaPct = baseline.mean !== 0 ? ((result.current - baseline.mean) / baseline.mean) * 100 : 0;
+
+  const materiality = def.materialityThreshold;
+  const meetsMateriality =
+    (materiality.relative !== undefined && Math.abs(changePct) / 100 >= materiality.relative) ||
+    (materiality.absolute !== undefined && Math.abs(result.current - result.previous) >= materiality.absolute);
+
+  const hasEnoughHistory = baseline.sampleSize >= 3;
+  const absZ = Math.abs(zScore);
+  const is_anomaly = hasEnoughHistory ? (absZ >= 2 && meetsMateriality) : meetsMateriality;
+  const severity: 'low' | 'medium' | 'high' = !is_anomaly
+    ? 'low'
+    : (hasEnoughHistory ? absZ >= 3 : Math.abs(changePct) >= 30)
+      ? 'high'
+      : (hasEnoughHistory ? absZ >= 2.5 : Math.abs(changePct) >= 20)
+        ? 'medium'
+        : 'low';
+
   return {
     metric: def.name,
     label: def.label,
@@ -290,8 +380,19 @@ export async function computeKPI(metric: string, month: string, filters?: { regi
     lineage: { formula: def.formula, filters: { month, ...filters }, generatedAt: lineage.generatedAt },
     quality: { status: quality.status, completenessPct: quality.completenessPct },
     freshness: { status: freshness[0]?.freshnessStatus || 'fresh', source: freshness[0]?.source || 'unknown' },
-    is_anomaly: Math.abs(changePct) > 20,
-    severity: Math.abs(changePct) > 30 ? 'high' : Math.abs(changePct) > 20 ? 'medium' : 'low'
+    is_anomaly,
+    severity,
+    baseline: {
+      mean: Math.round(baseline.mean * 100) / 100,
+      std: Math.round(baseline.std * 100) / 100,
+      sampleSize: baseline.sampleSize,
+      deltaFromBaselinePct: Math.round(baselineDeltaPct * 100) / 100,
+    },
+    zScore: Math.round(zScore * 100) / 100,
+    normalRange: {
+      low: Math.round((baseline.mean - 1.5 * baseline.std) * 100) / 100,
+      high: Math.round((baseline.mean + 1.5 * baseline.std) * 100) / 100,
+    },
   };
 }
 

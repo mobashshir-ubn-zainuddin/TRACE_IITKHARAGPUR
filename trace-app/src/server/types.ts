@@ -5,7 +5,74 @@ export interface EvidenceItem {
   region: string;
   topic: string;
   date: string;
+  product?: string;
   embedding?: number[];
+}
+
+export interface RetrievedEvidence extends EvidenceItem {
+  relevance: number;
+  recency: number;
+  reliability: number;
+  independence: number;
+  stance: 'support' | 'contradict' | 'neutral';
+  weight: number;
+}
+
+export interface StructuredSignal {
+  metric: string;
+  currentValue: number;
+  baselineMean: number;
+  baselineStd: number;
+  zScore: number | null;
+  deltaPct: number | null;
+  available: boolean;
+  /** 0 (no structural support) to 1 (strong structural support) for this specific hypothesis. */
+  supportStrength: number;
+  note?: string;
+}
+
+export interface HypothesisResult {
+  id: number;
+  key: string;
+  description: string;
+  dataAvailable: boolean;
+  rawConfidence: number;
+  confidence: number;
+  structuredSignal: StructuredSignal;
+  supportEvidence: RetrievedEvidence[];
+  contradictingEvidence: RetrievedEvidence[];
+  breakdown: {
+    structuredContribution: number;
+    unstructuredContribution: number;
+    contradictionPenalty: number;
+  };
+  rationale: string;
+}
+
+export interface UncertaintyReport {
+  metric: string;
+  month: string;
+  region?: string;
+  dataCompletenessPct: number;
+  missingDataSources: string[];
+  contradictions: Array<{
+    hypothesis: string;
+    supportingSignal: string;
+    contradictingSignal: string;
+    note: string;
+  }>;
+  confidenceAdjustments: Array<{
+    hypothesis: string;
+    before: number;
+    after: number;
+    reason: string;
+  }>;
+  ambiguous: boolean;
+  topHypothesis: string | null;
+  abstentionMessage?: string;
+  recommendedDataCollection: string[];
+  // backward-compatible field
+  uncertainty_pct: number;
 }
 
 export interface DecisionItem {
@@ -48,6 +115,14 @@ export interface KPIResponse {
   };
   is_anomaly?: boolean;
   severity?: 'low' | 'medium' | 'high';
+  baseline?: {
+    mean: number;
+    std: number;
+    sampleSize: number;
+    deltaFromBaselinePct: number;
+  };
+  zScore?: number;
+  normalRange?: { low: number; high: number };
 }
 
 export interface KPIHistoryResponse {

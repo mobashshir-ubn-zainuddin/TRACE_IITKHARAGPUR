@@ -1,18 +1,21 @@
 // src/app/api/hypotheses/route.ts
 import { NextResponse } from "next/server";
-import { scoreHypotheses } from "@/server/hypothesis";
+import { investigate } from "@/server/investigation";
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const metric = searchParams.get("metric") ?? "revenue";
   const month = searchParams.get("month");
+  const region = searchParams.get("region") || undefined;
+  const product = searchParams.get("product") || undefined;
   if (!month) {
     return NextResponse.json({ error: "Missing month" }, { status: 400 });
   }
   try {
-    const results = await scoreHypotheses(metric, month);
-    return NextResponse.json(results);
-  } catch (err: any) {
-    return NextResponse.json({ error: err.message || "Error" }, { status: 500 });
+    const { hypotheses } = await investigate(metric, month, { region, product });
+    return NextResponse.json(hypotheses);
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Internal error";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

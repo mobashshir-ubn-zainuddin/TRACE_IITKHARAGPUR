@@ -1,1602 +1,2588 @@
 [
   {
     "id": 1,
-    "text": "Sample InternalReport about Conversion issues observed on 2026-03-02.",
+    "text": "North logistics report: average delivery SLA remained within target (~5.8% delay rate) this month; no material change in delivery performance.",
     "source": "InternalReport",
     "region": "North",
-    "topic": "Conversion",
-    "date": "2026-08-20"
+    "topic": "delivery",
+    "date": "2025-03-18"
   },
   {
     "id": 2,
-    "text": "Sample CustomerReview about Inventory issues observed on 2026-06-22.",
+    "text": "Second time ordering Product B from the North store — consistently reliable service.",
     "source": "CustomerReview",
-    "region": "South",
-    "topic": "Inventory",
-    "date": "2026-08-02"
+    "region": "North",
+    "topic": "general",
+    "date": "2025-03-20",
+    "product": "Product B"
   },
   {
     "id": 3,
-    "text": "Sample CustomerReview about Conversion issues observed on 2026-07-13.",
+    "text": "Second time ordering Product D from the North store — consistently reliable service.",
     "source": "CustomerReview",
-    "region": "East",
-    "topic": "Conversion",
-    "date": "2025-11-26"
+    "region": "North",
+    "topic": "general",
+    "date": "2025-03-13",
+    "product": "Product D"
   },
   {
     "id": 4,
-    "text": "Sample InternalReport about Delivery issues observed on 2026-05-27.",
-    "source": "InternalReport",
-    "region": "West",
-    "topic": "Delivery",
-    "date": "2026-03-27"
+    "text": "Second time ordering Product D from the North store — consistently reliable service.",
+    "source": "CustomerReview",
+    "region": "North",
+    "topic": "general",
+    "date": "2025-04-15",
+    "product": "Product D"
   },
   {
     "id": 5,
-    "text": "Sample SupportTicket about Pricing issues observed on 2026-07-03.",
-    "source": "SupportTicket",
-    "region": "West",
-    "topic": "Pricing",
-    "date": "2025-11-28"
+    "text": "Product C arrived quickly in North and was well packaged. Would buy again.",
+    "source": "CustomerReview",
+    "region": "North",
+    "topic": "general",
+    "date": "2025-05-04",
+    "product": "Product C"
   },
   {
     "id": 6,
-    "text": "Sample SupportTicket about Seasonality issues observed on 2026-03-13.",
+    "text": "Routine support inquiry about warranty terms for Product B purchased in North. Resolved same day.",
     "source": "SupportTicket",
     "region": "North",
-    "topic": "Seasonality",
-    "date": "2025-10-15"
+    "topic": "general",
+    "date": "2025-05-06",
+    "product": "Product B"
   },
   {
     "id": 7,
-    "text": "Sample CustomerReview about Pricing issues observed on 2026-04-06.",
+    "text": "Delivery for my Product A order in North took a little longer than expected, but support kept me updated.",
     "source": "CustomerReview",
     "region": "North",
-    "topic": "Pricing",
-    "date": "2026-05-09"
+    "topic": "delivery",
+    "date": "2025-06-13",
+    "product": "Product E"
   },
   {
     "id": 8,
-    "text": "Sample InternalReport about Inventory issues observed on 2025-10-02.",
-    "source": "InternalReport",
-    "region": "South",
-    "topic": "Inventory",
-    "date": "2026-05-26"
+    "text": "Package arrived a couple of days late in North, minor inconvenience but not a big deal.",
+    "source": "CustomerReview",
+    "region": "North",
+    "topic": "delivery",
+    "date": "2025-06-11",
+    "product": "Product B"
   },
   {
     "id": 9,
-    "text": "Sample InternalReport about Seasonality issues observed on 2026-06-19.",
-    "source": "InternalReport",
-    "region": "East",
-    "topic": "Seasonality",
-    "date": "2026-08-04"
+    "text": "Package arrived a couple of days late in North, minor inconvenience but not a big deal.",
+    "source": "CustomerReview",
+    "region": "North",
+    "topic": "delivery",
+    "date": "2025-06-14",
+    "product": "Product A"
   },
   {
     "id": 10,
-    "text": "Sample InternalReport about Delivery issues observed on 2026-04-08.",
-    "source": "InternalReport",
-    "region": "West",
-    "topic": "Delivery",
-    "date": "2026-07-08"
+    "text": "Package arrived a couple of days late in North, minor inconvenience but not a big deal.",
+    "source": "CustomerReview",
+    "region": "North",
+    "topic": "delivery",
+    "date": "2025-06-29",
+    "product": "Product D"
   },
   {
     "id": 11,
-    "text": "Sample CustomerReview about Seasonality issues observed on 2026-03-04.",
+    "text": "Product C arrived quickly in North and was well packaged. Would buy again.",
     "source": "CustomerReview",
-    "region": "West",
-    "topic": "Seasonality",
-    "date": "2026-04-25"
+    "region": "North",
+    "topic": "general",
+    "date": "2025-06-17",
+    "product": "Product C"
   },
   {
     "id": 12,
-    "text": "Sample InternalReport about Seasonality issues observed on 2026-05-01.",
-    "source": "InternalReport",
+    "text": "Second time ordering Product B from the North store — consistently reliable service.",
+    "source": "CustomerReview",
     "region": "North",
-    "topic": "Seasonality",
-    "date": "2025-11-30"
+    "topic": "general",
+    "date": "2025-06-23",
+    "product": "Product B"
   },
   {
     "id": 13,
-    "text": "Sample CustomerReview about Pricing issues observed on 2026-05-04.",
+    "text": "Great experience shopping for Product C in North. Fast, easy, and exactly as described.",
     "source": "CustomerReview",
     "region": "North",
-    "topic": "Pricing",
-    "date": "2026-04-02"
+    "topic": "general",
+    "date": "2025-06-29",
+    "product": "Product C"
   },
   {
     "id": 14,
-    "text": "Sample InternalReport about Pricing issues observed on 2025-12-24.",
-    "source": "InternalReport",
-    "region": "South",
-    "topic": "Pricing",
-    "date": "2026-03-28"
+    "text": "Routine support inquiry about warranty terms for Product B purchased in North. Resolved same day.",
+    "source": "SupportTicket",
+    "region": "North",
+    "topic": "general",
+    "date": "2025-06-16",
+    "product": "Product B"
   },
   {
     "id": 15,
-    "text": "Sample CustomerReview about Seasonality issues observed on 2026-04-16.",
+    "text": "Second time ordering Product A from the North store — consistently reliable service.",
     "source": "CustomerReview",
-    "region": "West",
-    "topic": "Seasonality",
-    "date": "2026-03-14"
+    "region": "North",
+    "topic": "general",
+    "date": "2025-07-15",
+    "product": "Product A"
   },
   {
     "id": 16,
-    "text": "Sample CustomerReview about Pricing issues observed on 2026-06-28.",
+    "text": "Second time ordering Product E from the North store — consistently reliable service.",
     "source": "CustomerReview",
     "region": "North",
-    "topic": "Pricing",
-    "date": "2026-02-27"
+    "topic": "general",
+    "date": "2025-07-13",
+    "product": "Product E"
   },
   {
     "id": 17,
-    "text": "Sample InternalReport about Seasonality issues observed on 2025-11-19.",
-    "source": "InternalReport",
+    "text": "Routine support inquiry about warranty terms for Product E purchased in North. Resolved same day.",
+    "source": "SupportTicket",
     "region": "North",
-    "topic": "Seasonality",
-    "date": "2025-12-26"
+    "topic": "general",
+    "date": "2025-07-17",
+    "product": "Product E"
   },
   {
     "id": 18,
-    "text": "Sample InternalReport about Pricing issues observed on 2026-07-20.",
+    "text": "Ops sync (North): last-mile delivery times are stable month over month (6% delay rate), consistent with prior quarters.",
     "source": "InternalReport",
-    "region": "West",
-    "topic": "Pricing",
-    "date": "2026-08-03"
+    "region": "North",
+    "topic": "delivery",
+    "date": "2025-08-30"
   },
   {
     "id": 19,
-    "text": "Sample CustomerReview about Inventory issues observed on 2026-07-22.",
+    "text": "Package arrived a couple of days late in North, minor inconvenience but not a big deal.",
     "source": "CustomerReview",
-    "region": "South",
-    "topic": "Inventory",
-    "date": "2026-02-25"
+    "region": "North",
+    "topic": "delivery",
+    "date": "2025-08-16",
+    "product": "Product D"
   },
   {
     "id": 20,
-    "text": "Sample InternalReport about Pricing issues observed on 2025-12-21.",
-    "source": "InternalReport",
+    "text": "Second time ordering Product A from the North store — consistently reliable service.",
+    "source": "CustomerReview",
     "region": "North",
-    "topic": "Pricing",
-    "date": "2025-12-02"
+    "topic": "general",
+    "date": "2025-08-20",
+    "product": "Product A"
   },
   {
     "id": 21,
-    "text": "Sample SupportTicket about Delivery issues observed on 2026-06-27.",
-    "source": "SupportTicket",
-    "region": "South",
-    "topic": "Delivery",
-    "date": "2026-01-02"
+    "text": "Product A arrived quickly in North and was well packaged. Would buy again.",
+    "source": "CustomerReview",
+    "region": "North",
+    "topic": "general",
+    "date": "2025-08-01",
+    "product": "Product A"
   },
   {
     "id": 22,
-    "text": "Sample InternalReport about Conversion issues observed on 2026-04-05.",
-    "source": "InternalReport",
+    "text": "Great experience shopping for Product C in North. Fast, easy, and exactly as described.",
+    "source": "CustomerReview",
     "region": "North",
-    "topic": "Conversion",
-    "date": "2026-02-03"
+    "topic": "general",
+    "date": "2025-08-10",
+    "product": "Product C"
   },
   {
     "id": 23,
-    "text": "Sample SupportTicket about Conversion issues observed on 2026-03-14.",
-    "source": "SupportTicket",
-    "region": "West",
-    "topic": "Conversion",
-    "date": "2025-12-08"
+    "text": "North logistics report: average delivery SLA remained within target (~6.1% delay rate) this month; no material change in delivery performance.",
+    "source": "InternalReport",
+    "region": "North",
+    "topic": "delivery",
+    "date": "2025-09-04"
   },
   {
     "id": 24,
-    "text": "Sample SupportTicket about Delivery issues observed on 2026-03-28.",
-    "source": "SupportTicket",
-    "region": "South",
-    "topic": "Delivery",
-    "date": "2026-06-02"
+    "text": "Great experience shopping for Product E in North. Fast, easy, and exactly as described.",
+    "source": "CustomerReview",
+    "region": "North",
+    "topic": "general",
+    "date": "2025-09-14",
+    "product": "Product E"
   },
   {
     "id": 25,
-    "text": "Sample CustomerReview about Delivery issues observed on 2026-08-08.",
+    "text": "Second time ordering Product B from the North store — consistently reliable service.",
     "source": "CustomerReview",
     "region": "North",
-    "topic": "Delivery",
-    "date": "2025-11-25"
+    "topic": "general",
+    "date": "2025-09-02",
+    "product": "Product B"
   },
   {
     "id": 26,
-    "text": "Sample CustomerReview about Seasonality issues observed on 2026-05-24.",
-    "source": "CustomerReview",
-    "region": "West",
-    "topic": "Seasonality",
-    "date": "2025-10-16"
+    "text": "Routine support inquiry about warranty terms for Product E purchased in North. Resolved same day.",
+    "source": "SupportTicket",
+    "region": "North",
+    "topic": "general",
+    "date": "2025-09-20",
+    "product": "Product E"
   },
   {
     "id": 27,
-    "text": "Sample SupportTicket about Inventory issues observed on 2026-04-04.",
-    "source": "SupportTicket",
+    "text": "Second time ordering Product D from the North store — consistently reliable service.",
+    "source": "CustomerReview",
     "region": "North",
-    "topic": "Inventory",
-    "date": "2026-02-07"
+    "topic": "general",
+    "date": "2025-10-05",
+    "product": "Product D"
   },
   {
     "id": 28,
-    "text": "Sample SupportTicket about Inventory issues observed on 2026-03-31.",
-    "source": "SupportTicket",
-    "region": "East",
-    "topic": "Inventory",
-    "date": "2025-12-24"
+    "text": "Second time ordering Product B from the North store — consistently reliable service.",
+    "source": "CustomerReview",
+    "region": "North",
+    "topic": "general",
+    "date": "2025-10-05",
+    "product": "Product B"
   },
   {
     "id": 29,
-    "text": "Sample SupportTicket about Seasonality issues observed on 2025-12-13.",
-    "source": "SupportTicket",
+    "text": "Great experience shopping for Product E in North. Fast, easy, and exactly as described.",
+    "source": "CustomerReview",
     "region": "North",
-    "topic": "Seasonality",
-    "date": "2026-08-07"
+    "topic": "general",
+    "date": "2025-10-28",
+    "product": "Product E"
   },
   {
     "id": 30,
-    "text": "Sample SupportTicket about Conversion issues observed on 2026-05-06.",
-    "source": "SupportTicket",
-    "region": "South",
-    "topic": "Conversion",
-    "date": "2026-01-25"
+    "text": "Package arrived a couple of days late in North, minor inconvenience but not a big deal.",
+    "source": "CustomerReview",
+    "region": "North",
+    "topic": "delivery",
+    "date": "2025-11-07",
+    "product": "Product C"
   },
   {
     "id": 31,
-    "text": "Sample SupportTicket about Inventory issues observed on 2026-07-02.",
-    "source": "SupportTicket",
-    "region": "West",
-    "topic": "Inventory",
-    "date": "2026-05-21"
+    "text": "Delivery for my Product A order in North took a little longer than expected, but support kept me updated.",
+    "source": "CustomerReview",
+    "region": "North",
+    "topic": "delivery",
+    "date": "2025-11-19",
+    "product": "Product E"
   },
   {
     "id": 32,
-    "text": "Sample SupportTicket about Inventory issues observed on 2026-03-10.",
-    "source": "SupportTicket",
+    "text": "Package arrived a couple of days late in North, minor inconvenience but not a big deal.",
+    "source": "CustomerReview",
     "region": "North",
-    "topic": "Inventory",
-    "date": "2026-03-10"
+    "topic": "delivery",
+    "date": "2025-11-20",
+    "product": "Product C"
   },
   {
     "id": 33,
-    "text": "Sample CustomerReview about Inventory issues observed on 2025-12-03.",
+    "text": "Product A arrived quickly in North and was well packaged. Would buy again.",
     "source": "CustomerReview",
-    "region": "West",
-    "topic": "Inventory",
-    "date": "2026-07-14"
+    "region": "North",
+    "topic": "general",
+    "date": "2025-11-08",
+    "product": "Product A"
   },
   {
     "id": 34,
-    "text": "Sample CustomerReview about Inventory issues observed on 2025-10-29.",
+    "text": "Package arrived a couple of days late in North, minor inconvenience but not a big deal.",
     "source": "CustomerReview",
     "region": "North",
-    "topic": "Inventory",
-    "date": "2026-07-25"
+    "topic": "delivery",
+    "date": "2025-12-07",
+    "product": "Product D"
   },
   {
     "id": 35,
-    "text": "Sample CustomerReview about Delivery issues observed on 2026-07-11.",
+    "text": "Great experience shopping for Product D in North. Fast, easy, and exactly as described.",
     "source": "CustomerReview",
     "region": "North",
-    "topic": "Delivery",
-    "date": "2026-05-17"
+    "topic": "general",
+    "date": "2025-12-28",
+    "product": "Product D"
   },
   {
     "id": 36,
-    "text": "Sample SupportTicket about Delivery issues observed on 2026-04-13.",
-    "source": "SupportTicket",
-    "region": "West",
-    "topic": "Delivery",
-    "date": "2025-12-16"
+    "text": "Product D arrived quickly in North and was well packaged. Would buy again.",
+    "source": "CustomerReview",
+    "region": "North",
+    "topic": "general",
+    "date": "2025-12-09",
+    "product": "Product D"
   },
   {
     "id": 37,
-    "text": "Sample CustomerReview about Conversion issues observed on 2025-09-24.",
+    "text": "Second time ordering Product C from the North store — consistently reliable service.",
     "source": "CustomerReview",
     "region": "North",
-    "topic": "Conversion",
-    "date": "2026-03-20"
+    "topic": "general",
+    "date": "2025-12-12",
+    "product": "Product C"
   },
   {
     "id": 38,
-    "text": "Sample InternalReport about Seasonality issues observed on 2026-03-30.",
-    "source": "InternalReport",
-    "region": "West",
-    "topic": "Seasonality",
-    "date": "2026-02-08"
+    "text": "Customer asked about Product C return policy in North; no complaints, question answered.",
+    "source": "SupportTicket",
+    "region": "North",
+    "topic": "general",
+    "date": "2025-12-05",
+    "product": "Product C"
   },
   {
     "id": 39,
-    "text": "Sample CustomerReview about Inventory issues observed on 2026-01-27.",
+    "text": "Great experience shopping for Product B in North. Fast, easy, and exactly as described.",
     "source": "CustomerReview",
     "region": "North",
-    "topic": "Inventory",
-    "date": "2026-05-26"
+    "topic": "general",
+    "date": "2026-01-28",
+    "product": "Product B"
   },
   {
     "id": 40,
-    "text": "Sample InternalReport about Delivery issues observed on 2026-07-29.",
-    "source": "InternalReport",
-    "region": "East",
-    "topic": "Delivery",
-    "date": "2025-12-29"
+    "text": "Routine support inquiry about warranty terms for Product E purchased in North. Resolved same day.",
+    "source": "SupportTicket",
+    "region": "North",
+    "topic": "general",
+    "date": "2026-01-24",
+    "product": "Product E"
   },
   {
     "id": 41,
-    "text": "Sample CustomerReview about Conversion issues observed on 2026-02-11.",
+    "text": "Product E arrived quickly in North and was well packaged. Would buy again.",
     "source": "CustomerReview",
-    "region": "East",
-    "topic": "Conversion",
-    "date": "2025-11-30"
+    "region": "North",
+    "topic": "general",
+    "date": "2026-02-26",
+    "product": "Product E"
   },
   {
     "id": 42,
-    "text": "Sample SupportTicket about Pricing issues observed on 2026-08-19.",
-    "source": "SupportTicket",
-    "region": "South",
-    "topic": "Pricing",
-    "date": "2025-12-29"
+    "text": "Great experience shopping for Product E in North. Fast, easy, and exactly as described.",
+    "source": "CustomerReview",
+    "region": "North",
+    "topic": "general",
+    "date": "2026-02-27",
+    "product": "Product E"
   },
   {
     "id": 43,
-    "text": "Sample SupportTicket about Inventory issues observed on 2026-07-12.",
+    "text": "Customer asked about Product E return policy in North; no complaints, question answered.",
     "source": "SupportTicket",
     "region": "North",
-    "topic": "Inventory",
-    "date": "2026-02-01"
+    "topic": "general",
+    "date": "2026-02-22",
+    "product": "Product E"
   },
   {
     "id": 44,
-    "text": "Sample CustomerReview about Seasonality issues observed on 2026-04-07.",
+    "text": "Great experience shopping for Product A in North. Fast, easy, and exactly as described.",
     "source": "CustomerReview",
-    "region": "South",
-    "topic": "Seasonality",
-    "date": "2025-12-11"
+    "region": "North",
+    "topic": "general",
+    "date": "2026-03-27",
+    "product": "Product A"
   },
   {
     "id": 45,
-    "text": "Sample InternalReport about Conversion issues observed on 2025-11-17.",
+    "text": "North logistics report: average delivery SLA remained within target (~6.1% delay rate) this month; no material change in delivery performance.",
     "source": "InternalReport",
-    "region": "West",
-    "topic": "Conversion",
-    "date": "2026-05-30"
+    "region": "North",
+    "topic": "delivery",
+    "date": "2026-04-17"
   },
   {
     "id": 46,
-    "text": "Sample InternalReport about Inventory issues observed on 2026-02-05.",
-    "source": "InternalReport",
+    "text": "Great experience shopping for Product A in North. Fast, easy, and exactly as described.",
+    "source": "CustomerReview",
     "region": "North",
-    "topic": "Inventory",
-    "date": "2026-08-08"
+    "topic": "general",
+    "date": "2026-04-08",
+    "product": "Product A"
   },
   {
     "id": 47,
-    "text": "Sample InternalReport about Seasonality issues observed on 2026-06-10.",
-    "source": "InternalReport",
-    "region": "West",
-    "topic": "Seasonality",
-    "date": "2026-04-23"
+    "text": "Second time ordering Product B from the North store — consistently reliable service.",
+    "source": "CustomerReview",
+    "region": "North",
+    "topic": "general",
+    "date": "2026-04-18",
+    "product": "Product B"
   },
   {
     "id": 48,
-    "text": "Sample SupportTicket about Delivery issues observed on 2026-04-02.",
+    "text": "Routine support inquiry about warranty terms for Product D purchased in North. Resolved same day.",
     "source": "SupportTicket",
-    "region": "East",
-    "topic": "Delivery",
-    "date": "2026-05-29"
+    "region": "North",
+    "topic": "general",
+    "date": "2026-04-30",
+    "product": "Product D"
   },
   {
     "id": 49,
-    "text": "Sample SupportTicket about Delivery issues observed on 2026-06-29.",
-    "source": "SupportTicket",
-    "region": "East",
-    "topic": "Delivery",
-    "date": "2026-06-17"
+    "text": "Second time ordering Product E from the North store — consistently reliable service.",
+    "source": "CustomerReview",
+    "region": "North",
+    "topic": "general",
+    "date": "2026-05-04",
+    "product": "Product E"
   },
   {
     "id": 50,
-    "text": "Sample InternalReport about Delivery issues observed on 2025-12-21.",
-    "source": "InternalReport",
+    "text": "Customer asked about Product D return policy in North; no complaints, question answered.",
+    "source": "SupportTicket",
     "region": "North",
-    "topic": "Delivery",
-    "date": "2026-04-28"
+    "topic": "general",
+    "date": "2026-05-11",
+    "product": "Product D"
   },
   {
     "id": 51,
-    "text": "Sample SupportTicket about Delivery issues observed on 2026-07-24.",
-    "source": "SupportTicket",
-    "region": "West",
-    "topic": "Delivery",
-    "date": "2026-06-10"
+    "text": "Second time ordering Product C from the North store — consistently reliable service.",
+    "source": "CustomerReview",
+    "region": "North",
+    "topic": "general",
+    "date": "2026-06-06",
+    "product": "Product C"
   },
   {
     "id": 52,
-    "text": "Sample InternalReport about Pricing issues observed on 2026-07-11.",
-    "source": "InternalReport",
-    "region": "West",
-    "topic": "Pricing",
-    "date": "2025-12-19"
+    "text": "Product D arrived quickly in North and was well packaged. Would buy again.",
+    "source": "CustomerReview",
+    "region": "North",
+    "topic": "general",
+    "date": "2026-06-02",
+    "product": "Product D"
   },
   {
     "id": 53,
-    "text": "Sample InternalReport about Seasonality issues observed on 2026-07-08.",
-    "source": "InternalReport",
-    "region": "South",
-    "topic": "Seasonality",
-    "date": "2025-11-27"
+    "text": "Customer asked about Product B return policy in North; no complaints, question answered.",
+    "source": "SupportTicket",
+    "region": "North",
+    "topic": "general",
+    "date": "2026-06-01",
+    "product": "Product B"
   },
   {
     "id": 54,
-    "text": "Sample CustomerReview about Conversion issues observed on 2026-04-11.",
+    "text": "Second time ordering Product A from the North store — consistently reliable service.",
     "source": "CustomerReview",
-    "region": "South",
-    "topic": "Conversion",
-    "date": "2026-05-28"
+    "region": "North",
+    "topic": "general",
+    "date": "2026-07-29",
+    "product": "Product A"
   },
   {
     "id": 55,
-    "text": "Sample CustomerReview about Delivery issues observed on 2025-11-24.",
+    "text": "Great experience shopping for Product E in North. Fast, easy, and exactly as described.",
     "source": "CustomerReview",
-    "region": "South",
-    "topic": "Delivery",
-    "date": "2026-01-30"
+    "region": "North",
+    "topic": "general",
+    "date": "2026-07-27",
+    "product": "Product E"
   },
   {
     "id": 56,
-    "text": "Sample SupportTicket about Conversion issues observed on 2026-03-08.",
-    "source": "SupportTicket",
-    "region": "South",
-    "topic": "Conversion",
-    "date": "2026-04-02"
+    "text": "Tried to order the Product B in North region but it kept showing \"out of stock\" for most of the month. Ended up settling for a different, cheaper model instead.",
+    "source": "CustomerReview",
+    "region": "North",
+    "topic": "inventory",
+    "date": "2026-08-22",
+    "product": "Product B"
   },
   {
     "id": 57,
-    "text": "Sample CustomerReview about Inventory issues observed on 2025-12-19.",
+    "text": "Tried to order the Product B in North region but it kept showing \"out of stock\" for most of the month. Ended up settling for a different, cheaper model instead.",
     "source": "CustomerReview",
-    "region": "South",
-    "topic": "Inventory",
-    "date": "2026-07-28"
+    "region": "North",
+    "topic": "inventory",
+    "date": "2026-08-02",
+    "product": "Product B"
   },
   {
     "id": 58,
-    "text": "Sample CustomerReview about Inventory issues observed on 2025-11-06.",
+    "text": "Really disappointed — Product B was unavailable at the North store for weeks. Staff said it was on backorder with no clear delivery date.",
     "source": "CustomerReview",
-    "region": "South",
-    "topic": "Inventory",
-    "date": "2025-10-23"
+    "region": "North",
+    "topic": "inventory",
+    "date": "2026-08-29",
+    "product": "Product B"
   },
   {
     "id": 59,
-    "text": "Sample SupportTicket about Conversion issues observed on 2026-01-17.",
-    "source": "SupportTicket",
-    "region": "West",
-    "topic": "Conversion",
-    "date": "2026-02-28"
+    "text": "Website showed Product B as available in North, but my order was cancelled a day later due to \"inventory mismatch.\"",
+    "source": "CustomerReview",
+    "region": "North",
+    "topic": "inventory",
+    "date": "2026-08-26",
+    "product": "Product B"
   },
   {
     "id": 60,
-    "text": "Sample InternalReport about Delivery issues observed on 2026-01-14.",
-    "source": "InternalReport",
-    "region": "South",
-    "topic": "Delivery",
-    "date": "2025-12-29"
+    "text": "Tried to order the Product B in North region but it kept showing \"out of stock\" for most of the month. Ended up settling for a different, cheaper model instead.",
+    "source": "CustomerReview",
+    "region": "North",
+    "topic": "inventory",
+    "date": "2026-08-16",
+    "product": "Product B"
   },
   {
     "id": 61,
-    "text": "Sample SupportTicket about Pricing issues observed on 2026-01-19.",
+    "text": "Support case opened — customer in North reports repeated stockouts on Product B, requesting refund after 10-day wait.",
     "source": "SupportTicket",
     "region": "North",
-    "topic": "Pricing",
-    "date": "2026-03-21"
+    "topic": "inventory",
+    "date": "2026-08-16",
+    "product": "Product B"
   },
   {
     "id": 62,
-    "text": "Sample InternalReport about Delivery issues observed on 2026-03-12.",
-    "source": "InternalReport",
-    "region": "South",
-    "topic": "Delivery",
-    "date": "2026-06-17"
+    "text": "Support case opened — customer in North reports repeated stockouts on Product B, requesting refund after 10-day wait.",
+    "source": "SupportTicket",
+    "region": "North",
+    "topic": "inventory",
+    "date": "2026-08-23",
+    "product": "Product B"
   },
   {
     "id": 63,
-    "text": "Sample CustomerReview about Seasonality issues observed on 2026-06-27.",
-    "source": "CustomerReview",
-    "region": "South",
-    "topic": "Seasonality",
-    "date": "2026-05-06"
+    "text": "North operations note: Product B stockout rate reached 32.2% this month, driven by a supplier delay at the regional distribution center.",
+    "source": "InternalReport",
+    "region": "North",
+    "topic": "inventory",
+    "date": "2026-08-31",
+    "product": "Product B"
   },
   {
     "id": 64,
-    "text": "Sample CustomerReview about Pricing issues observed on 2026-03-21.",
-    "source": "CustomerReview",
-    "region": "West",
-    "topic": "Pricing",
-    "date": "2026-08-20"
+    "text": "North regional manager comment: we increased markdowns to 17.4% to move available inventory toward lower-demand alternatives while premium items stay out of stock.",
+    "source": "InternalReport",
+    "region": "North",
+    "topic": "discount",
+    "date": "2026-08-04"
   },
   {
     "id": 65,
-    "text": "Sample InternalReport about Pricing issues observed on 2026-06-09.",
-    "source": "InternalReport",
-    "region": "East",
-    "topic": "Pricing",
-    "date": "2025-12-25"
-  },
-  {
-    "id": 66,
-    "text": "Sample SupportTicket about Inventory issues observed on 2026-06-28.",
-    "source": "SupportTicket",
-    "region": "North",
-    "topic": "Inventory",
-    "date": "2026-04-27"
-  },
-  {
-    "id": 67,
-    "text": "Sample SupportTicket about Pricing issues observed on 2026-01-02.",
-    "source": "SupportTicket",
-    "region": "East",
-    "topic": "Pricing",
-    "date": "2026-02-20"
-  },
-  {
-    "id": 68,
-    "text": "Sample CustomerReview about Inventory issues observed on 2025-11-22.",
-    "source": "CustomerReview",
-    "region": "South",
-    "topic": "Inventory",
-    "date": "2025-12-22"
-  },
-  {
-    "id": 69,
-    "text": "Sample CustomerReview about Inventory issues observed on 2026-03-19.",
-    "source": "CustomerReview",
-    "region": "West",
-    "topic": "Inventory",
-    "date": "2026-04-18"
-  },
-  {
-    "id": 70,
-    "text": "Sample SupportTicket about Delivery issues observed on 2026-03-03.",
-    "source": "SupportTicket",
-    "region": "North",
-    "topic": "Delivery",
-    "date": "2026-02-19"
-  },
-  {
-    "id": 71,
-    "text": "Sample SupportTicket about Seasonality issues observed on 2025-11-10.",
-    "source": "SupportTicket",
-    "region": "North",
-    "topic": "Seasonality",
-    "date": "2026-01-21"
-  },
-  {
-    "id": 72,
-    "text": "Sample InternalReport about Conversion issues observed on 2026-03-12.",
-    "source": "InternalReport",
-    "region": "East",
-    "topic": "Conversion",
-    "date": "2026-07-22"
-  },
-  {
-    "id": 73,
-    "text": "Sample CustomerReview about Inventory issues observed on 2026-06-09.",
-    "source": "CustomerReview",
-    "region": "West",
-    "topic": "Inventory",
-    "date": "2026-05-13"
-  },
-  {
-    "id": 74,
-    "text": "Sample SupportTicket about Seasonality issues observed on 2026-02-21.",
-    "source": "SupportTicket",
-    "region": "South",
-    "topic": "Seasonality",
-    "date": "2026-05-24"
-  },
-  {
-    "id": 75,
-    "text": "Sample InternalReport about Seasonality issues observed on 2026-04-02.",
-    "source": "InternalReport",
-    "region": "West",
-    "topic": "Seasonality",
-    "date": "2026-04-09"
-  },
-  {
-    "id": 76,
-    "text": "Sample SupportTicket about Delivery issues observed on 2026-05-19.",
-    "source": "SupportTicket",
-    "region": "East",
-    "topic": "Delivery",
-    "date": "2026-05-20"
-  },
-  {
-    "id": 77,
-    "text": "Sample CustomerReview about Seasonality issues observed on 2026-04-05.",
-    "source": "CustomerReview",
-    "region": "West",
-    "topic": "Seasonality",
-    "date": "2025-10-26"
-  },
-  {
-    "id": 78,
-    "text": "Sample CustomerReview about Conversion issues observed on 2026-02-17.",
-    "source": "CustomerReview",
-    "region": "North",
-    "topic": "Conversion",
-    "date": "2026-03-08"
-  },
-  {
-    "id": 79,
-    "text": "Sample InternalReport about Pricing issues observed on 2026-06-03.",
-    "source": "InternalReport",
-    "region": "East",
-    "topic": "Pricing",
-    "date": "2026-07-15"
-  },
-  {
-    "id": 80,
-    "text": "Sample SupportTicket about Conversion issues observed on 2026-07-29.",
-    "source": "SupportTicket",
-    "region": "South",
-    "topic": "Conversion",
-    "date": "2026-07-05"
-  },
-  {
-    "id": 81,
-    "text": "Sample SupportTicket about Pricing issues observed on 2026-07-06.",
-    "source": "SupportTicket",
-    "region": "West",
-    "topic": "Pricing",
-    "date": "2025-12-17"
-  },
-  {
-    "id": 82,
-    "text": "Sample CustomerReview about Seasonality issues observed on 2026-07-19.",
-    "source": "CustomerReview",
-    "region": "West",
-    "topic": "Seasonality",
-    "date": "2026-05-11"
-  },
-  {
-    "id": 83,
-    "text": "Sample InternalReport about Inventory issues observed on 2026-07-16.",
-    "source": "InternalReport",
-    "region": "South",
-    "topic": "Inventory",
-    "date": "2025-12-27"
-  },
-  {
-    "id": 84,
-    "text": "Sample SupportTicket about Conversion issues observed on 2025-09-24.",
-    "source": "SupportTicket",
-    "region": "West",
-    "topic": "Conversion",
-    "date": "2026-01-23"
-  },
-  {
-    "id": 85,
-    "text": "Sample CustomerReview about Conversion issues observed on 2026-03-14.",
-    "source": "CustomerReview",
-    "region": "South",
-    "topic": "Conversion",
-    "date": "2026-06-27"
-  },
-  {
-    "id": 86,
-    "text": "Sample SupportTicket about Pricing issues observed on 2026-01-17.",
-    "source": "SupportTicket",
-    "region": "West",
-    "topic": "Pricing",
-    "date": "2026-07-31"
-  },
-  {
-    "id": 87,
-    "text": "Sample CustomerReview about Pricing issues observed on 2026-06-16.",
-    "source": "CustomerReview",
-    "region": "North",
-    "topic": "Pricing",
-    "date": "2026-05-18"
-  },
-  {
-    "id": 88,
-    "text": "Sample InternalReport about Delivery issues observed on 2026-06-03.",
-    "source": "InternalReport",
-    "region": "East",
-    "topic": "Delivery",
-    "date": "2025-11-16"
-  },
-  {
-    "id": 89,
-    "text": "Sample SupportTicket about Seasonality issues observed on 2026-06-06.",
-    "source": "SupportTicket",
-    "region": "West",
-    "topic": "Seasonality",
-    "date": "2025-10-17"
-  },
-  {
-    "id": 90,
-    "text": "Sample CustomerReview about Seasonality issues observed on 2025-11-17.",
-    "source": "CustomerReview",
-    "region": "West",
-    "topic": "Seasonality",
-    "date": "2026-04-12"
-  },
-  {
-    "id": 91,
-    "text": "Sample InternalReport about Conversion issues observed on 2026-04-02.",
+    "text": "Weekly funnel review (North): traffic is on plan, but checkout completion is down; conversion sitting near 3.1% versus a healthier baseline.",
     "source": "InternalReport",
     "region": "North",
-    "topic": "Conversion",
-    "date": "2025-11-13"
-  },
-  {
-    "id": 92,
-    "text": "Sample InternalReport about Inventory issues observed on 2026-06-01.",
-    "source": "InternalReport",
-    "region": "West",
-    "topic": "Inventory",
-    "date": "2026-05-06"
-  },
-  {
-    "id": 93,
-    "text": "Sample InternalReport about Pricing issues observed on 2026-03-19.",
-    "source": "InternalReport",
-    "region": "West",
-    "topic": "Pricing",
-    "date": "2025-10-01"
-  },
-  {
-    "id": 94,
-    "text": "Sample CustomerReview about Conversion issues observed on 2026-03-24.",
-    "source": "CustomerReview",
-    "region": "South",
-    "topic": "Conversion",
-    "date": "2025-11-27"
-  },
-  {
-    "id": 95,
-    "text": "Sample SupportTicket about Pricing issues observed on 2026-07-04.",
-    "source": "SupportTicket",
-    "region": "West",
-    "topic": "Pricing",
-    "date": "2025-09-28"
-  },
-  {
-    "id": 96,
-    "text": "Sample CustomerReview about Inventory issues observed on 2026-01-12.",
-    "source": "CustomerReview",
-    "region": "West",
-    "topic": "Inventory",
-    "date": "2026-03-16"
-  },
-  {
-    "id": 97,
-    "text": "Sample CustomerReview about Delivery issues observed on 2025-10-23.",
-    "source": "CustomerReview",
-    "region": "North",
-    "topic": "Delivery",
-    "date": "2026-01-24"
-  },
-  {
-    "id": 98,
-    "text": "Sample CustomerReview about Inventory issues observed on 2026-02-03.",
-    "source": "CustomerReview",
-    "region": "North",
-    "topic": "Inventory",
-    "date": "2026-01-09"
-  },
-  {
-    "id": 99,
-    "text": "Sample InternalReport about Delivery issues observed on 2026-03-15.",
-    "source": "InternalReport",
-    "region": "North",
-    "topic": "Delivery",
-    "date": "2026-06-11"
-  },
-  {
-    "id": 100,
-    "text": "Sample SupportTicket about Delivery issues observed on 2025-10-08.",
-    "source": "SupportTicket",
-    "region": "South",
-    "topic": "Delivery",
-    "date": "2025-10-11"
-  },
-  {
-    "id": 101,
-    "text": "Sample SupportTicket about Delivery issues observed on 2026-07-14.",
-    "source": "SupportTicket",
-    "region": "East",
-    "topic": "Delivery",
-    "date": "2026-04-10"
-  },
-  {
-    "id": 102,
-    "text": "Sample CustomerReview about Pricing issues observed on 2026-02-07.",
-    "source": "CustomerReview",
-    "region": "West",
-    "topic": "Pricing",
-    "date": "2026-02-28"
-  },
-  {
-    "id": 103,
-    "text": "Sample CustomerReview about Pricing issues observed on 2026-05-06.",
-    "source": "CustomerReview",
-    "region": "South",
-    "topic": "Pricing",
+    "topic": "conversion",
     "date": "2026-08-19"
   },
   {
-    "id": 104,
-    "text": "Sample CustomerReview about Conversion issues observed on 2026-04-28.",
+    "id": 66,
+    "text": "Wanted to buy Product B online in North but checkout kept failing — item was in my cart one minute and unavailable the next.",
     "source": "CustomerReview",
-    "region": "East",
-    "topic": "Conversion",
-    "date": "2026-06-16"
+    "region": "North",
+    "topic": "conversion",
+    "date": "2026-08-22",
+    "product": "Product B"
+  },
+  {
+    "id": 67,
+    "text": "Frustrating experience: added Product B to cart in the North app, but it was removed automatically before I could pay.",
+    "source": "CustomerReview",
+    "region": "North",
+    "topic": "conversion",
+    "date": "2026-08-22",
+    "product": "Product B"
+  },
+  {
+    "id": 68,
+    "text": "Frustrating experience: added Product B to cart in the North app, but it was removed automatically before I could pay.",
+    "source": "CustomerReview",
+    "region": "North",
+    "topic": "conversion",
+    "date": "2026-08-12",
+    "product": "Product B"
+  },
+  {
+    "id": 69,
+    "text": "Frustrating experience: added Product B to cart in the North app, but it was removed automatically before I could pay.",
+    "source": "CustomerReview",
+    "region": "North",
+    "topic": "conversion",
+    "date": "2026-08-30",
+    "product": "Product B"
+  },
+  {
+    "id": 70,
+    "text": "User reported inability to complete purchase for Product B in North; item removed from cart due to an inventory sync issue.",
+    "source": "SupportTicket",
+    "region": "North",
+    "topic": "conversion",
+    "date": "2026-08-09",
+    "product": "Product B"
+  },
+  {
+    "id": 71,
+    "text": "North logistics report: average delivery SLA remained within target (~5.8% delay rate) this month; no material change in delivery performance.",
+    "source": "InternalReport",
+    "region": "North",
+    "topic": "delivery",
+    "date": "2026-08-20"
+  },
+  {
+    "id": 72,
+    "text": "Customer satisfaction survey (NPS) for North region showed no significant change from the prior period.",
+    "source": "InternalReport",
+    "region": "North",
+    "topic": "satisfaction",
+    "date": "2026-08-08"
+  },
+  {
+    "id": 73,
+    "text": "Product A arrived quickly in South and was well packaged. Would buy again.",
+    "source": "CustomerReview",
+    "region": "South",
+    "topic": "general",
+    "date": "2025-03-23",
+    "product": "Product A"
+  },
+  {
+    "id": 74,
+    "text": "Second time ordering Product A from the South store — consistently reliable service.",
+    "source": "CustomerReview",
+    "region": "South",
+    "topic": "general",
+    "date": "2025-03-30",
+    "product": "Product A"
+  },
+  {
+    "id": 75,
+    "text": "Product D arrived quickly in South and was well packaged. Would buy again.",
+    "source": "CustomerReview",
+    "region": "South",
+    "topic": "general",
+    "date": "2025-03-12",
+    "product": "Product D"
+  },
+  {
+    "id": 76,
+    "text": "Product D arrived quickly in South and was well packaged. Would buy again.",
+    "source": "CustomerReview",
+    "region": "South",
+    "topic": "general",
+    "date": "2025-04-25",
+    "product": "Product D"
+  },
+  {
+    "id": 77,
+    "text": "Second time ordering Product E from the South store — consistently reliable service.",
+    "source": "CustomerReview",
+    "region": "South",
+    "topic": "general",
+    "date": "2025-04-21",
+    "product": "Product E"
+  },
+  {
+    "id": 78,
+    "text": "Routine support inquiry about warranty terms for Product E purchased in South. Resolved same day.",
+    "source": "SupportTicket",
+    "region": "South",
+    "topic": "general",
+    "date": "2025-04-13",
+    "product": "Product E"
+  },
+  {
+    "id": 79,
+    "text": "Package arrived a couple of days late in South, minor inconvenience but not a big deal.",
+    "source": "CustomerReview",
+    "region": "South",
+    "topic": "delivery",
+    "date": "2025-05-14",
+    "product": "Product B"
+  },
+  {
+    "id": 80,
+    "text": "Great experience shopping for Product D in South. Fast, easy, and exactly as described.",
+    "source": "CustomerReview",
+    "region": "South",
+    "topic": "general",
+    "date": "2025-05-15",
+    "product": "Product D"
+  },
+  {
+    "id": 81,
+    "text": "Routine support inquiry about warranty terms for Product C purchased in South. Resolved same day.",
+    "source": "SupportTicket",
+    "region": "South",
+    "topic": "general",
+    "date": "2025-05-03",
+    "product": "Product C"
+  },
+  {
+    "id": 82,
+    "text": "Package arrived a couple of days late in South, minor inconvenience but not a big deal.",
+    "source": "CustomerReview",
+    "region": "South",
+    "topic": "delivery",
+    "date": "2025-06-25",
+    "product": "Product E"
+  },
+  {
+    "id": 83,
+    "text": "Package arrived a couple of days late in South, minor inconvenience but not a big deal.",
+    "source": "CustomerReview",
+    "region": "South",
+    "topic": "delivery",
+    "date": "2025-06-14",
+    "product": "Product A"
+  },
+  {
+    "id": 84,
+    "text": "Delivery for my Product D order in South took a little longer than expected, but support kept me updated.",
+    "source": "CustomerReview",
+    "region": "South",
+    "topic": "delivery",
+    "date": "2025-06-20",
+    "product": "Product A"
+  },
+  {
+    "id": 85,
+    "text": "Delivery for my Product C order in South took a little longer than expected, but support kept me updated.",
+    "source": "CustomerReview",
+    "region": "South",
+    "topic": "delivery",
+    "date": "2025-06-24",
+    "product": "Product D"
+  },
+  {
+    "id": 86,
+    "text": "Package arrived a couple of days late in South, minor inconvenience but not a big deal.",
+    "source": "CustomerReview",
+    "region": "South",
+    "topic": "delivery",
+    "date": "2025-06-26",
+    "product": "Product B"
+  },
+  {
+    "id": 87,
+    "text": "Delivery for my Product A order in South took a little longer than expected, but support kept me updated.",
+    "source": "CustomerReview",
+    "region": "South",
+    "topic": "delivery",
+    "date": "2025-06-23",
+    "product": "Product A"
+  },
+  {
+    "id": 88,
+    "text": "Product B arrived quickly in South and was well packaged. Would buy again.",
+    "source": "CustomerReview",
+    "region": "South",
+    "topic": "general",
+    "date": "2025-06-10",
+    "product": "Product B"
+  },
+  {
+    "id": 89,
+    "text": "Routine support inquiry about warranty terms for Product E purchased in South. Resolved same day.",
+    "source": "SupportTicket",
+    "region": "South",
+    "topic": "general",
+    "date": "2025-06-07",
+    "product": "Product E"
+  },
+  {
+    "id": 90,
+    "text": "Delivery for my Product D order in South took a little longer than expected, but support kept me updated.",
+    "source": "CustomerReview",
+    "region": "South",
+    "topic": "delivery",
+    "date": "2025-07-12",
+    "product": "Product D"
+  },
+  {
+    "id": 91,
+    "text": "Second time ordering Product B from the South store — consistently reliable service.",
+    "source": "CustomerReview",
+    "region": "South",
+    "topic": "general",
+    "date": "2025-07-25",
+    "product": "Product B"
+  },
+  {
+    "id": 92,
+    "text": "Customer asked about Product D return policy in South; no complaints, question answered.",
+    "source": "SupportTicket",
+    "region": "South",
+    "topic": "general",
+    "date": "2025-07-15",
+    "product": "Product D"
+  },
+  {
+    "id": 93,
+    "text": "Pricing team note: average discount depth in South rose to 7.6% this month as the team pushed promotions to offset weak sell-through on constrained SKUs.",
+    "source": "InternalReport",
+    "region": "South",
+    "topic": "discount",
+    "date": "2025-08-16"
+  },
+  {
+    "id": 94,
+    "text": "South marketing report: session volume held roughly steady this month but conversion rate fell to 3.9%, well below the recent trend.",
+    "source": "InternalReport",
+    "region": "South",
+    "topic": "conversion",
+    "date": "2025-08-31"
+  },
+  {
+    "id": 95,
+    "text": "Frustrating experience: added Product B to cart in the South app, but it was removed automatically before I could pay.",
+    "source": "CustomerReview",
+    "region": "South",
+    "topic": "conversion",
+    "date": "2025-08-04",
+    "product": "Product B"
+  },
+  {
+    "id": 96,
+    "text": "Frustrating experience: added Product B to cart in the South app, but it was removed automatically before I could pay.",
+    "source": "CustomerReview",
+    "region": "South",
+    "topic": "conversion",
+    "date": "2025-08-02",
+    "product": "Product B"
+  },
+  {
+    "id": 97,
+    "text": "Wanted to buy Product B online in South but checkout kept failing — item was in my cart one minute and unavailable the next.",
+    "source": "CustomerReview",
+    "region": "South",
+    "topic": "conversion",
+    "date": "2025-08-10",
+    "product": "Product B"
+  },
+  {
+    "id": 98,
+    "text": "Wanted to buy Product B online in South but checkout kept failing — item was in my cart one minute and unavailable the next.",
+    "source": "CustomerReview",
+    "region": "South",
+    "topic": "conversion",
+    "date": "2025-08-25",
+    "product": "Product B"
+  },
+  {
+    "id": 99,
+    "text": "User reported inability to complete purchase for Product B in South; item removed from cart due to an inventory sync issue.",
+    "source": "SupportTicket",
+    "region": "South",
+    "topic": "conversion",
+    "date": "2025-08-20",
+    "product": "Product B"
+  },
+  {
+    "id": 100,
+    "text": "South logistics report: average delivery SLA remained within target (~6% delay rate) this month; no material change in delivery performance.",
+    "source": "InternalReport",
+    "region": "South",
+    "topic": "delivery",
+    "date": "2025-08-23"
+  },
+  {
+    "id": 101,
+    "text": "Customer satisfaction survey (NPS) for South region showed no significant change from the prior period.",
+    "source": "InternalReport",
+    "region": "South",
+    "topic": "satisfaction",
+    "date": "2025-08-07"
+  },
+  {
+    "id": 102,
+    "text": "Really disappointed — Product E was unavailable at the South store for weeks. Staff said it was on backorder with no clear delivery date.",
+    "source": "CustomerReview",
+    "region": "South",
+    "topic": "inventory",
+    "date": "2025-09-11",
+    "product": "Product E"
+  },
+  {
+    "id": 103,
+    "text": "Tried to order the Product E in South region but it kept showing \"out of stock\" for most of the month. Ended up settling for a different, cheaper model instead.",
+    "source": "CustomerReview",
+    "region": "South",
+    "topic": "inventory",
+    "date": "2025-09-14",
+    "product": "Product E"
+  },
+  {
+    "id": 104,
+    "text": "Website showed Product E as available in South, but my order was cancelled a day later due to \"inventory mismatch.\"",
+    "source": "CustomerReview",
+    "region": "South",
+    "topic": "inventory",
+    "date": "2025-09-16",
+    "product": "Product E"
   },
   {
     "id": 105,
-    "text": "Sample CustomerReview about Pricing issues observed on 2026-07-21.",
+    "text": "Really disappointed — Product E was unavailable at the South store for weeks. Staff said it was on backorder with no clear delivery date.",
     "source": "CustomerReview",
-    "region": "East",
-    "topic": "Pricing",
-    "date": "2026-04-25"
+    "region": "South",
+    "topic": "inventory",
+    "date": "2025-09-11",
+    "product": "Product E"
   },
   {
     "id": 106,
-    "text": "Sample SupportTicket about Seasonality issues observed on 2026-07-19.",
-    "source": "SupportTicket",
-    "region": "East",
-    "topic": "Seasonality",
-    "date": "2025-10-28"
+    "text": "Really disappointed — Product E was unavailable at the South store for weeks. Staff said it was on backorder with no clear delivery date.",
+    "source": "CustomerReview",
+    "region": "South",
+    "topic": "inventory",
+    "date": "2025-09-19",
+    "product": "Product E"
   },
   {
     "id": 107,
-    "text": "Sample SupportTicket about Inventory issues observed on 2026-01-22.",
-    "source": "SupportTicket",
-    "region": "East",
-    "topic": "Inventory",
-    "date": "2026-03-11"
+    "text": "Waited two weeks for Product E to come back in stock in South. Almost cancelled the order.",
+    "source": "CustomerReview",
+    "region": "South",
+    "topic": "inventory",
+    "date": "2025-09-17",
+    "product": "Product E"
   },
   {
     "id": 108,
-    "text": "Sample CustomerReview about Delivery issues observed on 2026-01-18.",
-    "source": "CustomerReview",
-    "region": "East",
-    "topic": "Delivery",
-    "date": "2026-05-18"
+    "text": "Support case opened — customer in South reports repeated stockouts on Product E, requesting refund after 10-day wait.",
+    "source": "SupportTicket",
+    "region": "South",
+    "topic": "inventory",
+    "date": "2025-09-05",
+    "product": "Product E"
   },
   {
     "id": 109,
-    "text": "Sample InternalReport about Seasonality issues observed on 2026-01-30.",
-    "source": "InternalReport",
+    "text": "Customer inquiry: Product E inventory unavailable at South distribution hub; order placed on backorder for over a week.",
+    "source": "SupportTicket",
     "region": "South",
-    "topic": "Seasonality",
-    "date": "2025-11-05"
+    "topic": "inventory",
+    "date": "2025-09-25",
+    "product": "Product E"
   },
   {
     "id": 110,
-    "text": "Sample CustomerReview about Conversion issues observed on 2026-02-28.",
-    "source": "CustomerReview",
-    "region": "North",
-    "topic": "Conversion",
-    "date": "2025-12-11"
+    "text": "Support case opened — customer in South reports repeated stockouts on Product E, requesting refund after 10-day wait.",
+    "source": "SupportTicket",
+    "region": "South",
+    "topic": "inventory",
+    "date": "2025-09-29",
+    "product": "Product E"
   },
   {
     "id": 111,
-    "text": "Sample InternalReport about Seasonality issues observed on 2026-03-14.",
+    "text": "Fulfillment review: Product E availability in South dropped sharply (stockout rate ~5.3%). Replenishment lead time from the primary supplier has doubled.",
     "source": "InternalReport",
     "region": "South",
-    "topic": "Seasonality",
-    "date": "2026-08-10"
+    "topic": "inventory",
+    "date": "2025-09-15",
+    "product": "Product E"
   },
   {
     "id": 112,
-    "text": "Sample CustomerReview about Conversion issues observed on 2026-07-11.",
-    "source": "CustomerReview",
-    "region": "North",
-    "topic": "Conversion",
-    "date": "2026-04-19"
+    "text": "South customer experience summary: overall satisfaction scores remained flat month over month; no new complaint themes identified in the survey panel.",
+    "source": "InternalReport",
+    "region": "South",
+    "topic": "satisfaction",
+    "date": "2025-09-09"
   },
   {
     "id": 113,
-    "text": "Sample InternalReport about Conversion issues observed on 2025-10-11.",
-    "source": "InternalReport",
-    "region": "North",
-    "topic": "Conversion",
-    "date": "2026-02-14"
+    "text": "Great experience shopping for Product B in South. Fast, easy, and exactly as described.",
+    "source": "CustomerReview",
+    "region": "South",
+    "topic": "general",
+    "date": "2025-10-12",
+    "product": "Product B"
   },
   {
     "id": 114,
-    "text": "Sample SupportTicket about Delivery issues observed on 2026-01-14.",
-    "source": "SupportTicket",
+    "text": "Second time ordering Product A from the South store — consistently reliable service.",
+    "source": "CustomerReview",
     "region": "South",
-    "topic": "Delivery",
-    "date": "2026-03-12"
+    "topic": "general",
+    "date": "2025-10-08",
+    "product": "Product A"
   },
   {
     "id": 115,
-    "text": "Sample InternalReport about Inventory issues observed on 2025-10-14.",
-    "source": "InternalReport",
-    "region": "East",
-    "topic": "Inventory",
-    "date": "2026-03-11"
+    "text": "Great experience shopping for Product C in South. Fast, easy, and exactly as described.",
+    "source": "CustomerReview",
+    "region": "South",
+    "topic": "general",
+    "date": "2025-10-27",
+    "product": "Product C"
   },
   {
     "id": 116,
-    "text": "Sample CustomerReview about Inventory issues observed on 2025-10-02.",
-    "source": "CustomerReview",
+    "text": "Routine support inquiry about warranty terms for Product B purchased in South. Resolved same day.",
+    "source": "SupportTicket",
     "region": "South",
-    "topic": "Inventory",
-    "date": "2026-02-05"
+    "topic": "general",
+    "date": "2025-10-13",
+    "product": "Product B"
   },
   {
     "id": 117,
-    "text": "Sample SupportTicket about Inventory issues observed on 2026-06-05.",
-    "source": "SupportTicket",
-    "region": "West",
-    "topic": "Inventory",
-    "date": "2025-12-22"
+    "text": "Product E arrived quickly in South and was well packaged. Would buy again.",
+    "source": "CustomerReview",
+    "region": "South",
+    "topic": "general",
+    "date": "2025-11-14",
+    "product": "Product E"
   },
   {
     "id": 118,
-    "text": "Sample SupportTicket about Conversion issues observed on 2026-06-15.",
-    "source": "SupportTicket",
-    "region": "West",
-    "topic": "Conversion",
-    "date": "2025-12-26"
+    "text": "Second time ordering Product E from the South store — consistently reliable service.",
+    "source": "CustomerReview",
+    "region": "South",
+    "topic": "general",
+    "date": "2025-12-10",
+    "product": "Product E"
   },
   {
     "id": 119,
-    "text": "Sample InternalReport about Delivery issues observed on 2026-05-27.",
-    "source": "InternalReport",
+    "text": "Product C arrived quickly in South and was well packaged. Would buy again.",
+    "source": "CustomerReview",
     "region": "South",
-    "topic": "Delivery",
-    "date": "2026-04-20"
+    "topic": "general",
+    "date": "2025-12-01",
+    "product": "Product C"
   },
   {
     "id": 120,
-    "text": "Sample InternalReport about Pricing issues observed on 2026-07-22.",
-    "source": "InternalReport",
-    "region": "East",
-    "topic": "Pricing",
-    "date": "2025-12-12"
+    "text": "Great experience shopping for Product D in South. Fast, easy, and exactly as described.",
+    "source": "CustomerReview",
+    "region": "South",
+    "topic": "general",
+    "date": "2026-01-14",
+    "product": "Product D"
   },
   {
     "id": 121,
-    "text": "Sample InternalReport about Pricing issues observed on 2026-02-25.",
-    "source": "InternalReport",
-    "region": "North",
-    "topic": "Pricing",
-    "date": "2026-07-15"
+    "text": "Second time ordering Product C from the South store — consistently reliable service.",
+    "source": "CustomerReview",
+    "region": "South",
+    "topic": "general",
+    "date": "2026-01-26",
+    "product": "Product C"
   },
   {
     "id": 122,
-    "text": "Sample SupportTicket about Seasonality issues observed on 2026-03-12.",
-    "source": "SupportTicket",
-    "region": "West",
-    "topic": "Seasonality",
-    "date": "2026-04-08"
+    "text": "Great experience shopping for Product C in South. Fast, easy, and exactly as described.",
+    "source": "CustomerReview",
+    "region": "South",
+    "topic": "general",
+    "date": "2026-01-15",
+    "product": "Product C"
   },
   {
     "id": 123,
-    "text": "Sample InternalReport about Inventory issues observed on 2026-03-20.",
+    "text": "Ops sync (South): last-mile delivery times are stable month over month (6.1% delay rate), consistent with prior quarters.",
     "source": "InternalReport",
-    "region": "West",
-    "topic": "Inventory",
+    "region": "South",
+    "topic": "delivery",
     "date": "2026-02-14"
   },
   {
     "id": 124,
-    "text": "Sample InternalReport about Conversion issues observed on 2026-01-22.",
-    "source": "InternalReport",
-    "region": "East",
-    "topic": "Conversion",
-    "date": "2025-12-05"
+    "text": "Great experience shopping for Product A in South. Fast, easy, and exactly as described.",
+    "source": "CustomerReview",
+    "region": "South",
+    "topic": "general",
+    "date": "2026-02-01",
+    "product": "Product A"
   },
   {
     "id": 125,
-    "text": "Sample InternalReport about Pricing issues observed on 2026-07-13.",
-    "source": "InternalReport",
-    "region": "North",
-    "topic": "Pricing",
-    "date": "2026-04-07"
+    "text": "Second time ordering Product C from the South store — consistently reliable service.",
+    "source": "CustomerReview",
+    "region": "South",
+    "topic": "general",
+    "date": "2026-02-11",
+    "product": "Product C"
   },
   {
     "id": 126,
-    "text": "Sample SupportTicket about Inventory issues observed on 2026-03-22.",
-    "source": "SupportTicket",
-    "region": "West",
-    "topic": "Inventory",
-    "date": "2026-08-07"
+    "text": "Product C arrived quickly in South and was well packaged. Would buy again.",
+    "source": "CustomerReview",
+    "region": "South",
+    "topic": "general",
+    "date": "2026-02-18",
+    "product": "Product C"
   },
   {
     "id": 127,
-    "text": "Sample SupportTicket about Conversion issues observed on 2025-10-27.",
+    "text": "Customer asked about Product E return policy in South; no complaints, question answered.",
     "source": "SupportTicket",
     "region": "South",
-    "topic": "Conversion",
-    "date": "2026-08-13"
+    "topic": "general",
+    "date": "2026-02-14",
+    "product": "Product E"
   },
   {
     "id": 128,
-    "text": "Sample SupportTicket about Delivery issues observed on 2025-12-29.",
-    "source": "SupportTicket",
-    "region": "East",
-    "topic": "Delivery",
-    "date": "2026-02-21"
+    "text": "South logistics report: average delivery SLA remained within target (~5.9% delay rate) this month; no material change in delivery performance.",
+    "source": "InternalReport",
+    "region": "South",
+    "topic": "delivery",
+    "date": "2026-03-31"
   },
   {
     "id": 129,
-    "text": "Sample SupportTicket about Conversion issues observed on 2026-01-17.",
-    "source": "SupportTicket",
-    "region": "East",
-    "topic": "Conversion",
-    "date": "2025-12-18"
+    "text": "Great experience shopping for Product C in South. Fast, easy, and exactly as described.",
+    "source": "CustomerReview",
+    "region": "South",
+    "topic": "general",
+    "date": "2026-03-07",
+    "product": "Product C"
   },
   {
     "id": 130,
-    "text": "Sample SupportTicket about Delivery issues observed on 2026-03-26.",
-    "source": "SupportTicket",
-    "region": "West",
-    "topic": "Delivery",
-    "date": "2026-07-16"
+    "text": "Product A arrived quickly in South and was well packaged. Would buy again.",
+    "source": "CustomerReview",
+    "region": "South",
+    "topic": "general",
+    "date": "2026-03-26",
+    "product": "Product A"
   },
   {
     "id": 131,
-    "text": "Sample CustomerReview about Conversion issues observed on 2026-06-28.",
+    "text": "Great experience shopping for Product A in South. Fast, easy, and exactly as described.",
     "source": "CustomerReview",
-    "region": "West",
-    "topic": "Conversion",
-    "date": "2026-06-26"
+    "region": "South",
+    "topic": "general",
+    "date": "2026-03-25",
+    "product": "Product A"
   },
   {
     "id": 132,
-    "text": "Sample CustomerReview about Pricing issues observed on 2026-08-18.",
+    "text": "Product D arrived quickly in South and was well packaged. Would buy again.",
     "source": "CustomerReview",
-    "region": "North",
-    "topic": "Pricing",
-    "date": "2026-07-11"
+    "region": "South",
+    "topic": "general",
+    "date": "2026-04-01",
+    "product": "Product D"
   },
   {
     "id": 133,
-    "text": "Sample InternalReport about Inventory issues observed on 2025-10-04.",
-    "source": "InternalReport",
+    "text": "Second time ordering Product D from the South store — consistently reliable service.",
+    "source": "CustomerReview",
     "region": "South",
-    "topic": "Inventory",
-    "date": "2026-04-01"
+    "topic": "general",
+    "date": "2026-05-13",
+    "product": "Product D"
   },
   {
     "id": 134,
-    "text": "Sample SupportTicket about Inventory issues observed on 2026-05-03.",
-    "source": "SupportTicket",
-    "region": "East",
-    "topic": "Inventory",
-    "date": "2026-03-17"
+    "text": "Great experience shopping for Product A in South. Fast, easy, and exactly as described.",
+    "source": "CustomerReview",
+    "region": "South",
+    "topic": "general",
+    "date": "2026-06-12",
+    "product": "Product A"
   },
   {
     "id": 135,
-    "text": "Sample SupportTicket about Conversion issues observed on 2026-01-07.",
-    "source": "SupportTicket",
+    "text": "Product E arrived quickly in South and was well packaged. Would buy again.",
+    "source": "CustomerReview",
     "region": "South",
-    "topic": "Conversion",
-    "date": "2026-03-12"
+    "topic": "general",
+    "date": "2026-06-20",
+    "product": "Product E"
   },
   {
     "id": 136,
-    "text": "Sample CustomerReview about Seasonality issues observed on 2025-12-28.",
+    "text": "Product E arrived quickly in South and was well packaged. Would buy again.",
     "source": "CustomerReview",
-    "region": "West",
-    "topic": "Seasonality",
-    "date": "2026-02-13"
+    "region": "South",
+    "topic": "general",
+    "date": "2026-06-04",
+    "product": "Product E"
   },
   {
     "id": 137,
-    "text": "Sample CustomerReview about Inventory issues observed on 2026-02-01.",
+    "text": "Second time ordering Product C from the South store — consistently reliable service.",
     "source": "CustomerReview",
     "region": "South",
-    "topic": "Inventory",
-    "date": "2026-03-06"
+    "topic": "general",
+    "date": "2026-07-26",
+    "product": "Product C"
   },
   {
     "id": 138,
-    "text": "Sample InternalReport about Conversion issues observed on 2025-10-16.",
-    "source": "InternalReport",
+    "text": "Great experience shopping for Product D in South. Fast, easy, and exactly as described.",
+    "source": "CustomerReview",
     "region": "South",
-    "topic": "Conversion",
-    "date": "2026-06-27"
+    "topic": "general",
+    "date": "2026-07-31",
+    "product": "Product D"
   },
   {
     "id": 139,
-    "text": "Sample SupportTicket about Inventory issues observed on 2026-05-30.",
+    "text": "Routine support inquiry about warranty terms for Product A purchased in South. Resolved same day.",
     "source": "SupportTicket",
-    "region": "West",
-    "topic": "Inventory",
-    "date": "2025-10-26"
+    "region": "South",
+    "topic": "general",
+    "date": "2026-07-16",
+    "product": "Product A"
   },
   {
     "id": 140,
-    "text": "Sample InternalReport about Seasonality issues observed on 2026-04-02.",
+    "text": "South marketing report: session volume held roughly steady this month but conversion rate fell to 3.9%, well below the recent trend.",
     "source": "InternalReport",
-    "region": "North",
-    "topic": "Seasonality",
-    "date": "2025-10-10"
+    "region": "South",
+    "topic": "conversion",
+    "date": "2026-08-22"
   },
   {
     "id": 141,
-    "text": "Sample CustomerReview about Pricing issues observed on 2026-04-23.",
+    "text": "Wanted to buy Product D online in South but checkout kept failing — item was in my cart one minute and unavailable the next.",
     "source": "CustomerReview",
-    "region": "East",
-    "topic": "Pricing",
-    "date": "2026-03-25"
+    "region": "South",
+    "topic": "conversion",
+    "date": "2026-08-16",
+    "product": "Product D"
   },
   {
     "id": 142,
-    "text": "Sample InternalReport about Seasonality issues observed on 2025-12-25.",
-    "source": "InternalReport",
-    "region": "East",
-    "topic": "Seasonality",
-    "date": "2025-11-25"
+    "text": "Frustrating experience: added Product D to cart in the South app, but it was removed automatically before I could pay.",
+    "source": "CustomerReview",
+    "region": "South",
+    "topic": "conversion",
+    "date": "2026-08-03",
+    "product": "Product D"
   },
   {
     "id": 143,
-    "text": "Sample CustomerReview about Seasonality issues observed on 2026-06-08.",
+    "text": "Wanted to buy Product D online in South but checkout kept failing — item was in my cart one minute and unavailable the next.",
     "source": "CustomerReview",
-    "region": "North",
-    "topic": "Seasonality",
-    "date": "2025-11-10"
+    "region": "South",
+    "topic": "conversion",
+    "date": "2026-08-14",
+    "product": "Product D"
   },
   {
     "id": 144,
-    "text": "Sample SupportTicket about Conversion issues observed on 2026-01-15.",
-    "source": "SupportTicket",
-    "region": "North",
-    "topic": "Conversion",
-    "date": "2025-12-29"
+    "text": "Frustrating experience: added Product D to cart in the South app, but it was removed automatically before I could pay.",
+    "source": "CustomerReview",
+    "region": "South",
+    "topic": "conversion",
+    "date": "2026-08-09",
+    "product": "Product D"
   },
   {
     "id": 145,
-    "text": "Sample InternalReport about Conversion issues observed on 2025-10-16.",
-    "source": "InternalReport",
-    "region": "North",
-    "topic": "Conversion",
-    "date": "2026-07-10"
+    "text": "User reported inability to complete purchase for Product D in South; item removed from cart due to an inventory sync issue.",
+    "source": "SupportTicket",
+    "region": "South",
+    "topic": "conversion",
+    "date": "2026-08-20",
+    "product": "Product D"
   },
   {
     "id": 146,
-    "text": "Sample CustomerReview about Delivery issues observed on 2025-12-20.",
+    "text": "Package arrived a couple of days late in South, minor inconvenience but not a big deal.",
     "source": "CustomerReview",
-    "region": "North",
-    "topic": "Delivery",
-    "date": "2026-05-19"
+    "region": "South",
+    "topic": "delivery",
+    "date": "2026-08-15",
+    "product": "Product A"
   },
   {
     "id": 147,
-    "text": "Sample SupportTicket about Seasonality issues observed on 2026-03-28.",
-    "source": "SupportTicket",
-    "region": "North",
-    "topic": "Seasonality",
-    "date": "2025-11-26"
+    "text": "South customer experience summary: overall satisfaction scores remained flat month over month; no new complaint themes identified in the survey panel.",
+    "source": "InternalReport",
+    "region": "South",
+    "topic": "satisfaction",
+    "date": "2026-08-21"
   },
   {
     "id": 148,
-    "text": "Sample InternalReport about Conversion issues observed on 2026-03-08.",
-    "source": "InternalReport",
-    "region": "North",
-    "topic": "Conversion",
-    "date": "2025-12-20"
+    "text": "Tried to order the Product D in East region but it kept showing \"out of stock\" for most of the month. Ended up settling for a different, cheaper model instead.",
+    "source": "CustomerReview",
+    "region": "East",
+    "topic": "inventory",
+    "date": "2025-03-27",
+    "product": "Product D"
   },
   {
     "id": 149,
-    "text": "Sample InternalReport about Seasonality issues observed on 2025-10-27.",
-    "source": "InternalReport",
-    "region": "South",
-    "topic": "Seasonality",
-    "date": "2026-06-20"
+    "text": "Website showed Product D as available in East, but my order was cancelled a day later due to \"inventory mismatch.\"",
+    "source": "CustomerReview",
+    "region": "East",
+    "topic": "inventory",
+    "date": "2025-03-26",
+    "product": "Product D"
   },
   {
     "id": 150,
-    "text": "Sample SupportTicket about Seasonality issues observed on 2025-10-19.",
-    "source": "SupportTicket",
-    "region": "West",
-    "topic": "Seasonality",
-    "date": "2026-05-03"
+    "text": "Really disappointed — Product D was unavailable at the East store for weeks. Staff said it was on backorder with no clear delivery date.",
+    "source": "CustomerReview",
+    "region": "East",
+    "topic": "inventory",
+    "date": "2025-03-13",
+    "product": "Product D"
   },
   {
     "id": 151,
-    "text": "Sample CustomerReview about Conversion issues observed on 2025-10-28.",
+    "text": "Really disappointed — Product D was unavailable at the East store for weeks. Staff said it was on backorder with no clear delivery date.",
     "source": "CustomerReview",
-    "region": "West",
-    "topic": "Conversion",
-    "date": "2026-02-17"
+    "region": "East",
+    "topic": "inventory",
+    "date": "2025-03-22",
+    "product": "Product D"
   },
   {
     "id": 152,
-    "text": "Sample CustomerReview about Inventory issues observed on 2026-06-14.",
+    "text": "Tried to order the Product D in East region but it kept showing \"out of stock\" for most of the month. Ended up settling for a different, cheaper model instead.",
     "source": "CustomerReview",
     "region": "East",
-    "topic": "Inventory",
-    "date": "2026-03-10"
+    "topic": "inventory",
+    "date": "2025-03-06",
+    "product": "Product D"
   },
   {
     "id": 153,
-    "text": "Sample CustomerReview about Delivery issues observed on 2026-03-15.",
+    "text": "Really disappointed — Product D was unavailable at the East store for weeks. Staff said it was on backorder with no clear delivery date.",
     "source": "CustomerReview",
-    "region": "South",
-    "topic": "Delivery",
-    "date": "2026-06-17"
+    "region": "East",
+    "topic": "inventory",
+    "date": "2025-03-13",
+    "product": "Product D"
   },
   {
     "id": 154,
-    "text": "Sample CustomerReview about Conversion issues observed on 2026-03-15.",
+    "text": "Waited two weeks for Product D to come back in stock in East. Almost cancelled the order.",
     "source": "CustomerReview",
-    "region": "West",
-    "topic": "Conversion",
-    "date": "2026-04-04"
+    "region": "East",
+    "topic": "inventory",
+    "date": "2025-03-31",
+    "product": "Product D"
   },
   {
     "id": 155,
-    "text": "Sample CustomerReview about Seasonality issues observed on 2026-05-04.",
-    "source": "CustomerReview",
-    "region": "South",
-    "topic": "Seasonality",
-    "date": "2026-07-30"
+    "text": "Escalation: multiple East-region customers reporting Product D orders auto-cancelled due to stock unavailability.",
+    "source": "SupportTicket",
+    "region": "East",
+    "topic": "inventory",
+    "date": "2025-03-02",
+    "product": "Product D"
   },
   {
     "id": 156,
-    "text": "Sample CustomerReview about Seasonality issues observed on 2026-04-06.",
-    "source": "CustomerReview",
-    "region": "South",
-    "topic": "Seasonality",
-    "date": "2026-06-18"
+    "text": "Escalation: multiple East-region customers reporting Product D orders auto-cancelled due to stock unavailability.",
+    "source": "SupportTicket",
+    "region": "East",
+    "topic": "inventory",
+    "date": "2025-03-21",
+    "product": "Product D"
   },
   {
     "id": 157,
-    "text": "Sample CustomerReview about Conversion issues observed on 2025-12-10.",
-    "source": "CustomerReview",
-    "region": "South",
-    "topic": "Conversion",
-    "date": "2026-01-08"
+    "text": "Fulfillment review: Product D availability in East dropped sharply (stockout rate ~5.5%). Replenishment lead time from the primary supplier has doubled.",
+    "source": "InternalReport",
+    "region": "East",
+    "topic": "inventory",
+    "date": "2025-03-23",
+    "product": "Product D"
   },
   {
     "id": 158,
-    "text": "Sample CustomerReview about Seasonality issues observed on 2026-06-27.",
-    "source": "CustomerReview",
-    "region": "North",
-    "topic": "Seasonality",
-    "date": "2025-09-30"
+    "text": "East logistics report: average delivery SLA remained within target (~5.8% delay rate) this month; no material change in delivery performance.",
+    "source": "InternalReport",
+    "region": "East",
+    "topic": "delivery",
+    "date": "2025-03-05"
   },
   {
     "id": 159,
-    "text": "Sample InternalReport about Pricing issues observed on 2026-05-25.",
+    "text": "Customer satisfaction survey (NPS) for East region showed no significant change from the prior period.",
     "source": "InternalReport",
     "region": "East",
-    "topic": "Pricing",
-    "date": "2026-01-15"
+    "topic": "satisfaction",
+    "date": "2025-03-25"
   },
   {
     "id": 160,
-    "text": "Sample CustomerReview about Inventory issues observed on 2026-03-11.",
+    "text": "Second time ordering Product D from the East store — consistently reliable service.",
     "source": "CustomerReview",
     "region": "East",
-    "topic": "Inventory",
-    "date": "2026-01-21"
+    "topic": "general",
+    "date": "2025-04-23",
+    "product": "Product D"
   },
   {
     "id": 161,
-    "text": "Sample InternalReport about Seasonality issues observed on 2026-06-13.",
-    "source": "InternalReport",
-    "region": "West",
-    "topic": "Seasonality",
-    "date": "2026-04-16"
+    "text": "Customer asked about Product C return policy in East; no complaints, question answered.",
+    "source": "SupportTicket",
+    "region": "East",
+    "topic": "general",
+    "date": "2025-04-14",
+    "product": "Product C"
   },
   {
     "id": 162,
-    "text": "Sample InternalReport about Delivery issues observed on 2025-10-26.",
-    "source": "InternalReport",
-    "region": "West",
-    "topic": "Delivery",
-    "date": "2026-01-10"
+    "text": "Delivery for my Product C order in East took a little longer than expected, but support kept me updated.",
+    "source": "CustomerReview",
+    "region": "East",
+    "topic": "delivery",
+    "date": "2025-05-20",
+    "product": "Product C"
   },
   {
     "id": 163,
-    "text": "Sample InternalReport about Seasonality issues observed on 2026-01-10.",
-    "source": "InternalReport",
+    "text": "Product C arrived quickly in East and was well packaged. Would buy again.",
+    "source": "CustomerReview",
     "region": "East",
-    "topic": "Seasonality",
-    "date": "2025-12-03"
+    "topic": "general",
+    "date": "2025-05-11",
+    "product": "Product C"
   },
   {
     "id": 164,
-    "text": "Sample CustomerReview about Seasonality issues observed on 2026-07-25.",
+    "text": "Great experience shopping for Product C in East. Fast, easy, and exactly as described.",
     "source": "CustomerReview",
-    "region": "North",
-    "topic": "Seasonality",
-    "date": "2025-10-02"
+    "region": "East",
+    "topic": "general",
+    "date": "2025-05-08",
+    "product": "Product C"
   },
   {
     "id": 165,
-    "text": "Sample SupportTicket about Delivery issues observed on 2026-03-03.",
+    "text": "Customer asked about Product D return policy in East; no complaints, question answered.",
     "source": "SupportTicket",
     "region": "East",
-    "topic": "Delivery",
-    "date": "2026-06-25"
+    "topic": "general",
+    "date": "2025-05-13",
+    "product": "Product D"
   },
   {
     "id": 166,
-    "text": "Sample InternalReport about Delivery issues observed on 2026-05-08.",
+    "text": "East regional manager comment: we increased markdowns to 7.6% to move available inventory toward lower-demand alternatives while premium items stay out of stock.",
     "source": "InternalReport",
-    "region": "South",
-    "topic": "Delivery",
-    "date": "2026-04-05"
+    "region": "East",
+    "topic": "discount",
+    "date": "2025-06-02"
   },
   {
     "id": 167,
-    "text": "Sample InternalReport about Inventory issues observed on 2026-03-23.",
+    "text": "East logistics report: average delivery SLA remained within target (~5.7% delay rate) this month; no material change in delivery performance.",
     "source": "InternalReport",
-    "region": "South",
-    "topic": "Inventory",
-    "date": "2026-02-22"
+    "region": "East",
+    "topic": "delivery",
+    "date": "2025-07-25"
   },
   {
     "id": 168,
-    "text": "Sample CustomerReview about Delivery issues observed on 2026-04-09.",
+    "text": "Second time ordering Product D from the East store — consistently reliable service.",
     "source": "CustomerReview",
-    "region": "South",
-    "topic": "Delivery",
-    "date": "2026-07-30"
+    "region": "East",
+    "topic": "general",
+    "date": "2025-07-23",
+    "product": "Product D"
   },
   {
     "id": 169,
-    "text": "Sample SupportTicket about Pricing issues observed on 2025-10-02.",
-    "source": "SupportTicket",
+    "text": "Weekly funnel review (East): traffic is on plan, but checkout completion is down; conversion sitting near 3.8% versus a healthier baseline.",
+    "source": "InternalReport",
     "region": "East",
-    "topic": "Pricing",
-    "date": "2026-08-13"
+    "topic": "conversion",
+    "date": "2025-08-07"
   },
   {
     "id": 170,
-    "text": "Sample SupportTicket about Inventory issues observed on 2026-05-09.",
-    "source": "SupportTicket",
-    "region": "North",
-    "topic": "Inventory",
-    "date": "2025-10-30"
+    "text": "Wanted to buy Product D online in East but checkout kept failing — item was in my cart one minute and unavailable the next.",
+    "source": "CustomerReview",
+    "region": "East",
+    "topic": "conversion",
+    "date": "2025-08-26",
+    "product": "Product D"
   },
   {
     "id": 171,
-    "text": "Sample SupportTicket about Seasonality issues observed on 2026-01-08.",
-    "source": "SupportTicket",
-    "region": "West",
-    "topic": "Seasonality",
-    "date": "2026-04-09"
+    "text": "Frustrating experience: added Product D to cart in the East app, but it was removed automatically before I could pay.",
+    "source": "CustomerReview",
+    "region": "East",
+    "topic": "conversion",
+    "date": "2025-08-31",
+    "product": "Product D"
   },
   {
     "id": 172,
-    "text": "Sample InternalReport about Inventory issues observed on 2025-10-01.",
-    "source": "InternalReport",
-    "region": "West",
-    "topic": "Inventory",
-    "date": "2026-07-15"
+    "text": "Wanted to buy Product D online in East but checkout kept failing — item was in my cart one minute and unavailable the next.",
+    "source": "CustomerReview",
+    "region": "East",
+    "topic": "conversion",
+    "date": "2025-08-19",
+    "product": "Product D"
   },
   {
     "id": 173,
-    "text": "Sample SupportTicket about Seasonality issues observed on 2026-05-17.",
-    "source": "SupportTicket",
+    "text": "Wanted to buy Product D online in East but checkout kept failing — item was in my cart one minute and unavailable the next.",
+    "source": "CustomerReview",
     "region": "East",
-    "topic": "Seasonality",
-    "date": "2026-01-13"
+    "topic": "conversion",
+    "date": "2025-08-05",
+    "product": "Product D"
   },
   {
     "id": 174,
-    "text": "Sample InternalReport about Inventory issues observed on 2026-08-02.",
-    "source": "InternalReport",
-    "region": "West",
-    "topic": "Inventory",
-    "date": "2026-06-18"
+    "text": "User reported inability to complete purchase for Product D in East; item removed from cart due to an inventory sync issue.",
+    "source": "SupportTicket",
+    "region": "East",
+    "topic": "conversion",
+    "date": "2025-08-14",
+    "product": "Product D"
   },
   {
     "id": 175,
-    "text": "Sample CustomerReview about Seasonality issues observed on 2025-11-02.",
+    "text": "Product B arrived quickly in East and was well packaged. Would buy again.",
     "source": "CustomerReview",
-    "region": "North",
-    "topic": "Seasonality",
-    "date": "2026-03-01"
+    "region": "East",
+    "topic": "general",
+    "date": "2025-09-03",
+    "product": "Product B"
   },
   {
     "id": 176,
-    "text": "Sample CustomerReview about Delivery issues observed on 2025-11-16.",
+    "text": "Really disappointed — Product D was unavailable at the East store for weeks. Staff said it was on backorder with no clear delivery date.",
     "source": "CustomerReview",
-    "region": "North",
-    "topic": "Delivery",
-    "date": "2026-03-22"
+    "region": "East",
+    "topic": "inventory",
+    "date": "2025-10-31",
+    "product": "Product D"
   },
   {
     "id": 177,
-    "text": "Sample SupportTicket about Seasonality issues observed on 2026-08-01.",
-    "source": "SupportTicket",
-    "region": "South",
-    "topic": "Seasonality",
-    "date": "2025-10-13"
+    "text": "Really disappointed — Product D was unavailable at the East store for weeks. Staff said it was on backorder with no clear delivery date.",
+    "source": "CustomerReview",
+    "region": "East",
+    "topic": "inventory",
+    "date": "2025-10-23",
+    "product": "Product D"
   },
   {
     "id": 178,
-    "text": "Sample InternalReport about Pricing issues observed on 2026-06-29.",
-    "source": "InternalReport",
-    "region": "South",
-    "topic": "Pricing",
-    "date": "2026-04-03"
+    "text": "Tried to order the Product D in East region but it kept showing \"out of stock\" for most of the month. Ended up settling for a different, cheaper model instead.",
+    "source": "CustomerReview",
+    "region": "East",
+    "topic": "inventory",
+    "date": "2025-10-28",
+    "product": "Product D"
   },
   {
     "id": 179,
-    "text": "Sample CustomerReview about Delivery issues observed on 2026-04-03.",
+    "text": "Waited two weeks for Product D to come back in stock in East. Almost cancelled the order.",
     "source": "CustomerReview",
     "region": "East",
-    "topic": "Delivery",
-    "date": "2026-06-24"
+    "topic": "inventory",
+    "date": "2025-10-03",
+    "product": "Product D"
   },
   {
     "id": 180,
-    "text": "Sample SupportTicket about Conversion issues observed on 2025-11-18.",
-    "source": "SupportTicket",
-    "region": "South",
-    "topic": "Conversion",
-    "date": "2026-05-24"
+    "text": "Website showed Product D as available in East, but my order was cancelled a day later due to \"inventory mismatch.\"",
+    "source": "CustomerReview",
+    "region": "East",
+    "topic": "inventory",
+    "date": "2025-10-30",
+    "product": "Product D"
   },
   {
     "id": 181,
-    "text": "Sample SupportTicket about Pricing issues observed on 2025-10-16.",
-    "source": "SupportTicket",
-    "region": "West",
-    "topic": "Pricing",
-    "date": "2026-01-26"
+    "text": "Really disappointed — Product D was unavailable at the East store for weeks. Staff said it was on backorder with no clear delivery date.",
+    "source": "CustomerReview",
+    "region": "East",
+    "topic": "inventory",
+    "date": "2025-10-20",
+    "product": "Product D"
   },
   {
     "id": 182,
-    "text": "Sample InternalReport about Delivery issues observed on 2025-12-22.",
-    "source": "InternalReport",
-    "region": "West",
-    "topic": "Delivery",
-    "date": "2025-10-21"
+    "text": "Customer inquiry: Product D inventory unavailable at East distribution hub; order placed on backorder for over a week.",
+    "source": "SupportTicket",
+    "region": "East",
+    "topic": "inventory",
+    "date": "2025-10-17",
+    "product": "Product D"
   },
   {
     "id": 183,
-    "text": "Sample InternalReport about Inventory issues observed on 2026-08-02.",
-    "source": "InternalReport",
-    "region": "South",
-    "topic": "Inventory",
-    "date": "2026-08-05"
+    "text": "Customer inquiry: Product D inventory unavailable at East distribution hub; order placed on backorder for over a week.",
+    "source": "SupportTicket",
+    "region": "East",
+    "topic": "inventory",
+    "date": "2025-10-02",
+    "product": "Product D"
   },
   {
     "id": 184,
-    "text": "Sample InternalReport about Conversion issues observed on 2026-08-08.",
+    "text": "Flagging repeated Product D availability issues in East this month; store teams report lost walk-in sales due to empty shelves and cancelled online orders.",
     "source": "InternalReport",
-    "region": "West",
-    "topic": "Conversion",
-    "date": "2026-05-20"
+    "region": "East",
+    "topic": "inventory",
+    "date": "2025-10-17",
+    "product": "Product D"
   },
   {
     "id": 185,
-    "text": "Sample SupportTicket about Conversion issues observed on 2026-02-08.",
-    "source": "SupportTicket",
-    "region": "West",
-    "topic": "Conversion",
-    "date": "2026-06-02"
+    "text": "East logistics report: average delivery SLA remained within target (~6.1% delay rate) this month; no material change in delivery performance.",
+    "source": "InternalReport",
+    "region": "East",
+    "topic": "delivery",
+    "date": "2025-10-17"
   },
   {
     "id": 186,
-    "text": "Sample CustomerReview about Delivery issues observed on 2026-01-15.",
-    "source": "CustomerReview",
-    "region": "South",
-    "topic": "Delivery",
-    "date": "2025-12-07"
+    "text": "East customer experience summary: overall satisfaction scores remained flat month over month; no new complaint themes identified in the survey panel.",
+    "source": "InternalReport",
+    "region": "East",
+    "topic": "satisfaction",
+    "date": "2025-10-15"
   },
   {
     "id": 187,
-    "text": "Sample SupportTicket about Pricing issues observed on 2026-02-07.",
-    "source": "SupportTicket",
-    "region": "West",
-    "topic": "Pricing",
-    "date": "2025-11-08"
+    "text": "Package arrived a couple of days late in East, minor inconvenience but not a big deal.",
+    "source": "CustomerReview",
+    "region": "East",
+    "topic": "delivery",
+    "date": "2025-11-23",
+    "product": "Product E"
   },
   {
     "id": 188,
-    "text": "Sample CustomerReview about Conversion issues observed on 2026-07-12.",
+    "text": "Package arrived a couple of days late in East, minor inconvenience but not a big deal.",
     "source": "CustomerReview",
-    "region": "North",
-    "topic": "Conversion",
-    "date": "2025-11-22"
+    "region": "East",
+    "topic": "delivery",
+    "date": "2025-11-08",
+    "product": "Product E"
   },
   {
     "id": 189,
-    "text": "Sample SupportTicket about Seasonality issues observed on 2026-08-11.",
-    "source": "SupportTicket",
+    "text": "Delivery for my Product C order in East took a little longer than expected, but support kept me updated.",
+    "source": "CustomerReview",
     "region": "East",
-    "topic": "Seasonality",
-    "date": "2025-10-08"
+    "topic": "delivery",
+    "date": "2025-11-23",
+    "product": "Product A"
   },
   {
     "id": 190,
-    "text": "Sample SupportTicket about Conversion issues observed on 2026-01-22.",
-    "source": "SupportTicket",
-    "region": "West",
-    "topic": "Conversion",
-    "date": "2025-12-14"
+    "text": "Package arrived a couple of days late in East, minor inconvenience but not a big deal.",
+    "source": "CustomerReview",
+    "region": "East",
+    "topic": "delivery",
+    "date": "2025-11-02",
+    "product": "Product A"
   },
   {
     "id": 191,
-    "text": "Sample InternalReport about Inventory issues observed on 2025-11-27.",
-    "source": "InternalReport",
-    "region": "West",
-    "topic": "Inventory",
-    "date": "2025-11-13"
+    "text": "Second time ordering Product B from the East store — consistently reliable service.",
+    "source": "CustomerReview",
+    "region": "East",
+    "topic": "general",
+    "date": "2025-11-20",
+    "product": "Product B"
   },
   {
     "id": 192,
-    "text": "Sample CustomerReview about Inventory issues observed on 2025-11-17.",
+    "text": "Second time ordering Product B from the East store — consistently reliable service.",
     "source": "CustomerReview",
-    "region": "North",
-    "topic": "Inventory",
-    "date": "2026-05-12"
+    "region": "East",
+    "topic": "general",
+    "date": "2025-11-24",
+    "product": "Product B"
   },
   {
     "id": 193,
-    "text": "Sample CustomerReview about Pricing issues observed on 2026-02-18.",
+    "text": "Product E arrived quickly in East and was well packaged. Would buy again.",
     "source": "CustomerReview",
-    "region": "West",
-    "topic": "Pricing",
-    "date": "2026-01-07"
+    "region": "East",
+    "topic": "general",
+    "date": "2025-12-25",
+    "product": "Product E"
   },
   {
     "id": 194,
-    "text": "Sample CustomerReview about Delivery issues observed on 2025-10-27.",
+    "text": "Second time ordering Product B from the East store — consistently reliable service.",
     "source": "CustomerReview",
-    "region": "South",
-    "topic": "Delivery",
-    "date": "2025-12-06"
+    "region": "East",
+    "topic": "general",
+    "date": "2025-12-25",
+    "product": "Product B"
   },
   {
     "id": 195,
-    "text": "Sample InternalReport about Conversion issues observed on 2026-08-17.",
-    "source": "InternalReport",
+    "text": "Product A arrived quickly in East and was well packaged. Would buy again.",
+    "source": "CustomerReview",
     "region": "East",
-    "topic": "Conversion",
-    "date": "2026-04-15"
+    "topic": "general",
+    "date": "2025-12-01",
+    "product": "Product A"
   },
   {
     "id": 196,
-    "text": "Sample SupportTicket about Seasonality issues observed on 2026-03-29.",
-    "source": "SupportTicket",
-    "region": "West",
-    "topic": "Seasonality",
-    "date": "2026-03-08"
+    "text": "Delivery for my Product E order in East took a little longer than expected, but support kept me updated.",
+    "source": "CustomerReview",
+    "region": "East",
+    "topic": "delivery",
+    "date": "2026-01-11",
+    "product": "Product E"
   },
   {
     "id": 197,
-    "text": "Sample CustomerReview about Conversion issues observed on 2026-03-29.",
+    "text": "Great experience shopping for Product C in East. Fast, easy, and exactly as described.",
     "source": "CustomerReview",
-    "region": "West",
-    "topic": "Conversion",
-    "date": "2026-04-24"
+    "region": "East",
+    "topic": "general",
+    "date": "2026-01-10",
+    "product": "Product C"
   },
   {
     "id": 198,
-    "text": "Sample SupportTicket about Pricing issues observed on 2026-07-15.",
-    "source": "SupportTicket",
-    "region": "North",
-    "topic": "Pricing",
-    "date": "2025-11-28"
+    "text": "Product B arrived quickly in East and was well packaged. Would buy again.",
+    "source": "CustomerReview",
+    "region": "East",
+    "topic": "general",
+    "date": "2026-01-28",
+    "product": "Product B"
   },
   {
     "id": 199,
-    "text": "Sample SupportTicket about Pricing issues observed on 2026-05-27.",
-    "source": "SupportTicket",
-    "region": "North",
-    "topic": "Pricing",
-    "date": "2025-10-29"
+    "text": "Ops sync (East): last-mile delivery times are stable month over month (6.1% delay rate), consistent with prior quarters.",
+    "source": "InternalReport",
+    "region": "East",
+    "topic": "delivery",
+    "date": "2026-02-28"
   },
   {
     "id": 200,
-    "text": "Sample SupportTicket about Conversion issues observed on 2026-07-01.",
+    "text": "Second time ordering Product B from the East store — consistently reliable service.",
+    "source": "CustomerReview",
+    "region": "East",
+    "topic": "general",
+    "date": "2026-02-20",
+    "product": "Product B"
+  },
+  {
+    "id": 201,
+    "text": "Great experience shopping for Product E in East. Fast, easy, and exactly as described.",
+    "source": "CustomerReview",
+    "region": "East",
+    "topic": "general",
+    "date": "2026-02-24",
+    "product": "Product E"
+  },
+  {
+    "id": 202,
+    "text": "Great experience shopping for Product A in East. Fast, easy, and exactly as described.",
+    "source": "CustomerReview",
+    "region": "East",
+    "topic": "general",
+    "date": "2026-02-09",
+    "product": "Product A"
+  },
+  {
+    "id": 203,
+    "text": "Great experience shopping for Product A in East. Fast, easy, and exactly as described.",
+    "source": "CustomerReview",
+    "region": "East",
+    "topic": "general",
+    "date": "2026-03-22",
+    "product": "Product A"
+  },
+  {
+    "id": 204,
+    "text": "Second time ordering Product D from the East store — consistently reliable service.",
+    "source": "CustomerReview",
+    "region": "East",
+    "topic": "general",
+    "date": "2026-04-01",
+    "product": "Product D"
+  },
+  {
+    "id": 205,
+    "text": "Product E arrived quickly in East and was well packaged. Would buy again.",
+    "source": "CustomerReview",
+    "region": "East",
+    "topic": "general",
+    "date": "2026-04-27",
+    "product": "Product E"
+  },
+  {
+    "id": 206,
+    "text": "Package arrived a couple of days late in East, minor inconvenience but not a big deal.",
+    "source": "CustomerReview",
+    "region": "East",
+    "topic": "delivery",
+    "date": "2026-05-26",
+    "product": "Product A"
+  },
+  {
+    "id": 207,
+    "text": "Package arrived a couple of days late in East, minor inconvenience but not a big deal.",
+    "source": "CustomerReview",
+    "region": "East",
+    "topic": "delivery",
+    "date": "2026-05-26",
+    "product": "Product B"
+  },
+  {
+    "id": 208,
+    "text": "Delivery for my Product A order in East took a little longer than expected, but support kept me updated.",
+    "source": "CustomerReview",
+    "region": "East",
+    "topic": "delivery",
+    "date": "2026-05-28",
+    "product": "Product D"
+  },
+  {
+    "id": 209,
+    "text": "Delivery for my Product A order in East took a little longer than expected, but support kept me updated.",
+    "source": "CustomerReview",
+    "region": "East",
+    "topic": "delivery",
+    "date": "2026-05-01",
+    "product": "Product C"
+  },
+  {
+    "id": 210,
+    "text": "Package arrived a couple of days late in East, minor inconvenience but not a big deal.",
+    "source": "CustomerReview",
+    "region": "East",
+    "topic": "delivery",
+    "date": "2026-05-19",
+    "product": "Product B"
+  },
+  {
+    "id": 211,
+    "text": "Second time ordering Product E from the East store — consistently reliable service.",
+    "source": "CustomerReview",
+    "region": "East",
+    "topic": "general",
+    "date": "2026-05-29",
+    "product": "Product E"
+  },
+  {
+    "id": 212,
+    "text": "Customer asked about Product C return policy in East; no complaints, question answered.",
     "source": "SupportTicket",
-    "region": "South",
-    "topic": "Conversion",
-    "date": "2026-05-30"
+    "region": "East",
+    "topic": "general",
+    "date": "2026-05-11",
+    "product": "Product C"
+  },
+  {
+    "id": 213,
+    "text": "Great experience shopping for Product D in East. Fast, easy, and exactly as described.",
+    "source": "CustomerReview",
+    "region": "East",
+    "topic": "general",
+    "date": "2026-06-01",
+    "product": "Product D"
+  },
+  {
+    "id": 214,
+    "text": "East logistics report: average delivery SLA remained within target (~5.7% delay rate) this month; no material change in delivery performance.",
+    "source": "InternalReport",
+    "region": "East",
+    "topic": "delivery",
+    "date": "2026-07-13"
+  },
+  {
+    "id": 215,
+    "text": "Second time ordering Product A from the East store — consistently reliable service.",
+    "source": "CustomerReview",
+    "region": "East",
+    "topic": "general",
+    "date": "2026-07-05",
+    "product": "Product A"
+  },
+  {
+    "id": 216,
+    "text": "Great experience shopping for Product A in East. Fast, easy, and exactly as described.",
+    "source": "CustomerReview",
+    "region": "East",
+    "topic": "general",
+    "date": "2026-07-14",
+    "product": "Product A"
+  },
+  {
+    "id": 217,
+    "text": "Customer asked about Product D return policy in East; no complaints, question answered.",
+    "source": "SupportTicket",
+    "region": "East",
+    "topic": "general",
+    "date": "2026-07-04",
+    "product": "Product D"
+  },
+  {
+    "id": 218,
+    "text": "Second time ordering Product E from the East store — consistently reliable service.",
+    "source": "CustomerReview",
+    "region": "East",
+    "topic": "general",
+    "date": "2026-08-19",
+    "product": "Product E"
+  },
+  {
+    "id": 219,
+    "text": "Ops sync (West): last-mile delivery times are stable month over month (5.7% delay rate), consistent with prior quarters.",
+    "source": "InternalReport",
+    "region": "West",
+    "topic": "delivery",
+    "date": "2025-03-13"
+  },
+  {
+    "id": 220,
+    "text": "Package arrived a couple of days late in West, minor inconvenience but not a big deal.",
+    "source": "CustomerReview",
+    "region": "West",
+    "topic": "delivery",
+    "date": "2025-03-26",
+    "product": "Product B"
+  },
+  {
+    "id": 221,
+    "text": "Product A arrived quickly in West and was well packaged. Would buy again.",
+    "source": "CustomerReview",
+    "region": "West",
+    "topic": "general",
+    "date": "2025-03-30",
+    "product": "Product A"
+  },
+  {
+    "id": 222,
+    "text": "Website showed Product B as available in West, but my order was cancelled a day later due to \"inventory mismatch.\"",
+    "source": "CustomerReview",
+    "region": "West",
+    "topic": "inventory",
+    "date": "2025-04-08",
+    "product": "Product B"
+  },
+  {
+    "id": 223,
+    "text": "Tried to order the Product B in West region but it kept showing \"out of stock\" for most of the month. Ended up settling for a different, cheaper model instead.",
+    "source": "CustomerReview",
+    "region": "West",
+    "topic": "inventory",
+    "date": "2025-04-24",
+    "product": "Product B"
+  },
+  {
+    "id": 224,
+    "text": "Really disappointed — Product B was unavailable at the West store for weeks. Staff said it was on backorder with no clear delivery date.",
+    "source": "CustomerReview",
+    "region": "West",
+    "topic": "inventory",
+    "date": "2025-04-26",
+    "product": "Product B"
+  },
+  {
+    "id": 225,
+    "text": "Really disappointed — Product B was unavailable at the West store for weeks. Staff said it was on backorder with no clear delivery date.",
+    "source": "CustomerReview",
+    "region": "West",
+    "topic": "inventory",
+    "date": "2025-04-24",
+    "product": "Product B"
+  },
+  {
+    "id": 226,
+    "text": "Really disappointed — Product B was unavailable at the West store for weeks. Staff said it was on backorder with no clear delivery date.",
+    "source": "CustomerReview",
+    "region": "West",
+    "topic": "inventory",
+    "date": "2025-04-08",
+    "product": "Product B"
+  },
+  {
+    "id": 227,
+    "text": "Website showed Product B as available in West, but my order was cancelled a day later due to \"inventory mismatch.\"",
+    "source": "CustomerReview",
+    "region": "West",
+    "topic": "inventory",
+    "date": "2025-04-28",
+    "product": "Product B"
+  },
+  {
+    "id": 228,
+    "text": "Tried to order the Product B in West region but it kept showing \"out of stock\" for most of the month. Ended up settling for a different, cheaper model instead.",
+    "source": "CustomerReview",
+    "region": "West",
+    "topic": "inventory",
+    "date": "2025-04-04",
+    "product": "Product B"
+  },
+  {
+    "id": 229,
+    "text": "Support case opened — customer in West reports repeated stockouts on Product B, requesting refund after 10-day wait.",
+    "source": "SupportTicket",
+    "region": "West",
+    "topic": "inventory",
+    "date": "2025-04-18",
+    "product": "Product B"
+  },
+  {
+    "id": 230,
+    "text": "Customer inquiry: Product B inventory unavailable at West distribution hub; order placed on backorder for over a week.",
+    "source": "SupportTicket",
+    "region": "West",
+    "topic": "inventory",
+    "date": "2025-04-04",
+    "product": "Product B"
+  },
+  {
+    "id": 231,
+    "text": "Escalation: multiple West-region customers reporting Product B orders auto-cancelled due to stock unavailability.",
+    "source": "SupportTicket",
+    "region": "West",
+    "topic": "inventory",
+    "date": "2025-04-28",
+    "product": "Product B"
+  },
+  {
+    "id": 232,
+    "text": "Support case opened — customer in West reports repeated stockouts on Product B, requesting refund after 10-day wait.",
+    "source": "SupportTicket",
+    "region": "West",
+    "topic": "inventory",
+    "date": "2025-04-21",
+    "product": "Product B"
+  },
+  {
+    "id": 233,
+    "text": "West operations note: Product B stockout rate reached 4.9% this month, driven by a supplier delay at the regional distribution center.",
+    "source": "InternalReport",
+    "region": "West",
+    "topic": "inventory",
+    "date": "2025-04-27",
+    "product": "Product B"
+  },
+  {
+    "id": 234,
+    "text": "Weekly funnel review (West): traffic is on plan, but checkout completion is down; conversion sitting near 3.7% versus a healthier baseline.",
+    "source": "InternalReport",
+    "region": "West",
+    "topic": "conversion",
+    "date": "2025-04-23"
+  },
+  {
+    "id": 235,
+    "text": "Wanted to buy Product B online in West but checkout kept failing — item was in my cart one minute and unavailable the next.",
+    "source": "CustomerReview",
+    "region": "West",
+    "topic": "conversion",
+    "date": "2025-04-03",
+    "product": "Product B"
+  },
+  {
+    "id": 236,
+    "text": "Wanted to buy Product B online in West but checkout kept failing — item was in my cart one minute and unavailable the next.",
+    "source": "CustomerReview",
+    "region": "West",
+    "topic": "conversion",
+    "date": "2025-04-24",
+    "product": "Product B"
+  },
+  {
+    "id": 237,
+    "text": "Frustrating experience: added Product B to cart in the West app, but it was removed automatically before I could pay.",
+    "source": "CustomerReview",
+    "region": "West",
+    "topic": "conversion",
+    "date": "2025-04-26",
+    "product": "Product B"
+  },
+  {
+    "id": 238,
+    "text": "User reported inability to complete purchase for Product B in West; item removed from cart due to an inventory sync issue.",
+    "source": "SupportTicket",
+    "region": "West",
+    "topic": "conversion",
+    "date": "2025-04-12",
+    "product": "Product B"
+  },
+  {
+    "id": 239,
+    "text": "Delivery for my Product A order in West took a little longer than expected, but support kept me updated.",
+    "source": "CustomerReview",
+    "region": "West",
+    "topic": "delivery",
+    "date": "2025-05-12",
+    "product": "Product A"
+  },
+  {
+    "id": 240,
+    "text": "Product B arrived quickly in West and was well packaged. Would buy again.",
+    "source": "CustomerReview",
+    "region": "West",
+    "topic": "general",
+    "date": "2025-05-08",
+    "product": "Product B"
+  },
+  {
+    "id": 241,
+    "text": "Second time ordering Product B from the West store — consistently reliable service.",
+    "source": "CustomerReview",
+    "region": "West",
+    "topic": "general",
+    "date": "2025-05-18",
+    "product": "Product B"
+  },
+  {
+    "id": 242,
+    "text": "Product E arrived quickly in West and was well packaged. Would buy again.",
+    "source": "CustomerReview",
+    "region": "West",
+    "topic": "general",
+    "date": "2025-05-27",
+    "product": "Product E"
+  },
+  {
+    "id": 243,
+    "text": "Great experience shopping for Product A in West. Fast, easy, and exactly as described.",
+    "source": "CustomerReview",
+    "region": "West",
+    "topic": "general",
+    "date": "2025-06-04",
+    "product": "Product A"
+  },
+  {
+    "id": 244,
+    "text": "Second time ordering Product C from the West store — consistently reliable service.",
+    "source": "CustomerReview",
+    "region": "West",
+    "topic": "general",
+    "date": "2025-07-11",
+    "product": "Product C"
+  },
+  {
+    "id": 245,
+    "text": "Great experience shopping for Product E in West. Fast, easy, and exactly as described.",
+    "source": "CustomerReview",
+    "region": "West",
+    "topic": "general",
+    "date": "2025-08-05",
+    "product": "Product E"
+  },
+  {
+    "id": 246,
+    "text": "Second time ordering Product B from the West store — consistently reliable service.",
+    "source": "CustomerReview",
+    "region": "West",
+    "topic": "general",
+    "date": "2025-08-21",
+    "product": "Product B"
+  },
+  {
+    "id": 247,
+    "text": "Great experience shopping for Product D in West. Fast, easy, and exactly as described.",
+    "source": "CustomerReview",
+    "region": "West",
+    "topic": "general",
+    "date": "2025-08-28",
+    "product": "Product D"
+  },
+  {
+    "id": 248,
+    "text": "Second time ordering Product A from the West store — consistently reliable service.",
+    "source": "CustomerReview",
+    "region": "West",
+    "topic": "general",
+    "date": "2025-09-03",
+    "product": "Product A"
+  },
+  {
+    "id": 249,
+    "text": "Product E arrived quickly in West and was well packaged. Would buy again.",
+    "source": "CustomerReview",
+    "region": "West",
+    "topic": "general",
+    "date": "2025-09-17",
+    "product": "Product E"
+  },
+  {
+    "id": 250,
+    "text": "Great experience shopping for Product D in West. Fast, easy, and exactly as described.",
+    "source": "CustomerReview",
+    "region": "West",
+    "topic": "general",
+    "date": "2025-09-02",
+    "product": "Product D"
+  },
+  {
+    "id": 251,
+    "text": "Product D arrived quickly in West and was well packaged. Would buy again.",
+    "source": "CustomerReview",
+    "region": "West",
+    "topic": "general",
+    "date": "2025-10-26",
+    "product": "Product D"
+  },
+  {
+    "id": 252,
+    "text": "Second time ordering Product E from the West store — consistently reliable service.",
+    "source": "CustomerReview",
+    "region": "West",
+    "topic": "general",
+    "date": "2025-10-08",
+    "product": "Product E"
+  },
+  {
+    "id": 253,
+    "text": "Product C arrived quickly in West and was well packaged. Would buy again.",
+    "source": "CustomerReview",
+    "region": "West",
+    "topic": "general",
+    "date": "2025-10-17",
+    "product": "Product C"
+  },
+  {
+    "id": 254,
+    "text": "Package arrived a couple of days late in West, minor inconvenience but not a big deal.",
+    "source": "CustomerReview",
+    "region": "West",
+    "topic": "delivery",
+    "date": "2025-11-22",
+    "product": "Product C"
+  },
+  {
+    "id": 255,
+    "text": "Delivery for my Product A order in West took a little longer than expected, but support kept me updated.",
+    "source": "CustomerReview",
+    "region": "West",
+    "topic": "delivery",
+    "date": "2025-11-30",
+    "product": "Product A"
+  },
+  {
+    "id": 256,
+    "text": "Delivery for my Product D order in West took a little longer than expected, but support kept me updated.",
+    "source": "CustomerReview",
+    "region": "West",
+    "topic": "delivery",
+    "date": "2025-11-10",
+    "product": "Product A"
+  },
+  {
+    "id": 257,
+    "text": "Delivery for my Product C order in West took a little longer than expected, but support kept me updated.",
+    "source": "CustomerReview",
+    "region": "West",
+    "topic": "delivery",
+    "date": "2025-11-03",
+    "product": "Product C"
+  },
+  {
+    "id": 258,
+    "text": "Package arrived a couple of days late in West, minor inconvenience but not a big deal.",
+    "source": "CustomerReview",
+    "region": "West",
+    "topic": "delivery",
+    "date": "2025-11-21",
+    "product": "Product A"
+  },
+  {
+    "id": 259,
+    "text": "Product D arrived quickly in West and was well packaged. Would buy again.",
+    "source": "CustomerReview",
+    "region": "West",
+    "topic": "general",
+    "date": "2025-11-12",
+    "product": "Product D"
+  },
+  {
+    "id": 260,
+    "text": "Product A arrived quickly in West and was well packaged. Would buy again.",
+    "source": "CustomerReview",
+    "region": "West",
+    "topic": "general",
+    "date": "2025-12-29",
+    "product": "Product A"
+  },
+  {
+    "id": 261,
+    "text": "Product B arrived quickly in West and was well packaged. Would buy again.",
+    "source": "CustomerReview",
+    "region": "West",
+    "topic": "general",
+    "date": "2025-12-01",
+    "product": "Product B"
+  },
+  {
+    "id": 262,
+    "text": "Product D arrived quickly in West and was well packaged. Would buy again.",
+    "source": "CustomerReview",
+    "region": "West",
+    "topic": "general",
+    "date": "2025-12-20",
+    "product": "Product D"
+  },
+  {
+    "id": 263,
+    "text": "Routine support inquiry about warranty terms for Product B purchased in West. Resolved same day.",
+    "source": "SupportTicket",
+    "region": "West",
+    "topic": "general",
+    "date": "2025-12-20",
+    "product": "Product B"
+  },
+  {
+    "id": 264,
+    "text": "West logistics report: average delivery SLA remained within target (~6% delay rate) this month; no material change in delivery performance.",
+    "source": "InternalReport",
+    "region": "West",
+    "topic": "delivery",
+    "date": "2026-01-06"
+  },
+  {
+    "id": 265,
+    "text": "Great experience shopping for Product C in West. Fast, easy, and exactly as described.",
+    "source": "CustomerReview",
+    "region": "West",
+    "topic": "general",
+    "date": "2026-01-18",
+    "product": "Product C"
+  },
+  {
+    "id": 266,
+    "text": "Pricing team note: average discount depth in West rose to 7.6% this month as the team pushed promotions to offset weak sell-through on constrained SKUs.",
+    "source": "InternalReport",
+    "region": "West",
+    "topic": "discount",
+    "date": "2026-02-19"
+  },
+  {
+    "id": 267,
+    "text": "Package arrived a couple of days late in West, minor inconvenience but not a big deal.",
+    "source": "CustomerReview",
+    "region": "West",
+    "topic": "delivery",
+    "date": "2026-02-04",
+    "product": "Product C"
+  },
+  {
+    "id": 268,
+    "text": "Great experience shopping for Product B in West. Fast, easy, and exactly as described.",
+    "source": "CustomerReview",
+    "region": "West",
+    "topic": "general",
+    "date": "2026-03-14",
+    "product": "Product B"
+  },
+  {
+    "id": 269,
+    "text": "Second time ordering Product B from the West store — consistently reliable service.",
+    "source": "CustomerReview",
+    "region": "West",
+    "topic": "general",
+    "date": "2026-03-20",
+    "product": "Product B"
+  },
+  {
+    "id": 270,
+    "text": "West logistics report: average delivery SLA remained within target (~6.1% delay rate) this month; no material change in delivery performance.",
+    "source": "InternalReport",
+    "region": "West",
+    "topic": "delivery",
+    "date": "2026-04-25"
+  },
+  {
+    "id": 271,
+    "text": "Package arrived a couple of days late in West, minor inconvenience but not a big deal.",
+    "source": "CustomerReview",
+    "region": "West",
+    "topic": "delivery",
+    "date": "2026-04-23",
+    "product": "Product C"
+  },
+  {
+    "id": 272,
+    "text": "Second time ordering Product D from the West store — consistently reliable service.",
+    "source": "CustomerReview",
+    "region": "West",
+    "topic": "general",
+    "date": "2026-04-27",
+    "product": "Product D"
+  },
+  {
+    "id": 273,
+    "text": "Great experience shopping for Product C in West. Fast, easy, and exactly as described.",
+    "source": "CustomerReview",
+    "region": "West",
+    "topic": "general",
+    "date": "2026-05-21",
+    "product": "Product C"
+  },
+  {
+    "id": 274,
+    "text": "Product E arrived quickly in West and was well packaged. Would buy again.",
+    "source": "CustomerReview",
+    "region": "West",
+    "topic": "general",
+    "date": "2026-05-06",
+    "product": "Product E"
+  },
+  {
+    "id": 275,
+    "text": "Product C arrived quickly in West and was well packaged. Would buy again.",
+    "source": "CustomerReview",
+    "region": "West",
+    "topic": "general",
+    "date": "2026-05-09",
+    "product": "Product C"
+  },
+  {
+    "id": 276,
+    "text": "Customer asked about Product C return policy in West; no complaints, question answered.",
+    "source": "SupportTicket",
+    "region": "West",
+    "topic": "general",
+    "date": "2026-05-22",
+    "product": "Product C"
+  },
+  {
+    "id": 277,
+    "text": "Really disappointed — Product A was unavailable at the West store for weeks. Staff said it was on backorder with no clear delivery date.",
+    "source": "CustomerReview",
+    "region": "West",
+    "topic": "inventory",
+    "date": "2026-06-27",
+    "product": "Product A"
+  },
+  {
+    "id": 278,
+    "text": "Waited two weeks for Product A to come back in stock in West. Almost cancelled the order.",
+    "source": "CustomerReview",
+    "region": "West",
+    "topic": "inventory",
+    "date": "2026-06-12",
+    "product": "Product A"
+  },
+  {
+    "id": 279,
+    "text": "Waited two weeks for Product A to come back in stock in West. Almost cancelled the order.",
+    "source": "CustomerReview",
+    "region": "West",
+    "topic": "inventory",
+    "date": "2026-06-10",
+    "product": "Product A"
+  },
+  {
+    "id": 280,
+    "text": "Really disappointed — Product A was unavailable at the West store for weeks. Staff said it was on backorder with no clear delivery date.",
+    "source": "CustomerReview",
+    "region": "West",
+    "topic": "inventory",
+    "date": "2026-06-03",
+    "product": "Product A"
+  },
+  {
+    "id": 281,
+    "text": "Escalation: multiple West-region customers reporting Product A orders auto-cancelled due to stock unavailability.",
+    "source": "SupportTicket",
+    "region": "West",
+    "topic": "inventory",
+    "date": "2026-06-03",
+    "product": "Product A"
+  },
+  {
+    "id": 282,
+    "text": "Customer inquiry: Product A inventory unavailable at West distribution hub; order placed on backorder for over a week.",
+    "source": "SupportTicket",
+    "region": "West",
+    "topic": "inventory",
+    "date": "2026-06-17",
+    "product": "Product A"
+  },
+  {
+    "id": 283,
+    "text": "Customer inquiry: Product A inventory unavailable at West distribution hub; order placed on backorder for over a week.",
+    "source": "SupportTicket",
+    "region": "West",
+    "topic": "inventory",
+    "date": "2026-06-30",
+    "product": "Product A"
+  },
+  {
+    "id": 284,
+    "text": "Fulfillment review: Product A availability in West dropped sharply (stockout rate ~4.9%). Replenishment lead time from the primary supplier has doubled.",
+    "source": "InternalReport",
+    "region": "West",
+    "topic": "inventory",
+    "date": "2026-06-05",
+    "product": "Product A"
+  },
+  {
+    "id": 285,
+    "text": "Ops sync (West): last-mile delivery times are stable month over month (5.7% delay rate), consistent with prior quarters.",
+    "source": "InternalReport",
+    "region": "West",
+    "topic": "delivery",
+    "date": "2026-06-21"
+  },
+  {
+    "id": 286,
+    "text": "Ops sync (West): last-mile delivery times are stable month over month (5.9% delay rate), consistent with prior quarters.",
+    "source": "InternalReport",
+    "region": "West",
+    "topic": "delivery",
+    "date": "2026-07-20"
+  },
+  {
+    "id": 287,
+    "text": "Second time ordering Product B from the West store — consistently reliable service.",
+    "source": "CustomerReview",
+    "region": "West",
+    "topic": "general",
+    "date": "2026-07-05",
+    "product": "Product B"
+  },
+  {
+    "id": 288,
+    "text": "Second time ordering Product C from the West store — consistently reliable service.",
+    "source": "CustomerReview",
+    "region": "West",
+    "topic": "general",
+    "date": "2026-08-04",
+    "product": "Product C"
+  },
+  {
+    "id": 289,
+    "text": "Second time ordering Product D from the West store — consistently reliable service.",
+    "source": "CustomerReview",
+    "region": "West",
+    "topic": "general",
+    "date": "2026-08-02",
+    "product": "Product D"
+  },
+  {
+    "id": 290,
+    "text": "Product A arrived quickly in West and was well packaged. Would buy again.",
+    "source": "CustomerReview",
+    "region": "West",
+    "topic": "general",
+    "date": "2026-08-14",
+    "product": "Product A"
+  },
+  {
+    "id": 291,
+    "text": "Routine support inquiry about warranty terms for Product E purchased in West. Resolved same day.",
+    "source": "SupportTicket",
+    "region": "West",
+    "topic": "general",
+    "date": "2026-08-15",
+    "product": "Product E"
   }
 ]

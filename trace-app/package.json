@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "seed": "node src/server/data/generateData.js",
+    "seed:evidence": "node src/server/data/generateEvidence.js",
     "migrate": "tsx scripts/migrate.ts",
     "dev": "next dev",
     "build": "next build",
