@@ -1027,39 +1027,74 @@ export default function Dashboard() {
   useEffect(() => {
     if (!latestPeriod) return;
     
+    let cancelled = false;
+    
     async function fetchDimensionBreakdown() {
       setBreakdownLoading(true);
       setBreakdownError(null);
+      
       try {
         const dimensions: ("region" | "product" | "channel")[] = ["region", "product", "channel"];
-        const results = await Promise.allSettled(
-          dimensions.map(dim => 
-            breakdownFetch.fetchWithAbort(`/api/drivers/breakdown?metric=${metric}&period=${latestPeriod}&dimension=${dim}`)
-          )
+        
+        // Use independent fetch calls with separate AbortControllers to avoid
+        // the shared AbortController issue in useFetchWithAbort
+        const responses = await Promise.allSettled(
+          dimensions.map(async (dimension) => {
+            const response = await fetch(
+              `/api/drivers/breakdown?metric=${encodeURIComponent(metric)}&period=${encodeURIComponent(latestPeriod)}&dimension=${dimension}`
+            );
+            
+            if (!response.ok) {
+              throw new Error(`Dimension ${dimension} failed: HTTP ${response.status}`);
+            }
+            
+            return {
+              dimension,
+              data: await response.json()
+            };
+          })
         );
         
-        results.forEach((result, idx) => {
+        if (cancelled) return;
+        
+        const nextBreakdown = {
+          region: [] as DimensionContribution[],
+          product: [] as DimensionContribution[],
+          channel: [] as DimensionContribution[]
+        };
+        
+        responses.forEach((result, idx) => {
+          const dimension = dimensions[idx];
+          
           if (result.status === "fulfilled") {
-            const value = result.value;
-            if (value && value.contributions) {
-              const dimension = dimensions[idx];
-              setDimensionBreakdown(prev => ({...prev, [dimension]: value.contributions}));
+            if (result.value.data?.contributions) {
+              nextBreakdown[dimension] = result.value.data.contributions;
             }
           } else if (result.status === "rejected") {
             // Log but don't fail - some dimensions may be unsupported (e.g., channel for conversion)
-            console.debug(`Dimension ${dimensions[idx]} not available for ${metric}:`, result.reason);
+            console.debug(`Dimension ${dimension} not available for ${metric}:`, result.reason);
           }
         });
+        
+        setDimensionBreakdown(nextBreakdown);
+        
       } catch (e) {
-        if (e instanceof Error && e.name !== 'AbortError') {
+        if (!cancelled && e instanceof Error && e.name !== 'AbortError') {
           setBreakdownError(e.message);
         }
       } finally {
-        setBreakdownLoading(false);
+        if (!cancelled) {
+          setBreakdownLoading(false);
+        }
       }
     }
+    
     fetchDimensionBreakdown();
-  }, [metric, latestPeriod, breakdownFetch]);
+    
+    return () => {
+      cancelled = true;
+    };
+  }, [metric, latestPeriod]);
 
   // Module 3: Fetch hypotheses
   useEffect(() => {

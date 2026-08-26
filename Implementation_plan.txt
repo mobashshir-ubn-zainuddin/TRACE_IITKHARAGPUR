@@ -5211,6 +5211,1854 @@ That separation should be preserved throughout the entire project.
 Module 1 establishes truth → Module 2 establishes signal → Module 3 establishes candidate explanations → Module 4 establishes evidence.
 
 
+
+1. Where We Are Right Now
+
+The final system should look like this:
+
+                         TRACE
+                           │
+                           ▼
+              ┌────────────────────────┐
+              │       MODULE 1         │
+              │  Data + KPI Foundation │
+              │                        │
+              │ SQLite                 │
+              │ KPI definitions        │
+              │ Historical values      │
+              │ Dimensions             │
+              │ Data quality            │
+              │ Lineage                 │
+              └────────────┬───────────┘
+                           │
+                           │ KPI observations
+                           ▼
+              ┌────────────────────────┐
+              │       MODULE 2         │
+              │   Signal Engine        │
+              │                        │
+              │ MoM / YoY              │
+              │ baseline deviation     │
+              │ materiality            │
+              │ statistical significance│
+              │ signal classification  │
+              └────────────┬───────────┘
+                           │
+                           │ INVESTIGATE
+                           ▼
+              ┌────────────────────────┐
+              │       MODULE 3         │
+              │ Driver + Hypothesis    │
+              │ Engine                 │
+              │                        │
+              │ Drivers                │
+              │ Contributions          │
+              │ Associations           │
+              │ Temporal alignment     │
+              │ Segments               │
+              │ Contradictions         │
+              │ Alternatives           │
+              │ Evidence Requests      │
+              └────────────┬───────────┘
+                           │
+                           │ EvidenceRequest[]
+                           ▼
+              ╔════════════════════════╗
+              ║       MODULE 4         ║
+              ║   EVIDENCE + RAG       ║
+              ║                        ║
+              ║ Query Builder          ║
+              ║ Structured Retrieval  ║
+              ║ Vector Retrieval      ║
+              ║ Hybrid Retrieval      ║
+              ║ Reranking              ║
+              ║ Evidence Scoring      ║
+              ║ Contradiction         ║
+              ║ Provenance             ║
+              ║ Confidence Update      ║
+              ╚════════════╤═══════════╝
+                           │
+                           │ Validated Evidence Package
+                           ▼
+              ┌────────────────────────┐
+              │       MODULE 5         │
+              │ Intelligence           │
+              │                        │
+              │ Story                  │
+              │ Persona adaptation     │
+              │ Uncertainty            │
+              │ Recommendations        │
+              │ Actions                │
+              │ Decision memory        │
+              │ Human feedback         │
+              └────────────┬───────────┘
+                           │
+                           │ Decision
+                           ▼
+              ┌────────────────────────┐
+              │       MODULE 6         │
+              │ Governance             │
+              │                        │
+              │ Audit                  │
+              │ Evaluation             │
+              │ Security               │
+              │ Feedback               │
+              │ Cost                   │
+              │ Latency                │
+              │ Drift                  │
+              │ Model/prompt versions  │
+              └────────────────────────┘
+
+Module 4's specification explicitly defines it as receiving ranked hypotheses and evidence requests from Module 3 and returning a traceable evidence package.
+
+2. The Most Important Architectural Principle
+
+Do not make this:
+
+Module 3
+   ↓
+LLM
+   ↓
+"Yes, this hypothesis is true"
+
+That would destroy the strongest aspect of TRACE.
+
+Instead:
+
+Module 3
+   │
+   │ "I think Stockouts may explain Revenue decline."
+   │
+   │ "Here is exactly what evidence I need."
+   ▼
+Module 4
+   │
+   ├── Search structured data
+   ├── Search documents
+   ├── Search embeddings
+   ├── Filter by date
+   ├── Filter by region
+   ├── Filter by product
+   ├── Check source quality
+   ├── Check temporal relevance
+   ├── Check direction
+   ├── Check contradictions
+   └── Check independent sources
+   │
+   ▼
+Evidence score
+   │
+   ▼
+Updated confidence
+
+The Module 4 specification explicitly says:
+
+Retrieval → Relevance → Evidence → Support/Contradiction → Confidence
+
+rather than allowing the LLM to declare that retrieved text proves a hypothesis.
+
+That distinction will make the architecture much stronger for the hackathon.
+
+3. How Module 4 Connects to Module 1
+Module 1 is the quantitative source of truth
+
+Your Module 1 database contains the governed business data:
+
+sales_transactions
+marketing_daily
+operations_daily
+
+regions
+products
+data_sources
+
+and the KPI semantic layer defines:
+
+Revenue
+Orders
+AOV
+Conversion
+Marketing ROI
+...
+
+The database architecture is explicitly designed around these source tables and dimensions.
+
+Module 4 does not recalculate KPIs.
+
+Instead, it can query Module 1's structured data when evidence is quantitative.
+
+Example
+
+Module 3 says:
+
+H1:
+Orders decline explains Revenue decline
+
+Contribution: +81.6%
+Association: 1.00
+Temporal: 100%
+Segment: 100%
+Confidence: 90%
+
+Module 4 can query Module 1:
+
+SELECT ...
+FROM sales_transactions
+WHERE date BETWEEN '2026-08-01' AND '2026-08-31'
+  AND ...
+
+and obtain structured evidence such as:
+
+Orders:
+July  = 28,817
+August = 24,424
+
+Change = -15.24%
+
+This is strong quantitative evidence because it comes directly from the governed data layer.
+
+Module 4 can then attach:
+
+sourceType: "structured"
+source: "sales_transactions"
+period: "2026-08"
+metric: "orders"
+value: -15.24%
+Critical distinction
+
+Module 1 says:
+
+Orders decreased 15.24%.
+
+Module 3 says:
+
+Orders could explain the Revenue decrease.
+
+Module 4 determines:
+
+Evidence from the governed sales data supports the Orders hypothesis.
+
+Module 5 eventually says:
+
+Revenue declined primarily alongside a substantial decline in Orders, supported by the available evidence.
+
+That is a very defensible chain.
+
+4. How Module 4 Connects to Module 2
+
+Module 2 answers:
+
+"Is this movement important enough to investigate?"
+
+For example:
+
+Revenue
+Current: 760,501,760
+Previous: 924,818,510
+
+MoM: -17.77%
+Z-score: -3.81
+Materiality: HIGH
+Statistical significance: HIGH
+Signal: INVESTIGATE
+
+Your current dashboard already demonstrates exactly this behavior.
+
+Module 4 should not redo any of this.
+
+Instead, Module 4 receives the investigation context:
+
+{
+    metric: "revenue",
+    period: "2026-08",
+    totalChange: -164316750,
+    totalChangePct: -17.77,
+    ...
+}
+
+This matters because the evidence retrieval system needs to know:
+
+What are we explaining?
+When did it happen?
+How large was it?
+What dimensions are relevant?
+
+So the Module 4 retrieval context should inherit:
+
+metric
+period
+baseline period
+direction
+region
+product
+channel
+signal severity
+
+from Modules 1–3.
+
+5. How Module 4 Connects to Your Current Module 3
+
+This is the most important connection.
+
+Your latest types.ts has:
+
+export interface EvidenceRequest {
+  hypothesisId: string;
+  metric: string;
+  period: string;
+  driver: string;
+  query: string;
+  filters: {
+    region?: string;
+    product?: string;
+    dateStart?: string;
+    dateEnd?: string;
+  };
+  requiredEvidence: string[];
+}
+
+This is already almost exactly the interface Module 4 needs.
+
+You don't need to redesign it.
+
+6. Example of the Actual Module 3 → Module 4 Flow
+
+Suppose Module 3 produces:
+
+{
+  hypothesisId: "H1",
+  metric: "revenue",
+  period: "2026-08",
+  driver: "stockouts",
+  query: "North region product availability stockout revenue August 2026",
+  filters: {
+    region: "North",
+    dateStart: "2026-08-01",
+    dateEnd: "2026-08-31"
+  },
+  requiredEvidence: [
+    "inventory",
+    "stockout",
+    "customer complaints"
+  ]
+}
+
+This is not an ordinary search query.
+
+It is a structured investigation request.
+
+Module 4 should interpret it as:
+
+Hypothesis
+    ↓
+Stockouts explain Revenue decline
+    ↓
+Scope
+    ↓
+North
+August 2026
+    ↓
+Evidence required
+    ├── inventory
+    ├── stockout
+    └── customer complaints
+
+The Module 3 specification explicitly defines this pattern: Module 3 says what evidence is needed, while Module 4 retrieves it.
+
+7. Module 4 Internal Architecture
+
+I recommend structuring Module 4 like this:
+
+src/server/evidence/
+│
+├── index.ts
+│
+├── types.ts
+│
+├── queryBuilder.ts
+│
+├── structured/
+│   ├── index.ts
+│   ├── sales.ts
+│   ├── operations.ts
+│   ├── marketing.ts
+│   └── kpi.ts
+│
+├── ingestion/
+│   ├── index.ts
+│   ├── loader.ts
+│   ├── chunker.ts
+│   └── metadata.ts
+│
+├── embeddings/
+│   ├── index.ts
+│   ├── provider.ts
+│   └── cache.ts
+│
+├── retrieval/
+│   ├── keyword.ts
+│   ├── vector.ts
+│   ├── hybrid.ts
+│   └── reranker.ts
+│
+├── scoring/
+│   ├── relevance.ts
+│   ├── temporal.ts
+│   ├── entity.ts
+│   ├── sourceQuality.ts
+│   ├── direction.ts
+│   └── aggregate.ts
+│
+├── contradiction.ts
+│
+├── confidence.ts
+│
+├── provenance.ts
+│
+└── telemetry.ts
+
+And the API:
+
+src/app/api/evidence/
+│
+├── route.ts
+├── retrieve/
+│   └── route.ts
+├── ingest/
+│   └── route.ts
+└── graph/
+    └── route.ts
+
+The existing plan specifically recommends keeping the existing evidence layer as the Module 4 replacement point rather than creating a second unrelated architecture.
+
+8. Database Architecture for Module 4
+
+There should be two categories of evidence.
+
+A. Structured evidence
+
+Already present in Module 1:
+
+sales_transactions
+marketing_daily
+operations_daily
+products
+regions
+
+Do not duplicate this data into another evidence database.
+
+Module 4 should query it.
+
+B. Unstructured evidence
+
+This is where Module 4 adds new tables.
+
+Conceptually:
+
+evidence_documents
+        │
+        │ 1:N
+        ▼
+evidence_chunks
+        │
+        │ 1:1 / 1:N
+        ▼
+embeddings
+
+A sensible schema would be:
+
+evidence_documents
+id
+source_id
+title
+document_type
+source_type
+uri/path
+created_at
+document_date
+region
+product
+metadata
+content_hash
+
+Example:
+
+DOC-001
+Inventory Report — August
+source_type = operations_report
+document_date = 2026-08-31
+region = North
+evidence_chunks
+id
+document_id
+chunk_index
+text
+start_offset
+end_offset
+region
+product
+date_start
+date_end
+metadata
+
+Example:
+
+CHUNK-017
+
+"Product A availability in North fell
+below target for six days in August..."
+
+region = North
+product = Product A
+date_start = 2026-08-01
+date_end = 2026-08-31
+evidence_embeddings
+id
+chunk_id
+embedding
+model
+dimension
+content_hash
+created_at
+
+The specification requires embeddings to be persisted rather than regenerated every time.
+
+9. Why We Need Metadata
+
+This is critical.
+
+Suppose the query is:
+
+North Product A stockouts August 2026
+
+A pure vector search might return:
+
+South Product A stockout July
+
+because semantically it is similar.
+
+But TRACE should recognize:
+
+Region mismatch
+Date mismatch
+
+and downgrade it.
+
+So every chunk should carry metadata:
+
+region
+product
+channel
+date
+document type
+source
+
+Then retrieval becomes:
+
+Query
+ ↓
+Extract:
+metric = revenue
+region = North
+product = Product A
+date = August 2026
+driver = stockouts
+ ↓
+Metadata filtering
+ ↓
+Keyword retrieval
+ ↓
+Vector retrieval
+ ↓
+Merge
+ ↓
+Rerank
+
+This is the intended hybrid retrieval architecture.
+
+10. Structured Retrieval + Vector Retrieval
+
+This is where TRACE becomes substantially better than a basic RAG application.
+
+Structured retrieval
+
+Use SQLite when the evidence is quantitative:
+
+Orders fell 15.24%
+Stockouts increased 31%
+North revenue fell 20%
+Product A availability fell 12%
+
+No LLM required.
+
+Vector retrieval
+
+Use embeddings for:
+
+Inventory reports
+Operations reports
+Customer complaints
+Support tickets
+Internal reports
+Management notes
+
+The Module 4 specification explicitly expects both structured and unstructured retrieval.
+
+11. Hybrid Retrieval
+
+The final retrieval architecture:
+
+                EvidenceRequest
+                       │
+                       ▼
+                Query Builder
+                       │
+              ┌────────┴────────┐
+              ▼                 ▼
+       Structured Search    Query Expansion
+              │                 │
+              │                 ▼
+              │           Vector Search
+              │                 │
+              └────────┬────────┘
+                       ▼
+                  Candidate Pool
+                       │
+                       ▼
+                    Reranker
+                       │
+                       ▼
+                   Top-K Evidence
+
+The LLM can optionally expand:
+
+stockout
+
+into:
+
+out of stock
+inventory shortage
+product unavailable
+availability issue
+fulfillment shortage
+
+but the original structured terms must remain.
+
+12. Evidence Scoring
+
+Every retrieved item should get multiple scores.
+
+For example:
+
+{
+  semanticScore: 0.87,
+  sourceQuality: 0.90,
+  temporalScore: 0.95,
+  entityScore: 1.00,
+  hypothesisAlignment: 0.91
+}
+
+Then:
+
+Evidence Score =
+    0.30 semantic relevance
+  + 0.20 source quality
+  + 0.15 temporal relevance
+  + 0.15 entity relevance
+  + 0.20 hypothesis alignment
+
+These weights are specified as configurable rather than hard-coded business truth.
+
+13. Evidence Direction
+
+This is one of the most important parts.
+
+Evidence is not simply:
+
+relevant / irrelevant
+
+It becomes:
+
+SUPPORT
+CONTRADICT
+NEUTRAL
+Example
+
+Hypothesis:
+
+Stockouts caused Revenue decline
+
+Evidence:
+
+"Product A was unavailable for 6 days."
+
+→ SUPPORT
+
+But:
+
+"Product A inventory increased by 20%."
+
+→ CONTRADICT
+
+This is explicitly part of the Module 4 design.
+
+14. Module 3 Already Has Contradictions
+
+This is another important connection.
+
+Your Module 3 already produces:
+
+export interface Contradiction {
+  driver: string;
+  metric: string;
+  expectedDirection: "positive" | "negative";
+  observedDirection: "positive" | "negative";
+  effect: "weakens" | "invalidates";
+  magnitude: number;
+}
+
+So Module 4 should not erase those contradictions.
+
+Instead:
+
+Module 3 contradiction
+        +
+Module 4 retrieved contradiction
+        ↓
+Combined evidence assessment
+
+For example:
+
+Module 3:
+Conversion Rate contradiction detected
+
+Module 4:
+Operations report supports stockout hypothesis
+
+Module 4:
+Inventory data contradicts stockout hypothesis
+
+Final:
+Mixed evidence
+
+This is much better than forcing a binary conclusion.
+
+15. The Module 4 Output
+
+Module 4 should return something conceptually like:
+
+interface EvidencePackage {
+  analysisId: string
+  metric: string
+  period: string
+
+  hypotheses: EvidenceHypothesis[]
+
+  evidence: EvidenceItem[]
+
+  contradictions: EvidenceContradiction[]
+
+  evidenceGaps: EvidenceGap[]
+
+  overallConfidence: number
+
+  status:
+    | "supported"
+    | "mixed"
+    | "insufficient_evidence"
+
+  provenance: Provenance[]
+
+  telemetry: RetrievalTelemetry
+}
+
+Each hypothesis:
+
+interface EvidenceHypothesis {
+  hypothesisId: string
+  driver: string
+
+  priorConfidence: number
+  evidenceConfidence: number
+  updatedConfidence: number
+
+  supportingEvidence: string[]
+  contradictoryEvidence: string[]
+  neutralEvidence: string[]
+
+  evidenceCount: number
+
+  status:
+    | "supported"
+    | "mixed"
+    | "insufficient_evidence"
+}
+
+The key point is:
+
+Module 3 confidence
+        ↓
+Module 4 evidence
+        ↓
+Module 4 updated confidence
+
+Not:
+
+LLM confidence = truth
+16. How Module 4 Updates Module 3
+
+Suppose Module 3 says:
+
+H1 Orders
+
+Contribution: 81.6%
+Association: 1.00
+Temporal: 100%
+Confidence: 90%
+
+Module 4 finds:
+
+3 supporting pieces of evidence
+1 contradiction
+
+Then Module 4 can produce:
+
+Evidence confidence = 86%
+
+and:
+
+Updated hypothesis confidence = 88%
+
+or whatever the deterministic confidence calibration produces.
+
+The exact formula should be explicit and configurable.
+
+The important architecture is:
+
+M3 confidence
+     ↓
+Evidence
+     ↓
+Evidence quality
+     ↓
+Support / contradiction
+     ↓
+M4 updated confidence
+
+The specification explicitly requires Module 3 confidence to be updateable from Module 4 evidence.
+
+17. How Module 4 Connects to Module 5
+
+This is the second major connection.
+
+Module 5 should not receive raw search results.
+
+It should receive a validated evidence package.
+
+Bad:
+
+Module 4
+  ↓
+500 retrieved chunks
+  ↓
+Module 5
+  ↓
+LLM
+
+Good:
+
+Module 4
+  ↓
+Top evidence
+  ↓
+Scored evidence
+  ↓
+Supporting evidence
+  ↓
+Contradictions
+  ↓
+Evidence gaps
+  ↓
+Confidence
+  ↓
+Provenance
+  ↓
+Module 5
+
+Module 5's specification explicitly says it should consume a unified object from Modules 1–4 and should not duplicate RAG, KPI calculation, anomaly detection, or quantitative root-cause logic.
+
+18. Module 5's Input Should Look Like This
+
+Conceptually:
+
+interface IntelligenceContext {
+
+  analysis: {
+    analysisId: string
+    metric: string
+    period: string
+  }
+
+  kpi: {
+    currentValue: number
+    previousValue: number
+    changePct: number
+    definition: string
+  }
+
+  signal: {
+    materiality: string
+    statisticalSignificance: string
+    zScore: number
+    priority: string
+  }
+
+  drivers: DriverHypothesis[]
+
+  alternatives: DriverHypothesis[]
+
+  contradictions: Contradiction[]
+
+  evidence: EvidencePackage
+
+  dataQuality: {
+    score: number
+    completeness: number
+  }
+}
+
+Then Module 5 has everything required to write a grounded story.
+
+19. Module 5 Should Work Like This
+
+For your current Revenue scenario:
+
+M1
+Revenue = ₹760.5M
+↓17.77%
+        │
+        ▼
+M2
+HIGH materiality
+HIGH significance
+URGENT
+        │
+        ▼
+M3
+Orders = strongest candidate
+AOV = secondary candidate
+Price = insufficient data
+        │
+        ▼
+M4
+Orders evidence:
+3 SUPPORT
+1 CONTRADICTION
+
+AOV evidence:
+2 SUPPORT
+2 CONTRADICTION
+        │
+        ▼
+M5
+Story:
+Revenue declined 17.77%.
+The strongest quantitative association is with
+the decline in Orders...
+        │
+        ▼
+Recommendation
+Investigate order-volume drivers
+        │
+        ▼
+Human
+Accept / Reject / Challenge
+
+This is the complete intelligence pipeline.
+
+20. Module 5 → Module 6
+
+This connection is different.
+
+Module 6 should not become another intelligence engine.
+
+It should sit across the pipeline:
+
+                  MODULE 6
+       Governance / Audit / Evaluation
+                     │
+       ┌─────────────┼─────────────┐
+       ↓             ↓             ↓
+      M1            M2            M3
+       ↓             ↓             ↓
+      M4 ───────────→ M5
+                     │
+                     ▼
+                  HUMAN
+
+The Module 6 specification explicitly defines it as observing and governing the other modules rather than duplicating their functionality.
+
+21. One analysisId Connects Everything
+
+This is something I strongly recommend implementing from the beginning of Module 4.
+
+Example:
+
+analysisId = ANL-001
+
+Then:
+
+ANL-001
+│
+├── Module 1
+│   ├── KPI = Revenue
+│   ├── period = 2026-08
+│   ├── current = 760,501,760
+│   └── quality = 60%
+│
+├── Module 2
+│   ├── signal = INVESTIGATE
+│   ├── MoM = -17.77%
+│   ├── zScore = -3.81
+│   └── materiality = HIGH
+│
+├── Module 3
+│   ├── H1 Orders
+│   ├── contribution = 81.6%
+│   ├── confidence = 90%
+│   ├── H2 AOV
+│   └── contradictions = 1
+│
+├── Module 4
+│   ├── evidence = 7
+│   ├── supporting = 4
+│   ├── contradictory = 2
+│   ├── neutral = 1
+│   ├── evidence confidence = 86%
+│   └── sources = ...
+│
+├── Module 5
+│   ├── narrative
+│   ├── recommendation
+│   └── decision
+│
+└── HUMAN
+    ├── accepted
+    └── feedback
+
+This is exactly the kind of end-to-end reconstruction the Module 6 design calls for.
+
+22. Database Relationship Architecture
+
+Think of the database in four logical layers.
+
+Layer 1 — Ground Truth
+regions
+products
+
+sales_transactions
+marketing_daily
+operations_daily
+
+data_sources
+
+Owned by Module 1.
+
+Layer 2 — Analysis State
+
+Conceptually:
+
+analysis_runs
+signals
+hypotheses
+evidence_requests
+
+Modules 2–3 produce this state.
+
+Your current Module 3 types already correspond almost directly to this layer.
+
+Layer 3 — Evidence
+evidence_documents
+      │
+      └── evidence_chunks
+               │
+               └── embeddings
+
+evidence_results
+evidence_assessments
+
+Owned by Module 4.
+
+Layer 4 — Governance / Decisions
+decisions
+feedback
+audit_logs
+module_runs
+llm_calls
+evaluation_runs
+drift_metrics
+users
+
+Module 5 generates decisions/feedback.
+
+Module 6 observes and governs them.
+
+The planned Module 6 database additions explicitly include analysis_runs, module_runs, llm_calls, audit_logs, feedback, with evaluation_runs, drift_metrics, and users as additional governance tables.
+
+23. Full DB Relationship
+
+Conceptually:
+
+regions ─────────────┐
+                     │
+products ────────────┤
+                     ▼
+              sales_transactions
+                     │
+              ┌──────┴──────┐
+              ▼             ▼
+          Module 1      KPI History
+              │
+              ▼
+           Module 2
+              │
+              ▼
+        analysis_runs
+              │
+              ▼
+           Module 3
+              │
+       ┌──────┼────────┐
+       ▼      ▼        ▼
+   hypotheses  contradictions
+       │
+       ▼
+ evidence_requests
+       │
+       ▼
+    Module 4
+       │
+       ├──────────────┐
+       ▼              ▼
+structured        documents
+evidence             │
+                     ▼
+                  chunks
+                     │
+                     ▼
+                embeddings
+                     │
+                     ▼
+             evidence_results
+                     │
+                     ▼
+             evidence_assessments
+                     │
+                     ▼
+                  Module 5
+                     │
+             ┌───────┴────────┐
+             ▼                ▼
+          story          recommendation
+             │                │
+             └───────┬────────┘
+                     ▼
+                  decision
+                     │
+                     ▼
+                  feedback
+                     │
+                     ▼
+                  Module 6
+                     │
+       ┌─────────────┼──────────────┐
+       ▼             ▼              ▼
+     audit       evaluation       telemetry
+24. Project Structure After Module 4
+
+Your current project already has:
+
+trace-app/
+├── db/
+│   └── trace.db
+│
+├── scripts/
+│   └── migrate.ts
+│
+├── src/
+│   ├── app/
+│   │   ├── api/
+│   │   │   ├── decisions/
+│   │   │   ├── evidence/
+│   │   │   ├── hypotheses/
+│   │   │   ├── kpi/
+│   │   │   └── uncertainty/
+│   │   │
+│   │   ├── dashboard/
+│   │   ├── driver-decomposition/
+│   │   ├── evidence-graph/
+│   │   └── investigate/
+│   │
+│   ├── components/
+│   │   └── EvidenceGraph.tsx
+│   │
+│   └── server/
+│       ├── data/
+│       ├── decision/
+│       ├── evidence/
+│       ├── hypothesis/
+│       ├── kpi/
+│       ├── uncertainty/
+│       ├── db.ts
+│       ├── types.ts
+│       └── utils.ts
+
+This structure is already part of the implementation plan.
+
+After Module 4, I would evolve it to:
+
+src/
+│
+├── app/
+│   ├── api/
+│   │   │
+│   │   ├── kpi/
+│   │   │
+│   │   ├── signals/
+│   │   │
+│   │   ├── hypotheses/
+│   │   │
+│   │   ├── evidence/
+│   │   │
+│   │   ├── story/
+│   │   │
+│   │   ├── recommendations/
+│   │   │
+│   │   ├── feedback/
+│   │   │
+│   │   └── governance/
+│   │
+│   ├── dashboard/
+│   ├── investigate/
+│   └── evidence-graph/
+│
+├── components/
+│
+└── server/
+    │
+    ├── data/
+    │
+    ├── kpi/
+    │
+    ├── signal/
+    │
+    ├── driver/
+    │
+    ├── evidence/
+    │   ├── ingestion/
+    │   ├── embeddings/
+    │   ├── retrieval/
+    │   ├── scoring/
+    │   ├── provenance/
+    │   └── telemetry/
+    │
+    ├── story/
+    ├── recommendation/
+    ├── feedback/
+    │
+    ├── governance/
+    │
+    ├── db.ts
+    ├── types.ts
+    └── utils.ts
+
+I would not physically split the project into six independent microservices. That would be unnecessary complexity for this hackathon. Keep one Next.js application with clearly separated server modules.
+
+25. What Should Be an API vs Direct Function Call?
+
+This is important for implementation.
+
+Don't make every module communicate through HTTP internally.
+
+For example, avoid:
+
+Module 3
+ ↓ HTTP
+/api/evidence
+ ↓
+Module 4
+
+inside the same application unless the UI specifically needs the API.
+
+Instead:
+
+API route
+   ↓
+Module 4 service
+   ↓
+Module 3 service
+   ↓
+Module 1 repositories
+
+For example:
+
+POST /api/evidence/retrieve
+        ↓
+evidence/index.ts
+        ↓
+queryBuilder.ts
+        ↓
+structured.ts + vector.ts
+        ↓
+reranker.ts
+        ↓
+scoring.ts
+        ↓
+EvidencePackage
+
+This keeps the architecture fast and simple.
+
+The APIs are the application boundary, while the server modules are the business-logic boundary.
+
+26. Recommended Repository Layer
+
+Since multiple modules will access the same SQLite database, I would avoid allowing every file to write arbitrary SQL.
+
+Use:
+
+src/server/repositories/
+│
+├── kpiRepository.ts
+├── analysisRepository.ts
+├── evidenceRepository.ts
+├── decisionRepository.ts
+├── feedbackRepository.ts
+└── auditRepository.ts
+
+Then:
+
+Module 1
+   ↓
+kpiRepository
+
+Module 3
+   ↓
+analysisRepository
+
+Module 4
+   ↓
+evidenceRepository
+
+Module 5
+   ↓
+decisionRepository
+feedbackRepository
+
+Module 6
+   ↓
+auditRepository
+
+This becomes particularly useful once Module 6 needs to reconstruct an analysisId.
+
+27. The Evidence Graph
+
+Your existing:
+
+src/app/evidence-graph/
+src/components/EvidenceGraph.tsx
+
+should eventually consume Module 4's provenance graph.
+
+For example:
+
+Revenue
+   │
+   ▼
+Signal: -17.77%
+   │
+   ▼
+Hypothesis: Orders
+   │
+   ├──────────────┐
+   ▼              ▼
+Evidence #12   Evidence #18
+Orders ↓15%    Operations report
+   │              │
+   └──────┬───────┘
+          ▼
+      SUPPORTS
+          │
+          ▼
+     Confidence 86%
+
+And:
+
+Evidence #24
+Inventory increased
+       │
+       ▼
+ CONTRADICTS
+       │
+       ▼
+Stockout hypothesis
+
+This gives you a graph of reasoning, not merely a graph of documents.
+
+28. Module 4 → Module 5 → Module 6 Data Contract
+
+The cleanest overall contract is:
+
+                    AnalysisContext
+                         │
+                         ▼
+M1 ────────────────┐
+                   │
+M2 ────────────────┤
+                   ├──→ M5
+M3 ────────────────┤
+                   │
+M4 ────────────────┘
+                         │
+                         ▼
+                      Decision
+                         │
+                         ▼
+                        M6
+
+More concretely:
+
+interface AnalysisContext {
+  analysisId: string
+
+  kpi: KPIContext
+
+  signal: SignalContext
+
+  driverAnalysis: DriverAnalysis
+
+  evidence: EvidencePackage
+
+  dataQuality: DataQualityContext
+
+  lineage: LineageContext
+}
+
+Module 5 consumes it.
+
+Module 6 records the lifecycle of it.
+
+29. What Module 6 Should Record
+
+For every analysisId:
+
+ANL-001
+
+module_runs
+────────────────────────
+M1 completed
+M2 completed
+M3 completed
+M4 completed
+M5 completed
+
+llm_calls
+────────────────────────
+model
+prompt version
+tokens
+latency
+cost
+
+audit_logs
+────────────────────────
+who viewed
+who challenged
+who accepted
+who rejected
+
+feedback
+────────────────────────
+correct
+incorrect
+partially correct
+override
+
+evaluation_runs
+────────────────────────
+retrieval quality
+hypothesis quality
+narrative quality
+recommendation quality
+
+This lets you answer:
+
+"Why did TRACE make this recommendation?"
+
+months later.
+
+That is the central governance idea behind Module 6.
+
+30. Module 6 Should Observe Module 4 Specifically
+
+Module 6 can monitor:
+
+Retrieval
+retrieval latency
+top-K
+number of chunks
+Embeddings
+embedding latency
+embedding model
+embedding cache hit
+Reranking
+candidate count
+reranked count
+Quality
+Recall@K
+Precision@K
+MRR
+Evidence
+support ratio
+contradiction ratio
+insufficient evidence rate
+LLM
+calls
+input tokens
+output tokens
+cost
+latency
+
+The Module 4 specification explicitly calls for retrieval latency, embedding latency, LLM latency, retrieved/reranked counts, token usage, cost, and cache hits.
+
+31. What Happens When Evidence Is Insufficient?
+
+This is essential.
+
+Suppose:
+
+Revenue ↓ 17.7%
+
+H1 Orders
+confidence = 90%
+
+but Module 4 finds:
+
+No relevant documents
+No structured supporting data
+
+TRACE must not say:
+
+Orders caused the decline.
+
+Instead:
+
+Status:
+INSUFFICIENT EVIDENCE
+
+Evidence confidence:
+18%
+
+Conclusion:
+Orders is a strong quantitative candidate,
+but available evidence is insufficient to validate
+the explanation.
+
+The Module 4 acceptance criteria explicitly require abstention when evidence is insufficient and ambiguity when support and contradiction are comparable.
+
+This is one of the best features to demonstrate to judges.
+
+32. Low-Confidence Scenario
+
+Your implementation plan already gives a useful demo:
+
+Revenue ↓ 12%
+       ↓
+Candidate: Stockouts
+       ↓
+Weak + contradictory evidence
+       ↓
+Confidence = 38%
+       ↓
+Module 5:
+"Several factors may have contributed,
+but available evidence is insufficient
+to identify a primary driver."
+
+This should absolutely be preserved because it demonstrates that TRACE doesn't hallucinate certainty.
+
+33. Recommended Implementation Order
+
+Given your time constraint, I would implement Module 4 in this order:
+
+Phase 1 — Contract
+
+Create:
+
+evidence/types.ts
+
+and define:
+
+EvidenceRequest
+EvidenceItem
+EvidencePackage
+EvidenceHypothesis
+EvidenceGap
+Provenance
+RetrievalTelemetry
+
+Your current Module 3 EvidenceRequest should remain the input contract.
+
+Phase 2 — Structured evidence
+
+Before touching embeddings:
+
+Module 3
+   ↓
+EvidenceRequest
+   ↓
+SQLite structured queries
+   ↓
+EvidencePackage
+
+This gives you immediate working evidence.
+
+For example:
+
+Orders ↓15.24%
+Revenue ↓17.77%
+AOV ↓2.98%
+Phase 3 — Evidence metadata
+
+Add:
+
+source
+date
+region
+product
+metric
+driver
+sourceQuality
+Phase 4 — Document ingestion
+
+Add:
+
+documents
+chunks
+metadata
+Phase 5 — Real embeddings
+
+Replace the current random-vector implementation.
+
+The audit explicitly identifies the existing random embeddings as something Module 4 must replace.
+
+Phase 6 — Hybrid retrieval
+
+Implement:
+
+metadata filter
+     ↓
+keyword
+     +
+vector
+     ↓
+merge
+     ↓
+rerank
+Phase 7 — Evidence scoring
+
+Implement:
+
+semantic
+source
+temporal
+entity
+hypothesis alignment
+Phase 8 — Support / contradiction
+
+Return:
+
+SUPPORT
+CONTRADICT
+NEUTRAL
+Phase 9 — Confidence update
+
+Connect:
+
+M3 confidence
+       +
+M4 evidence
+       ↓
+updated hypothesis confidence
+Phase 10 — Module 5 contract
+
+Only after the evidence package is stable:
+
+M4
+ ↓
+AnalysisContext
+ ↓
+M5
+
+This follows the planned Module 5 implementation order, which explicitly recommends defining types and context before introducing the LLM.
+
+34. What I Would NOT Build Right Now
+
+Given your hackathon time constraint, avoid:
+
+❌ Microservices
+❌ Separate vector database
+❌ Kafka
+❌ Redis cluster
+❌ Complex agent framework
+❌ Autonomous multi-agent RAG
+❌ LLM-based KPI calculation
+❌ LLM-based statistical analysis
+❌ Rewriting Module 1
+❌ Rewriting Module 2
+❌ Rewriting Module 3
+
+Keep:
+
+Next.js
++
+TypeScript
++
+SQLite
++
+existing Module 1
++
+existing Module 2
++
+existing Module 3
+
+and add Module 4 cleanly on top.
+
+The project specification explicitly calls for the existing Next.js + SQLite architecture rather than introducing another backend/database.
+
+35. The Final TRACE Architecture
+
+The architecture you should aim to demonstrate to the judges is:
+
+                         ┌───────────────────┐
+                         │   BUSINESS DATA   │
+                         └─────────┬─────────┘
+                                   │
+                                   ▼
+                    ╔══════════════════════════╗
+                    ║        MODULE 1          ║
+                    ║ GOVERNED DATA + KPI     ║
+                    ║                          ║
+                    ║ SQLite                  ║
+                    ║ Semantic KPI Layer      ║
+                    ║ Quality + Lineage       ║
+                    ╚════════════╤═════════════╝
+                                 │
+                                 ▼
+                    ╔══════════════════════════╗
+                    ║        MODULE 2          ║
+                    ║ SIGNAL / ANOMALY        ║
+                    ║                          ║
+                    ║ Change                  ║
+                    ║ Baseline                ║
+                    ║ Materiality             ║
+                    ║ Significance            ║
+                    ╚════════════╤═════════════╝
+                                 │
+                         INVESTIGATE
+                                 │
+                                 ▼
+                    ╔══════════════════════════╗
+                    ║        MODULE 3          ║
+                    ║ DRIVER + HYPOTHESIS     ║
+                    ║                          ║
+                    ║ Drivers                 ║
+                    ║ Contributions           ║
+                    ║ Associations            ║
+                    ║ Contradictions          ║
+                    ║ Alternatives            ║
+                    ║ Evidence Requests       ║
+                    ╚════════════╤═════════════╝
+                                 │
+                    "WHAT EVIDENCE DO WE NEED?"
+                                 │
+                                 ▼
+                    ╔══════════════════════════╗
+                    ║        MODULE 4          ║
+                    ║ EVIDENCE + RAG          ║
+                    ║                          ║
+                    ║ Structured Retrieval    ║
+                    ║ Document Retrieval      ║
+                    ║ Embeddings              ║
+                    ║ Hybrid Search           ║
+                    ║ Reranking               ║
+                    ║ Evidence Scoring        ║
+                    ║ Contradictions          ║
+                    ║ Provenance              ║
+                    ║ Confidence              ║
+                    ╚════════════╤═════════════╝
+                                 │
+                    "WHAT DOES THE EVIDENCE SAY?"
+                                 │
+                                 ▼
+                    ╔══════════════════════════╗
+                    ║        MODULE 5          ║
+                    ║ INTELLIGENCE             ║
+                    ║                          ║
+                    ║ Story                   ║
+                    ║ Uncertainty             ║
+                    ║ Persona                  ║
+                    ║ Recommendation          ║
+                    ║ Action                  ║
+                    ║ Decision Memory         ║
+                    ║ Human Feedback           ║
+                    ╚════════════╤═════════════╝
+                                 │
+                              DECISION
+                                 │
+                                 ▼
+                    ╔══════════════════════════╗
+                    ║        MODULE 6          ║
+                    ║ GOVERNANCE + TRUST      ║
+                    ║                          ║
+                    ║ Audit                   ║
+                    ║ Evaluation              ║
+                    ║ Security                ║
+                    ║ Feedback                ║
+                    ║ Cost                    ║
+                    ║ Latency                 ║
+                    ║ Drift                   ║
+                    ║ Model/Prompt versions   ║
+                    ╚══════════════════════════╝
+The key idea
+
+Module 4 is the bridge.
+
+Modules 1–3 currently tell TRACE:
+
+"Something happened, and these are the most plausible explanations."
+
+Module 4 must change that into:
+
+"Here is the independently retrievable evidence for and against those explanations, with provenance and confidence."
+
+Then Module 5 can safely say:
+
+"Here is what happened, why it probably happened, how certain we are, and what should be done."
+
+And Module 6 can answer:
+
+"Why did the system reach that conclusion, what data/models/evidence were used, who accepted it, and how reliable has the system been?"
+
+That gives TRACE a genuinely coherent closed-loop BI architecture, rather than six disconnected features. The implementation plan's intended end-to-end chain is precisely Module 1 → Module 2 → Module 3 → Module 4 → Module 5 → Decision → Feedback → Module 6 governance.
+
+One architectural decision I would lock in now
+
+Use analysisId as the primary correlation key across Modules 1–6.
+
+That one decision will make the database, APIs, evidence graph, Module 5 context, audit logs, telemetry, and final demo dramatically easier to connect. It also gives you a very strong judge-facing story:
+
+TRACE doesn't just produce an answer — it can reconstruct exactly how that answer was produced.
+
 TRACE — Module 4 Source of Truth
 Evidence Retrieval, RAG, Evidence Scoring & Contradiction Engine
 
