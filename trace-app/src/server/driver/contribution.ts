@@ -2,6 +2,7 @@ import { getDB } from "../db";
 import { getKPIHistoryBatched, getKPIBreakdown } from "../kpi";
 import type { DimensionContribution, DriverContribution } from "./types";
 import { getKPIDefinition, normalizeMetric } from "../kpi/definitions";
+import { resolveRegionId, resolveProductId } from "../kpi";
 import { monthToDateRange, prevMonth } from "../utils/dateUtils";
 
 const EPSILON = 1e-9;
@@ -327,20 +328,70 @@ export async function calculateDriverContributions(
     ];
   }
 
-if (normalizedMetric === "marketingroi") {
-    const currentROI = await computeKPI("marketingROI", period, filters);
-    const prevROI = await computeKPI("marketingROI", prevPeriod, filters);
-    const currentAttributedRevenue = await computeKPI("attributedRevenue", period, filters);
-    const prevAttributedRevenue = await computeKPI("attributedRevenue", prevPeriod, filters);
-    const currentSpend = await computeKPI("marketingSpend", period, filters);
-    const prevSpend = await computeKPI("marketingSpend", prevPeriod, filters);
-    
-    const roiChange = currentROI.value - prevROI.value;
-    
+  if (normalizedMetric === "marketingroi") {
+    // Marketing ROI = AttributedRevenue / MarketingSpend
+    // Need to query raw attributed_revenue and marketing_spend from marketing_daily
+    const db = await getDB();
+    const { start, end } = monthToDateRange(period);
+    const prevPeriod = getPreviousPeriod(period);
+    const { start: prevStart, end: prevEnd } = monthToDateRange(prevPeriod);
+    const filterOpts = { region: filters?.region, product: filters?.product };
+
+    // Build where clause for filters
+    let whereClause = "WHERE md.date BETWEEN ? AND ?";
+    const params: (string | number)[] = [start, end];
+    const prevParams: (string | number)[] = [prevStart, prevEnd];
+
+    if (filters?.region) {
+      const regionId = await resolveRegionId(filters.region);
+      if (regionId) {
+        whereClause += " AND md.region_id = ?";
+        params.push(regionId);
+        prevParams.push(regionId);
+      }
+    }
+    if (filters?.product) {
+      const productId = await resolveProductId(filters.product);
+      if (productId) {
+        whereClause += " AND md.product_id = ?";
+        params.push(productId);
+        prevParams.push(productId);
+      }
+    }
+
+    // Current period
+    const currentQuery = `
+      SELECT 
+        COALESCE(SUM(md.attributed_revenue), 0) as attributedRevenue,
+        COALESCE(SUM(md.marketing_spend), 0) as marketingSpend
+      FROM marketing_daily md
+      ${whereClause}
+    `;
+    const current = await db.get(currentQuery, ...params);
+
+    // Previous period
+    const prevQuery = `
+      SELECT 
+        COALESCE(SUM(md.attributed_revenue), 0) as attributedRevenue,
+        COALESCE(SUM(md.marketing_spend), 0) as marketingSpend
+      FROM marketing_daily md
+      ${whereClause}
+    `;
+    const previous = await db.get(prevQuery, ...prevParams);
+
+    const currentAttributedRevenue = current?.attributedRevenue || 0;
+    const prevAttributedRevenue = previous?.attributedRevenue || 0;
+    const currentSpend = current?.marketingSpend || 0;
+    const prevSpend = previous?.marketingSpend || 0;
+
+    const currentROI = currentSpend > 0 ? currentAttributedRevenue / currentSpend : 0;
+    const prevROI = prevSpend > 0 ? prevAttributedRevenue / prevSpend : 0;
+    const roiChange = currentROI - prevROI;
+
     // Marketing ROI = AttributedRevenue / MarketingSpend
     // Use Shapley decomposition for exact two-factor decomposition
     // Only valid when both previous and current spend > 0
-    if (prevSpend.value <= 0 || currentSpend.value <= 0) {
+    if (prevSpend <= 0 || currentSpend <= 0) {
       return [
         {
           driver: "attributedRevenue",
@@ -348,8 +399,8 @@ if (normalizedMetric === "marketingroi") {
           signedContributionPct: null,
           magnitudeContributionPct: null,
           contributionType: "insufficient_data" as const,
-          change: currentAttributedRevenue.value - prevAttributedRevenue.value,
-          changePct: prevAttributedRevenue.value !== 0 ? ((currentAttributedRevenue.value - prevAttributedRevenue.value) / prevAttributedRevenue.value) * 100 : 0,
+          change: (current?.attributedRevenue || 0) - (previous?.attributedRevenue || 0),
+          changePct: previous?.attributedRevenue ? ((current?.attributedRevenue || 0) - (previous?.attributedRevenue || 0)) / (previous?.attributedRevenue || 1) * 100 : 0,
           status: "insufficient_data",
           explanation: "Cannot decompose Marketing ROI when marketing spend is zero or negative.",
         },
@@ -359,8 +410,8 @@ if (normalizedMetric === "marketingroi") {
           signedContributionPct: null,
           magnitudeContributionPct: null,
           contributionType: "insufficient_data" as const,
-          change: currentSpend.value - prevSpend.value,
-          changePct: prevSpend.value !== 0 ? ((currentSpend.value - prevSpend.value) / prevSpend.value) * 100 : 0,
+          change: currentSpend - prevSpend,
+          changePct: prevSpend !== 0 ? ((currentSpend - prevSpend) / prevSpend) * 100 : 0,
           status: "insufficient_data",
           explanation: "Cannot decompose Marketing ROI when marketing spend is zero or negative.",
         },
@@ -369,12 +420,12 @@ if (normalizedMetric === "marketingroi") {
     
     // ROI = AttributedRevenue / MarketingSpend
     // Use Shapley decomposition for exact two-factor decomposition
-    const f00 = prevAttributedRevenue.value / prevSpend.value;
-    const f10 = currentAttributedRevenue.value / prevSpend.value;
-    const f01 = prevAttributedRevenue.value / currentSpend.value;
-    const f11 = currentAttributedRevenue.value / currentSpend.value;
+    const f00 = prevAttributedRevenue / prevSpend;
+    const f10 = currentAttributedRevenue / prevSpend;
+    const f01 = prevAttributedRevenue / currentSpend;
+    const f11 = currentAttributedRevenue / currentSpend;
     
-    const { factor1: attributedRevenueEffect, factor2: spendEffect, totalChange, reconciliationError } = 
+    const { factor1: attributedRevenueEffect, factor2: spendEffect, totalChange: roiTotalChange, reconciliationError } = 
       shapleyTwoFactorChange(f00, f10, f01, f11);
     
     const reconciles = Math.abs(reconciliationError) < EPSILON;
@@ -383,23 +434,23 @@ if (normalizedMetric === "marketingroi") {
     return [
       {
         driver: "attributedRevenue",
-        contributionPct: totalEffect !== 0 ? (attributedRevenueEffect / totalChange) * 100 : 0,
-        signedContributionPct: totalChange !== 0 ? (attributedRevenueEffect / totalChange) * 100 : 0,
+        contributionPct: totalEffect !== 0 ? (attributedRevenueEffect / roiTotalChange) * 100 : 0,
+        signedContributionPct: roiTotalChange !== 0 ? (attributedRevenueEffect / roiTotalChange) * 100 : 0,
         magnitudeContributionPct: totalEffect !== 0 ? (Math.abs(attributedRevenueEffect) / totalEffect) * 100 : 0,
         contributionType: "exact" as const,
-        change: currentAttributedRevenue.value - prevAttributedRevenue.value,
-        changePct: prevAttributedRevenue.value !== 0 ? ((currentAttributedRevenue.value - prevAttributedRevenue.value) / prevAttributedRevenue.value) * 100 : 0,
+        change: currentAttributedRevenue - prevAttributedRevenue,
+        changePct: prevAttributedRevenue !== 0 ? ((currentAttributedRevenue - prevAttributedRevenue) / prevAttributedRevenue) * 100 : 0,
         status: "calculated",
         explanation: "Attributed Revenue effect on Marketing ROI via Shapley decomposition: ROI = AttributedRevenue / Spend.",
       },
       {
         driver: "marketingSpend",
-        contributionPct: totalEffect !== 0 ? (spendEffect / totalChange) * 100 : 0,
-        signedContributionPct: totalChange !== 0 ? (spendEffect / totalChange) * 100 : 0,
+        contributionPct: totalEffect !== 0 ? (spendEffect / roiTotalChange) * 100 : 0,
+        signedContributionPct: roiTotalChange !== 0 ? (spendEffect / roiTotalChange) * 100 : 0,
         magnitudeContributionPct: totalEffect !== 0 ? (Math.abs(spendEffect) / totalEffect) * 100 : 0,
         contributionType: "exact" as const,
-        change: currentSpend.value - prevSpend.value,
-        changePct: prevSpend.value !== 0 ? ((currentSpend.value - prevSpend.value) / prevSpend.value) * 100 : 0,
+        change: currentSpend - prevSpend,
+        changePct: prevSpend !== 0 ? ((currentSpend - prevSpend) / prevSpend) * 100 : 0,
         status: "calculated",
         explanation: "Marketing Spend effect on Marketing ROI via Shapley decomposition: ROI = AttributedRevenue / Spend.",
       },
