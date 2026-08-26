@@ -394,7 +394,7 @@ export async function calculateDriverContributions(
     if (prevSpend <= 0 || currentSpend <= 0) {
       return [
         {
-          driver: "attributedRevenue",
+          driver: "attributed_revenue",
           contributionPct: null,
           signedContributionPct: null,
           magnitudeContributionPct: null,
@@ -405,7 +405,7 @@ export async function calculateDriverContributions(
           explanation: "Cannot decompose Marketing ROI when marketing spend is zero or negative.",
         },
         {
-          driver: "marketingSpend",
+          driver: "marketing_spend",
           contributionPct: null,
           signedContributionPct: null,
           magnitudeContributionPct: null,
@@ -433,7 +433,7 @@ export async function calculateDriverContributions(
     
     return [
       {
-        driver: "attributedRevenue",
+        driver: "attributed_revenue",
         contributionPct: totalEffect !== 0 ? (attributedRevenueEffect / roiTotalChange) * 100 : 0,
         signedContributionPct: roiTotalChange !== 0 ? (attributedRevenueEffect / roiTotalChange) * 100 : 0,
         magnitudeContributionPct: totalEffect !== 0 ? (Math.abs(attributedRevenueEffect) / totalEffect) * 100 : 0,
@@ -444,7 +444,7 @@ export async function calculateDriverContributions(
         explanation: "Attributed Revenue effect on Marketing ROI via Shapley decomposition: ROI = AttributedRevenue / Spend.",
       },
       {
-        driver: "marketingSpend",
+        driver: "marketing_spend",
         contributionPct: totalEffect !== 0 ? (spendEffect / roiTotalChange) * 100 : 0,
         signedContributionPct: roiTotalChange !== 0 ? (spendEffect / roiTotalChange) * 100 : 0,
         magnitudeContributionPct: totalEffect !== 0 ? (Math.abs(spendEffect) / totalEffect) * 100 : 0,
