@@ -36,11 +36,11 @@ export async function detectContradictions(
     if (!association) continue;
     
     const expectedDirection = def.expectedDirection;
-    const observedCorrelation = association.pearsonR;
+    const observedCorrelation = association.pearsonR ?? 0;
     const observedDirection = observedCorrelation > 0 ? "positive" : "negative";
     
     // Check if correlation direction contradicts expected direction
-    if (expectedDirection !== observedDirection && Math.abs(observedCorrelation) > 0.3) {
+    if (association.pearsonR !== null && expectedDirection !== observedDirection && Math.abs(observedCorrelation) > 0.3) {
       contradictions.push({
         driver: driver.id,
         metric: driver.name,
@@ -66,8 +66,14 @@ export async function detectContradictions(
       const kpiChange = kpiDim.change;
       const driverChange = driverDim.change;
       
-      // Check if directions are opposite (contradiction)
-      if ((kpiChange > 0 && driverChange < 0) || (kpiChange < 0 && driverChange > 0)) {
+      // Check if directions are contradictory based on driver's expected direction
+      // For positive driver: metric and driver should move in same direction
+      // For negative driver: metric and driver should move in opposite directions
+      const isContradiction = def.expectedDirection === "positive"
+        ? (kpiChange > 0 && driverChange < 0) || (kpiChange < 0 && driverChange > 0)
+        : (kpiChange > 0 && driverChange > 0) || (kpiChange < 0 && driverChange < 0);
+      
+      if (isContradiction) {
         contradictions.push({
           driver: driver.id,
           metric: `${driver.name} in ${kpiDim.dimensionValue}`,

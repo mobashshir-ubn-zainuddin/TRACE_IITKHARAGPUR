@@ -46,9 +46,9 @@ export async function calculateTemporalAlignment(
     const x: number[] = [];
     const y: number[] = [];
     
-    for (const period of commonPeriods) {
-      const driverPeriod = getLaggedPeriod(period, lag);
-      const metricValue = metricMap.get(period);
+    for (const currentPeriod of commonPeriods) {
+      const driverPeriod = getLaggedPeriod(currentPeriod, lag);
+      const metricValue = metricMap.get(currentPeriod);
       const driverValue = driverMap.get(driverPeriod);
       
       if (metricValue !== undefined && driverValue !== undefined) {

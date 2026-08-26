@@ -153,11 +153,13 @@ export async function generateHypotheses(
       continue;
     }
     
-    const contributionScore = normalizeContribution(contrib.contributionPct);
-    const associationScore = association ? normalizeAssociation(association.pearsonR) : 0;
+    const contribContributionPct = contrib.contributionPct ?? 0;
+    const contribChangePct = contrib.changePct ?? 0;
+    const contributionScore = normalizeContribution(contribContributionPct);
+    const associationScore = (association && association.pearsonR !== null) ? normalizeAssociation(association.pearsonR) : 0;
     const temporalScore = temporal ? normalizeTemporal(temporal) : 0;
     const segmentScore = segment ? normalizeSegmentConsistency(segment) : 0;
-    const causalPlausibility = normalizeCausalPlausibility(driver.id, contrib.changePct > 0 ? "positive" : "negative");
+    const causalPlausibility = normalizeCausalPlausibility(driver.id, contribChangePct > 0 ? "positive" : "negative");
     
     const evidenceRequests = generateEvidenceRequests(driver.id, kpiDef.name, period, filters);
     const evidenceScore = normalizeEvidenceAvailability(evidenceRequests);
@@ -203,13 +205,25 @@ export async function generateHypotheses(
     if (evidenceScore < 0.3) caveats.push("Limited evidence available");
     if (contradiction) caveats.push(`Contradiction detected: ${contradiction.metric} shows ${contradiction.observedDirection} trend (expected ${contradiction.expectedDirection})`);
     
+    // Generate claim based on contribution type
+    let claim: string;
+    if (contrib.contributionType === "exact") {
+      claim = `${driver.name} ${contribChangePct > 0 ? "increased" : "decreased"} by ${Math.abs(contribChangePct).toFixed(1)}%, ${Math.abs(contrib.contributionPct ?? 0).toFixed(1)}% of ${kpiDef.label} change`;
+    } else if (contrib.contributionType === "statistical") {
+      claim = `${driver.name} changed by ${Math.abs(contribChangePct).toFixed(1)}%. Statistical association with ${kpiDef.label} observed but not an exact algebraic decomposition.`;
+    } else {
+      claim = `Insufficient data to quantify ${driver.name} contribution to ${kpiDef.label} change.`;
+    }
+    
+    const expectedDirection = contribChangePct > 0 ? "positive" : "negative";
+    
     hypotheses.push({
       id: `H${hypotheses.length + 1}`,
       name: driver.name,
       description: driver.description,
       driver: driver.id,
-      claim: `${driver.name} ${contrib.changePct > 0 ? "increased" : "decreased"} by ${Math.abs(contrib.changePct).toFixed(1)}%, ${contrib.contributionPct.toFixed(1)}% of ${kpiDef.label} change`,
-      expectedDirection: contrib.changePct > 0 ? "positive" : "negative",
+      claim,
+      expectedDirection,
       scope: {
         metric: kpiDef.name,
         period,
@@ -239,6 +253,8 @@ export async function generateHypotheses(
   return hypotheses;
 }
 
+import { monthToDateRange } from "../utils/dateUtils";
+
 export function generateEvidenceRequests(
   driverId: string,
   metric: string,
@@ -247,6 +263,8 @@ export function generateEvidenceRequests(
 ): EvidenceRequest[] {
   const def = DRIVER_DEFINITIONS[driverId];
   if (!def) return [];
+  
+  const { start, end } = monthToDateRange(period);
   
   const requests: EvidenceRequest[] = [];
   
@@ -260,8 +278,8 @@ export function generateEvidenceRequests(
       filters: {
         region: filters?.region,
         product: filters?.product,
-        dateStart: `${period}-01`,
-        dateEnd: `${period}-31`,
+        dateStart: start,
+        dateEnd: end,
       },
       requiredEvidence: [evidenceType],
     });

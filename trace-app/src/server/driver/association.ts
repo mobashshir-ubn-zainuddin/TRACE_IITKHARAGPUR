@@ -67,7 +67,7 @@ export async function calculateAssociation(
   filters?: { region?: string; product?: string; channel?: string }
 ): Promise<AssociationResult> {
   const { getKPIHistoryBatched } = await import("../kpi");
-  const { getKPIHistory } = await import("../kpi");
+  const config = DEFAULT_DRIVER_CONFIG;
   
   const normalizedMetric = metric.toLowerCase();
   const months = await getMonthsForPeriod(period, 12);
@@ -84,13 +84,14 @@ export async function calculateAssociation(
     .filter(h => driverMap.has(h.period))
     .map(h => h.period);
   
-  if (commonPeriods.length < 6) {
+  if (commonPeriods.length < config.minimumCorrelationSamples) {
     return {
       driver,
-      pearsonR: 0,
-      spearmanRho: 0,
+      pearsonR: null,
+      spearmanRho: null,
       sampleSize: commonPeriods.length,
       associationStrength: "none",
+      insufficientData: true,
     };
   }
   

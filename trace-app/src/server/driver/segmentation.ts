@@ -62,10 +62,18 @@ export async function calculateSegmentConsistency(
     const metricChange = currentMetricValue - prevMetricValue;
     const driverChange = currentDriverValue - prevDriverValue;
     
-    const sameDirection = (metricChange > 0 && driverChange > 0) || 
-                         (metricChange < 0 && driverChange < 0);
+    // Get driver definition for expected direction
+    const driverDef = getDriverDefinition(driver);
+    const expectedDirection = driverDef?.expectedDirection || "positive";
     
-    if (sameDirection) {
+    // Check consistency based on driver's expected direction
+    // For positive driver: metric and driver should move in same direction
+    // For negative driver: metric and driver should move in opposite directions
+    const isConsistent = expectedDirection === "positive"
+      ? (metricChange > 0 && driverChange > 0) || (metricChange < 0 && driverChange < 0)
+      : (metricChange > 0 && driverChange < 0) || (metricChange < 0 && driverChange > 0);
+    
+    if (isConsistent) {
       consistentCount++;
       consistentSegments.push(segment);
     } else {

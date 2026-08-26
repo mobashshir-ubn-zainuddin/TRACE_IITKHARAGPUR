@@ -2,24 +2,32 @@ export interface DimensionContribution {
   dimension: string;
   dimensionValue: string;
   change: number;
-  changePct: number;
+  changePct: number | null;
   contributionPct: number;
+  signedContributionPct?: number | null;
+  magnitudeContributionPct?: number | null;
 }
 
 export interface DriverContribution {
   driver: string;
-  contributionPct: number;
+  contributionPct: number | null;
+  signedContributionPct?: number | null;
+  magnitudeContributionPct?: number | null;
+  contributionType?: "exact" | "statistical" | "insufficient_data" | "not_exactly_decomposable";
   change: number;
-  changePct: number;
+  changePct: number | null;
+  status?: "calculated" | "not_exactly_decomposable" | "insufficient_data";
+  explanation?: string;
 }
 
 export interface AssociationResult {
   driver: string;
-  pearsonR: number;
-  spearmanRho: number;
+  pearsonR: number | null;
+  spearmanRho: number | null;
   sampleSize: number;
   associationStrength: "none" | "weak" | "moderate" | "strong";
   pValue?: number;
+  insufficientData?: boolean;
 }
 
 export interface TemporalAlignment {
@@ -81,12 +89,12 @@ export interface DriverHypothesis {
     product?: string;
     channel?: string;
   };
-  contributionPct?: number;
-  associationScore?: number;
-  temporalAlignment?: number;
-  segmentConsistency?: number;
-  causalPlausibility?: number;
-  evidenceAvailability?: number;
+  contributionPct?: number | null;
+  associationScore?: number | null;
+  temporalAlignment?: number | null;
+  segmentConsistency?: number | null;
+  causalPlausibility?: number | null;
+  evidenceAvailability?: number | null;
   score: number;
   confidence: number;
   status: "strong_candidate" | "candidate" | "weak_candidate" | "insufficient_data";
