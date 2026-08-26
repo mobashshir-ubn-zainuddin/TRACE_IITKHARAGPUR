@@ -6,7 +6,7 @@ import { computeFreshness } from "./freshness";
 import { monthToDateRange, prevMonth } from "../utils/dateUtils";
 import type { KPIResponse } from "../types";
 
-async function resolveRegionId(region?: string): Promise<number | undefined> {
+export async function resolveRegionId(region?: string): Promise<number | undefined> {
   if (!region) return undefined;
   const db = await getDB();
   const row = await db.get("SELECT id FROM regions WHERE name = ?", region);
@@ -16,7 +16,7 @@ async function resolveRegionId(region?: string): Promise<number | undefined> {
   return row.id;
 }
 
-async function resolveProductId(product?: string): Promise<number | undefined> {
+export async function resolveProductId(product?: string): Promise<number | undefined> {
   if (!product) return undefined;
   const db = await getDB();
   const row = await db.get("SELECT id FROM products WHERE name = ?", product);
