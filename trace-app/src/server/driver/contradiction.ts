@@ -1,8 +1,10 @@
-import type { Contradiction, DriverHypothesis } from "./types";
+import type { Contradiction } from "./types";
 import { getDriverDefinition, getDriversForKPI } from "./definitions";
 import { calculateAssociation } from "./association";
 import { calculateDimensionContribution } from "./contribution";
+import { getKPIBreakdown } from "../kpi";
 import { getKPIDefinition } from "../kpi/definitions";
+import { monthToDateRange, prevMonth } from "../utils/dateUtils";
 
 export async function detectContradictions(
   metric: string,
@@ -26,6 +28,7 @@ export async function detectContradictions(
     const observedCorrelation = association.pearsonR;
     const observedDirection = observedCorrelation > 0 ? "positive" : "negative";
     
+    // Check if correlation direction contradicts expected direction
     if (expectedDirection !== observedDirection && Math.abs(observedCorrelation) > 0.3) {
       contradictions.push({
         driver: driver.id,
@@ -37,20 +40,26 @@ export async function detectContradictions(
       });
     }
     
-    const dimensionContribs = await calculateDimensionContribution(driver.id, period, "region", filters);
-    for (const dim of dimensionContribs) {
-      const driverDim = await calculateDimensionContribution(driver.id, period, "region", filters);
-      const driverValue = driverDim.find(d => d.dimensionValue === dim.dimensionValue)?.change || 0;
-      const metricValue = dim.change;
+    // Compare KPI dimension changes vs driver dimension changes
+    const kpiDimensionContribs = await calculateDimensionContribution(metric, period, "region", filters);
+    const driverDimensionContribs = await calculateDimensionContribution(driver.id, period, "region", filters);
+    
+    for (const kpiDim of kpiDimensionContribs) {
+      const driverDim = driverDimensionContribs.find(d => d.dimensionValue === kpiDim.dimensionValue);
+      if (!driverDim) continue;
       
-      if ((metricValue > 0 && driverValue < 0) || (metricValue < 0 && driverValue > 0)) {
+      const kpiChange = kpiDim.change;
+      const driverChange = driverDim.change;
+      
+      // Check if directions are opposite (contradiction)
+      if ((kpiChange > 0 && driverChange < 0) || (kpiChange < 0 && driverChange > 0)) {
         contradictions.push({
           driver: driver.id,
-          metric: `${driver.name} in ${dim.dimensionValue}`,
+          metric: `${driver.name} in ${kpiDim.dimensionValue}`,
           expectedDirection: def.expectedDirection,
-          observedDirection: driverValue > 0 ? "positive" : "negative",
+          observedDirection: driverChange > 0 ? "positive" : "negative",
           effect: "weakens",
-          magnitude: Math.abs(metricValue),
+          magnitude: Math.abs(kpiChange),
         });
       }
     }

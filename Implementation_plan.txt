@@ -3269,6 +3269,183 @@ MODULE 2
                ▼
            MODULE 4
         Evidence / RAG
+
+                 MODULE 1
+              KPI computation
+                    │
+                    ▼
+                 MODULE 2
+            Signal / anomaly
+                    │
+          status = investigate
+                    │
+                    ▼
+            ┌───────────────┐
+            │   INVESTIGATE │
+            │     button    │
+            └───────┬───────┘
+                    │
+                    ▼
+                 MODULE 3
+          Driver Decomposition
+                    │
+       ┌────────────┼────────────┐
+       ▼            ▼            ▼
+    Drivers    Dimensions   Associations
+       │            │            │
+       └────────────┼────────────┘
+                    ▼
+              Hypothesis Engine
+                    │
+        ┌───────────┼───────────┐
+        ▼           ▼           ▼
+   Hypotheses  Contradictions  Confidence
+                    │
+                    ▼
+             Evidence Requests
+                    │
+                    ▼
+                 MODULE 4
+               RAG / Evidence
+
+
+
+                  MODULE 1
+             KPI / Historical Data
+                     │
+                     ▼
+                  MODULE 2
+           Signal / Anomaly Engine
+                     │
+                     │
+          metric + period + signal
+                     │
+                     ▼
+             ┌───────────────┐
+             │    MODULE 3   │
+             │ Driver Engine │
+             └───────┬───────┘
+                     │
+       ┌─────────────┼─────────────┐
+       ▼             ▼             ▼
+ Contribution   Association   Temporal
+       │             │             │
+       └─────────────┼─────────────┘
+                     ▼
+             Segment Consistency
+                     │
+                     ▼
+              Contradictions
+                     │
+                     ▼
+             Hypothesis Scoring
+                     │
+                     ▼
+          Ranked Driver Hypotheses
+                     │
+                     ▼
+             Evidence Requests
+                     │
+                     ▼
+                  MODULE 4
+               Evidence / RAG
+
+Module 3 should instead be doing something like:
+Revenue change
+      ↓
+Driver engine
+      ↓
+Orders       +X%
+AOV          +Y%
+Price        -Z%
+Discount     -A%
+Product Mix  +B%
+Refunds      -C%
+      ↓
+Contribution calculation
+      ↓
+Ranked drivers
+
+                    ┌──────────────┐
+                    │  Dashboard   │
+                    └──────┬───────┘
+                           │
+                           ▼
+                    ┌──────────────┐
+                    │   Module 2   │
+                    │ Signal Engine│
+                    └──────┬───────┘
+                           │
+                     Investigate
+                           │
+                           ▼
+                ┌────────────────────┐
+                │ Investigation Page │
+                └─────────┬──────────┘
+                          │
+                    /api/drivers
+                          │
+                          ▼
+                ┌────────────────────┐
+                │ driver/index.ts    │
+                └─────────┬──────────┘
+                          │
+          ┌───────────────┼────────────────┐
+          ▼               ▼                ▼
+    contribution      association     segmentation
+          │               │                │
+          └───────────────┼────────────────┘
+                          ▼
+                    hypothesis.ts
+                          │
+                          ▼
+                    Actual UI
+
+
+Module 3 should produce something like:
+
+WHY DID REVENUE DECLINE?
+
+Revenue
+August 2026
+
+Total change
+-₹12.4M
+-12.4%
+
+┌─────────────────────────────────────────────┐
+│ Driver             Contribution    Confidence│
+├─────────────────────────────────────────────┤
+│ Orders             -7.1%            0.86    │
+│ Discounting        -2.8%            0.74    │
+│ Product Mix        -1.6%            0.68    │
+│ AOV                -0.9%            0.55    │
+└─────────────────────────────────────────────┘
+
+Top hypothesis
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Orders declined significantly
+
+Contribution: 57.3%
+Association: 0.82
+Temporal alignment: 0.91
+Segment consistency: 0.75
+Causal plausibility: 0.70
+Evidence availability: 0.80
+
+Confidence: 86%
+
+Status: STRONG CANDIDATE
+
+Caveats:
+• Decline concentrated in North region
+• Moderate evidence availability
+
+[View Evidence]
+
+Then Module 4 can take the generated: EvidenceRequest[] and retrieve supporting evidence.
+
 3. Core Principle
 
 The system must distinguish:

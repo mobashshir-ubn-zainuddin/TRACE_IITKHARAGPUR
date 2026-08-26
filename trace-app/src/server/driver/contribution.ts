@@ -1,7 +1,8 @@
 import { getDB } from "../db";
-import { getKPIHistoryBatched } from "../kpi";
+import { getKPIHistoryBatched, getKPIBreakdown } from "../kpi";
 import type { DimensionContribution, DriverContribution } from "./types";
 import { getKPIDefinition, normalizeMetric } from "../kpi/definitions";
+import { monthToDateRange, prevMonth } from "../utils/dateUtils";
 
 export async function calculateRevenueDecomposition(
   metric: string,
@@ -56,17 +57,39 @@ export async function calculateDimensionContribution(
 ): Promise<DimensionContribution[]> {
   const { getKPIBreakdown } = await import("../kpi");
   
-  const breakdown = await getKPIBreakdown(metric, period, dimension, filters);
+  // Get current period breakdown
+  const currentBreakdown = await getKPIBreakdown(metric, period, dimension, filters);
   
-  const total = breakdown.reduce((sum, item) => sum + item.value, 0);
+  // Get previous period breakdown
+  const prevPeriod = getPreviousPeriod(period);
+  const prevBreakdown = await getKPIBreakdown(metric, prevPeriod, dimension, filters);
   
-  return breakdown.map(item => ({
-    dimension: item.dimensionValue,
-    dimensionValue: item.dimensionValue,
-    change: item.value,
-    changePct: 0,
-    contributionPct: total !== 0 ? (item.value / total) * 100 : 0,
-  }));
+  // Build maps for current and previous
+  const currentMap = new Map(currentBreakdown.map(b => [b.dimensionValue, b.value]));
+  const prevMap = new Map(prevBreakdown.map(b => [b.dimensionValue, b.value]));
+  
+  // Get all dimension values
+  const allDimensionValues = new Set([...currentMap.keys(), ...prevMap.keys()]);
+  
+  // Calculate total change for contribution percentage
+  const totalChange = [...currentMap.values()].reduce((sum, v) => sum + v, 0) - 
+                      [...prevMap.values()].reduce((sum, v) => sum + v, 0);
+  
+  return [...allDimensionValues].map(dimensionValue => {
+    const currentValue = currentMap.get(dimensionValue) || 0;
+    const prevValue = prevMap.get(dimensionValue) || 0;
+    const change = currentValue - prevValue;
+    const changePct = prevValue !== 0 ? ((currentValue - prevValue) / prevValue) * 100 : 0;
+    const contributionPct = totalChange !== 0 ? (change / totalChange) * 100 : 0;
+    
+    return {
+      dimension: dimensionValue,
+      dimensionValue: dimensionValue,
+      change,
+      changePct,
+      contributionPct,
+    };
+  });
 }
 
 export async function calculateDriverContributions(
@@ -76,25 +99,24 @@ export async function calculateDriverContributions(
 ): Promise<DriverContribution[]> {
   const normalizedMetric = metric.toLowerCase();
   
+  // For now, only revenue has full driver decomposition
   if (normalizedMetric !== "revenue") {
-    throw new Error("Driver contributions only implemented for revenue metric");
+    return [];
   }
 
   const { computeKPI } = await import("../kpi");
-  const { getDB } = await import("../db");
   
-  const db = await getDB();
-  const currentKPI = await import("../kpi").then(m => m.computeKPI("revenue", period, {}));
+  const currentKPI = await computeKPI("revenue", period, filters);
   const prevPeriod = getPreviousPeriod(period);
-  const prevKPI = await import("../kpi").then(m => m.computeKPI("revenue", prevPeriod, {}));
+  const prevKPI = await computeKPI("revenue", prevPeriod, filters);
   
   const revenueChange = currentKPI.value - prevKPI.value;
   const revenueChangePct = prevKPI.value !== 0 ? ((currentKPI.value - prevKPI.value) / prevKPI.value) * 100 : 0;
 
-  const currentOrders = await import("../kpi").then(m => m.computeKPI("orders", period, {}));
-  const prevOrders = await import("../kpi").then(m => m.computeKPI("orders", prevPeriod, {}));
-  const currentAOV = await import("../kpi").then(m => m.computeKPI("aov", period, {}));
-  const prevAOV = await import("../kpi").then(m => m.computeKPI("aov", prevPeriod, {}));
+  const currentOrders = await computeKPI("orders", period, filters);
+  const prevOrders = await computeKPI("orders", prevPeriod, filters);
+  const currentAOV = await computeKPI("aov", period, filters);
+  const prevAOV = await computeKPI("aov", prevPeriod, filters);
 
   const ordersChange = currentOrders.value - prevOrders.value;
   const aovChange = currentAOV.value - prevAOV.value;

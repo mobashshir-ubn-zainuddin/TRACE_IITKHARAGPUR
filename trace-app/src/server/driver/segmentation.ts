@@ -3,6 +3,7 @@ import { getKPIHistoryBatched, getKPIBreakdown } from "../kpi";
 import type { SegmentConsistency, CounterSegmentComparison, DimensionContribution } from "./types";
 import { getDriverDefinition, getDriversForKPI } from "./definitions";
 import { DEFAULT_DRIVER_CONFIG } from "./config";
+import { monthToDateRange, prevMonth } from "../utils/dateUtils";
 
 export async function calculateSegmentConsistency(
   metric: string,
@@ -13,11 +14,23 @@ export async function calculateSegmentConsistency(
 ): Promise<SegmentConsistency> {
   const config = DEFAULT_DRIVER_CONFIG;
   
-  const breakdown = await getKPIBreakdown(metric, period, dimension, filters);
-  const driverBreakdown = await getKPIBreakdown(driver, period, dimension, filters);
+  const prevPeriod = getPreviousPeriod(period);
   
-  const metricMap = new Map(breakdown.map(b => [b.dimensionValue, b.value]));
-  const driverMap = new Map(driverBreakdown.map(b => [b.dimensionValue, b.value]));
+  // Get current period breakdown
+  const currentMetricBreakdown = await getKPIBreakdown(metric, period, dimension, filters);
+  const currentDriverBreakdown = await getKPIBreakdown(driver, period, dimension, filters);
+  
+  // Get previous period breakdown
+  const prevMetricBreakdown = await getKPIBreakdown(metric, prevPeriod, dimension, filters);
+  const prevDriverBreakdown = await getKPIBreakdown(driver, prevPeriod, dimension, filters);
+  
+  // Build maps for current period
+  const metricMap = new Map<string, number>(currentMetricBreakdown.map(b => [b.dimensionValue, b.value]));
+  const driverMap = new Map<string, number>(currentDriverBreakdown.map(b => [b.dimensionValue, b.value]));
+  
+  // Build maps for previous period
+  const prevMetricMap = new Map<string, number>(prevMetricBreakdown.map(b => [b.dimensionValue, b.value]));
+  const prevDriverMap = new Map<string, number>(prevDriverBreakdown.map(b => [b.dimensionValue, b.value]));
   
   const segments = Array.from(metricMap.keys());
   
@@ -35,22 +48,22 @@ export async function calculateSegmentConsistency(
   const inconsistentSegments: string[] = [];
   
   for (const segment of segments) {
-    const metricValue = metricMap.get(segment);
-    const driverValue = driverMap.get(segment);
+    const currentMetricValue = metricMap.get(segment) || 0;
+    const currentDriverValue = driverMap.get(segment) || 0;
+    const prevMetricValue = prevMetricMap.get(segment) || 0;
+    const prevDriverValue = prevDriverMap.get(segment) || 0;
     
-    if (metricValue !== undefined && driverValue !== undefined) {
-      const metricChange = metricValue;
-      const driverChange = driverValue;
-      
-      const sameDirection = (metricChange > 0 && driverChange > 0) || 
-                           (metricChange < 0 && driverChange < 0);
-      
-      if (sameDirection) {
-        consistentCount++;
-        consistentSegments.push(segment);
-      } else {
-        inconsistentSegments.push(segment);
-      }
+    const metricChange = currentMetricValue - prevMetricValue;
+    const driverChange = currentDriverValue - prevDriverValue;
+    
+    const sameDirection = (metricChange > 0 && driverChange > 0) || 
+                         (metricChange < 0 && driverChange < 0);
+    
+    if (sameDirection) {
+      consistentCount++;
+      consistentSegments.push(segment);
+    } else {
+      inconsistentSegments.push(segment);
     }
   }
   
@@ -75,8 +88,8 @@ export async function calculateCounterSegmentComparison(
   const breakdown = await getKPIBreakdown(metric, period, dimension, {});
   const driverBreakdown = await getKPIBreakdown(driver, period, dimension, {});
   
-  const metricMap = new Map(breakdown.map(b => [b.dimensionValue, b.value]));
-  const driverMap = new Map(driverBreakdown.map(b => [b.dimensionValue, b.value]));
+  const metricMap = new Map<string, number>(breakdown.map(b => [b.dimensionValue, b.value]));
+  const driverMap = new Map<string, number>(driverBreakdown.map(b => [b.dimensionValue, b.value]));
   
   const affected: { segment: string; change: number }[] = [];
   const unaffected: { segment: string; change: number }[] = [];
@@ -131,4 +144,10 @@ export async function calculateAllSegmentConsistency(
   }
   
   return results;
+}
+
+function getPreviousPeriod(period: string): string {
+  const [year, month] = period.split("-").map(Number);
+  const date = new Date(year, month - 2, 1);
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
 }
