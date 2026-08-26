@@ -4,6 +4,12 @@ import type { SegmentConsistency, CounterSegmentComparison, DimensionContributio
 import { getDriverDefinition, getDriversForKPI } from "./definitions";
 import { DEFAULT_DRIVER_CONFIG } from "./config";
 import { monthToDateRange, prevMonth } from "../utils/dateUtils";
+import { getKPIDefinition, normalizeMetric, getAllKPIMetrics } from "../kpi/definitions";
+
+function isValidKPIMetric(metric: string): boolean {
+  const allMetrics = getAllKPIMetrics();
+  return allMetrics.includes(metric.toLowerCase());
+}
 
 export async function calculateSegmentConsistency(
   metric: string,
@@ -130,17 +136,26 @@ export async function calculateAllSegmentConsistency(
   dimension: "region" | "product" | "channel",
   filters?: { region?: string; product?: string; channel?: string }
 ): Promise<SegmentConsistency[]> {
-  const { getDriversForKPI } = await import("./definitions");
-  const kpiDef = await import("../kpi/definitions").then(m => m.getKPIDefinition(metric));
+  const kpiDef = getKPIDefinition(metric);
   
   if (!kpiDef) throw new Error(`Unknown metric: ${metric}`);
   
-  const drivers = getDriversForKPI(kpiDef.name);
+  const allDrivers = getDriversForKPI(kpiDef.name);
+  const drivers = allDrivers.filter(d => isValidKPIMetric(d.id));
   const results: SegmentConsistency[] = [];
   
   for (const driver of drivers) {
-    const result = await calculateSegmentConsistency(metric, driver.id, period, dimension, filters);
-    results.push(result);
+    try {
+      const result = await calculateSegmentConsistency(metric, driver.id, period, dimension, filters);
+      results.push(result);
+    } catch {
+      results.push({
+        driver: driver.id,
+        consistencyScore: 0,
+        consistentSegments: [],
+        inconsistentSegments: [],
+      });
+    }
   }
   
   return results;

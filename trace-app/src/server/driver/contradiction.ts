@@ -3,8 +3,13 @@ import { getDriverDefinition, getDriversForKPI } from "./definitions";
 import { calculateAssociation } from "./association";
 import { calculateDimensionContribution } from "./contribution";
 import { getKPIBreakdown } from "../kpi";
-import { getKPIDefinition } from "../kpi/definitions";
+import { getKPIDefinition, normalizeMetric, getAllKPIMetrics } from "../kpi/definitions";
 import { monthToDateRange, prevMonth } from "../utils/dateUtils";
+
+function isValidKPIMetric(metric: string): boolean {
+  const allMetrics = getAllKPIMetrics();
+  return allMetrics.includes(metric.toLowerCase());
+}
 
 export async function detectContradictions(
   metric: string,
@@ -17,9 +22,15 @@ export async function detectContradictions(
   const drivers = getDriversForKPI(kpiDef.name);
   const contradictions: Contradiction[] = [];
   
+  // Pre-calculate KPI dimension contributions once
+  const kpiDimensionContribs = await calculateDimensionContribution(metric, period, "region", filters);
+  
   for (const driver of drivers) {
     const def = getDriverDefinition(driver.id);
     if (!def) continue;
+    
+    // Skip drivers that aren't valid KPI metrics
+    if (!isValidKPIMetric(driver.id)) continue;
     
     const association = await calculateAssociation(metric, driver.id, period, filters);
     if (!association) continue;
@@ -41,8 +52,12 @@ export async function detectContradictions(
     }
     
     // Compare KPI dimension changes vs driver dimension changes
-    const kpiDimensionContribs = await calculateDimensionContribution(metric, period, "region", filters);
-    const driverDimensionContribs = await calculateDimensionContribution(driver.id, period, "region", filters);
+    let driverDimensionContribs: Awaited<ReturnType<typeof calculateDimensionContribution>>;
+    try {
+      driverDimensionContribs = await calculateDimensionContribution(driver.id, period, "region", filters);
+    } catch {
+      continue; // Skip if driver doesn't support dimension breakdown
+    }
     
     for (const kpiDim of kpiDimensionContribs) {
       const driverDim = driverDimensionContribs.find(d => d.dimensionValue === kpiDim.dimensionValue);
