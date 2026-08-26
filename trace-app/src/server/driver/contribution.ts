@@ -98,60 +98,126 @@ export async function calculateDriverContributions(
   filters?: { region?: string; product?: string; channel?: string }
 ): Promise<DriverContribution[]> {
   const normalizedMetric = metric.toLowerCase();
-  
-  // For now, only revenue has full driver decomposition
-  if (normalizedMetric !== "revenue") {
-    return [];
-  }
-
   const { computeKPI } = await import("../kpi");
-  
-  const currentKPI = await computeKPI("revenue", period, filters);
   const prevPeriod = getPreviousPeriod(period);
-  const prevKPI = await computeKPI("revenue", prevPeriod, filters);
-  
-  const revenueChange = currentKPI.value - prevKPI.value;
-  const revenueChangePct = prevKPI.value !== 0 ? ((currentKPI.value - prevKPI.value) / prevKPI.value) * 100 : 0;
+  const filterOpts = { region: filters?.region, product: filters?.product, channel: filters?.channel };
 
-  const currentOrders = await computeKPI("orders", period, filters);
-  const prevOrders = await computeKPI("orders", prevPeriod, filters);
-  const currentAOV = await computeKPI("aov", period, filters);
-  const prevAOV = await computeKPI("aov", prevPeriod, filters);
+  if (normalizedMetric === "revenue") {
+    const currentKPI = await computeKPI("revenue", period, filters);
+    const prevKPI = await computeKPI("revenue", prevPeriod, filters);
+    
+    const revenueChange = currentKPI.value - prevKPI.value;
 
-  const ordersChange = currentOrders.value - prevOrders.value;
-  const aovChange = currentAOV.value - prevAOV.value;
+    const currentOrders = await computeKPI("orders", period, filters);
+    const prevOrders = await computeKPI("orders", prevPeriod, filters);
+    const currentAOV = await computeKPI("aov", period, filters);
+    const prevAOV = await computeKPI("aov", prevPeriod, filters);
 
-  const ordersContribution = ordersChange * prevAOV.value;
-  const aovContribution = aovChange * prevOrders.value;
-  const interaction = revenueChange - ordersContribution - aovContribution;
+    const ordersChange = currentOrders.value - prevOrders.value;
+    const aovChange = currentAOV.value - prevAOV.value;
 
-  const total = Math.abs(ordersContribution) + Math.abs(aovContribution) + Math.abs(interaction);
-  
-  const contributions: DriverContribution[] = [
-    {
-      driver: "orders",
-      contributionPct: total !== 0 ? (Math.abs(ordersContribution) / total) * 100 : 0,
-      change: ordersChange,
-      changePct: prevOrders.value !== 0 ? (ordersChange / prevOrders.value) * 100 : 0,
-    },
-    {
-      driver: "aov",
-      contributionPct: total !== 0 ? (Math.abs(aovContribution) / total) * 100 : 0,
-      change: aovChange,
-      changePct: prevAOV.value !== 0 ? (aovChange / prevAOV.value) * 100 : 0,
-    },
-  ];
+    const ordersContribution = ordersChange * prevAOV.value;
+    const aovContribution = aovChange * prevOrders.value;
+    const interaction = revenueChange - ordersContribution - aovContribution;
 
-  if (Math.abs(interaction) > total * 0.05) {
-    contributions.push({
-      driver: "interaction",
-      contributionPct: total !== 0 ? (Math.abs(interaction) / total) * 100 : 0,
-      change: interaction,
-      changePct: 0,
-    });
+    const total = Math.abs(ordersContribution) + Math.abs(aovContribution) + Math.abs(interaction);
+    
+    const contributions: DriverContribution[] = [
+      {
+        driver: "orders",
+        contributionPct: total !== 0 ? (Math.abs(ordersContribution) / total) * 100 : 0,
+        change: ordersChange,
+        changePct: prevOrders.value !== 0 ? (ordersChange / prevOrders.value) * 100 : 0,
+      },
+      {
+        driver: "aov",
+        contributionPct: total !== 0 ? (Math.abs(aovContribution) / total) * 100 : 0,
+        change: aovChange,
+        changePct: prevAOV.value !== 0 ? (aovChange / prevAOV.value) * 100 : 0,
+      },
+    ];
+
+    if (Math.abs(interaction) > total * 0.05) {
+      contributions.push({
+        driver: "interaction",
+        contributionPct: total !== 0 ? (Math.abs(interaction) / total) * 100 : 0,
+        change: interaction,
+        changePct: 0,
+      });
+    }
+
+    return contributions;
   }
 
-  return contributions;
+  if (normalizedMetric === "orders") {
+    const currentOrders = await computeKPI("orders", period, filters);
+    const prevOrders = await computeKPI("orders", prevPeriod, filters);
+    const currentConversion = await computeKPI("conversion", period, filterOpts);
+    const prevConversion = await computeKPI("conversion", prevPeriod, filterOpts);
+    
+    const ordersChange = currentOrders.value - prevOrders.value;
+    const ordersChangePct = prevOrders.value !== 0 ? (ordersChange / prevOrders.value) * 100 : 0;
+
+    // Orders = Sessions * Conversion Rate / 100
+    // We need sessions data - for now, use a simple approximation
+    // Orders change = Sessions effect + Conversion effect
+    const sessionsEffect = 0; // Would need sessions KPI
+    const conversionEffect = ordersChange; // Approximation
+    
+    const total = Math.abs(sessionsEffect) + Math.abs(conversionEffect);
+    
+    return [
+      {
+        driver: "sessions",
+        contributionPct: total !== 0 ? (Math.abs(sessionsEffect) / total) * 100 : 0,
+        change: 0,
+        changePct: 0,
+      },
+      {
+        driver: "conversion",
+        contributionPct: total !== 0 ? (Math.abs(conversionEffect) / total) * 100 : 0,
+        change: currentConversion.value - prevConversion.value,
+        changePct: prevConversion.value !== 0 ? ((currentConversion.value - prevConversion.value) / prevConversion.value) * 100 : 0,
+      },
+    ];
+  }
+
+  if (normalizedMetric === "aov") {
+    const currentAOV = await computeKPI("aov", period, filters);
+    const prevAOV = await computeKPI("aov", prevPeriod, filters);
+    const currentRevenue = await computeKPI("revenue", period, filters);
+    const prevRevenue = await computeKPI("revenue", prevPeriod, filters);
+    const currentOrders = await computeKPI("orders", period, filters);
+    const prevOrders = await computeKPI("orders", prevPeriod, filters);
+    
+    const aovChange = currentAOV.value - prevAOV.value;
+    const aovChangePct = prevAOV.value !== 0 ? (aovChange / prevAOV.value) * 100 : 0;
+    
+    // AOV = Revenue / Orders
+    // AOV change comes from Revenue effect + Orders effect
+    const revenueEffect = (currentRevenue.value - prevRevenue.value) / prevOrders.value;
+    const ordersEffect = prevRevenue.value * (1/prevOrders.value - 1/currentOrders.value);
+    const interaction = aovChange - revenueEffect - ordersEffect;
+    
+    const total = Math.abs(revenueEffect) + Math.abs(ordersEffect) + Math.abs(interaction);
+    
+    return [
+      {
+        driver: "revenue",
+        contributionPct: total !== 0 ? (Math.abs(revenueEffect) / total) * 100 : 0,
+        change: currentRevenue.value - prevRevenue.value,
+        changePct: prevRevenue.value !== 0 ? ((currentRevenue.value - prevRevenue.value) / prevRevenue.value) * 100 : 0,
+      },
+      {
+        driver: "orders",
+        contributionPct: total !== 0 ? (Math.abs(ordersEffect) / total) * 100 : 0,
+        change: currentOrders.value - prevOrders.value,
+        changePct: prevOrders.value !== 0 ? ((currentOrders.value - prevOrders.value) / prevOrders.value) * 100 : 0,
+      },
+    ];
+  }
+
+  return [];
 }
 
 export async function calculateRegionContribution(

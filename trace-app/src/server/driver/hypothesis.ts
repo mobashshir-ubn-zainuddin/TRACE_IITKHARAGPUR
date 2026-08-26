@@ -72,9 +72,7 @@ export async function generateHypotheses(
   
   if (!kpiDef) throw new Error(`Unknown metric: ${metric}`);
   
-  const allDrivers = getDriversForKPI(kpiDef.name);
-  // Filter to only drivers that are valid KPI metrics (have historical data)
-  const drivers = allDrivers.filter(d => isValidKPIMetric(d.id));
+  const drivers = getDriversForKPI(kpiDef.name);
   const config = DEFAULT_DRIVER_CONFIG;
   const hypotheses: DriverHypothesis[] = [];
   
@@ -125,7 +123,35 @@ export async function generateHypotheses(
     const segment = segmentConsistency.find(s => s.driver === driver.id);
     const contradiction = contradictions.find(c => c.driver === driver.id);
     
-    if (!contrib) continue;
+    // For drivers without contribution data, create insufficient_data hypothesis
+    if (!contrib) {
+      hypotheses.push({
+        id: `H${hypotheses.length + 1}`,
+        name: driver.name,
+        description: driver.description,
+        driver: driver.id,
+        claim: `Insufficient data to quantify ${driver.name} contribution`,
+        expectedDirection: driver.expectedDirection,
+        scope: {
+          metric: kpiDef.name,
+          period,
+          region: filters?.region,
+          product: filters?.product,
+          channel: filters?.channel,
+        },
+        contributionPct: 0,
+        associationScore: association?.pearsonR,
+        temporalAlignment: temporal?.temporalScore,
+        segmentConsistency: segment?.consistencyScore,
+        causalPlausibility: normalizeCausalPlausibility(driver.id, driver.expectedDirection),
+        evidenceAvailability: 0,
+        score: 0,
+        confidence: 0,
+        status: "insufficient_data",
+        caveats: ["No quantitative contribution data available for this driver"],
+      });
+      continue;
+    }
     
     const contributionScore = normalizeContribution(contrib.contributionPct);
     const associationScore = association ? normalizeAssociation(association.pearsonR) : 0;

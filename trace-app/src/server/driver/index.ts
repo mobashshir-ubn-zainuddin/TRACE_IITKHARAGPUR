@@ -5,6 +5,7 @@ import { calculateAllAssociations } from "./association";
 import { calculateAllSegmentConsistency } from "./segmentation";
 import { detectContradictions } from "./contradiction";
 import { getKPIDefinition, normalizeMetric, getAllKPIMetrics } from "../kpi/definitions";
+import { computeKPI } from "../kpi";
 import type { DriverAnalysis, DriverHypothesis, DimensionContribution, EvidenceRequest } from "./types";
 
 function supportsChannelDimension(metric: string): boolean {
@@ -22,6 +23,18 @@ export async function analyzeDrivers(
   if (!kpiDef) {
     throw new Error(`Unsupported metric: ${metric}`);
   }
+
+  // Get current and previous KPI values to calculate total change
+  const filterOpts = { region: filters?.region, product: filters?.product, channel: filters?.channel };
+  const prevPeriod = getPreviousPeriod(period);
+  
+  const [currentKPI, previousKPI] = await Promise.all([
+    computeKPI(normalizedMetric, period, filterOpts),
+    computeKPI(normalizedMetric, prevPeriod, filterOpts),
+  ]);
+
+  const totalChange = currentKPI.value - previousKPI.value;
+  const totalChangePct = previousKPI.value !== 0 ? ((currentKPI.value - previousKPI.value) / previousKPI.value) * 100 : 0;
 
   const channelSupported = supportsChannelDimension(normalizedMetric);
   const dimensionPromises = [
@@ -65,8 +78,8 @@ export async function analyzeDrivers(
   return {
     metric: normalizedMetric,
     period,
-    totalChange: 0,
-    totalChangePct: 0,
+    totalChange,
+    totalChangePct,
     dimensions: flatDimensions,
     drivers: hypotheses,
     alternatives: hypotheses.slice(1, 4),
@@ -74,6 +87,12 @@ export async function analyzeDrivers(
     evidenceRequests,
     confidence: totalConfidence,
   };
+}
+
+function getPreviousPeriod(period: string): string {
+  const [year, month] = period.split("-").map(Number);
+  const date = new Date(year, month - 2, 1);
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
 }
 
 async function getDriverAnalysis(
