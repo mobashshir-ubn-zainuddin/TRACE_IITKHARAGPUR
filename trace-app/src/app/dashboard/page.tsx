@@ -1032,15 +1032,24 @@ export default function Dashboard() {
       setBreakdownError(null);
       try {
         const dimensions: ("region" | "product" | "channel")[] = ["region", "product", "channel"];
-        const results = await Promise.all(
+        const results = await Promise.allSettled(
           dimensions.map(dim => 
             breakdownFetch.fetchWithAbort(`/api/drivers/breakdown?metric=${metric}&period=${latestPeriod}&dimension=${dim}`)
           )
         );
         
-        if (results[0]) setDimensionBreakdown(prev => ({...prev, region: results[0]!.contributions}));
-        if (results[1]) setDimensionBreakdown(prev => ({...prev, product: results[1]!.contributions}));
-        if (results[2]) setDimensionBreakdown(prev => ({...prev, channel: results[2]!.contributions}));
+        results.forEach((result, idx) => {
+          if (result.status === "fulfilled") {
+            const value = result.value;
+            if (value && value.contributions) {
+              const dimension = dimensions[idx];
+              setDimensionBreakdown(prev => ({...prev, [dimension]: value.contributions}));
+            }
+          } else if (result.status === "rejected") {
+            // Log but don't fail - some dimensions may be unsupported (e.g., channel for conversion)
+            console.debug(`Dimension ${dimensions[idx]} not available for ${metric}:`, result.reason);
+          }
+        });
       } catch (e) {
         if (e instanceof Error && e.name !== 'AbortError') {
           setBreakdownError(e.message);
