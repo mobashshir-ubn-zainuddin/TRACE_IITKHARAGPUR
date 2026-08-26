@@ -84,9 +84,9 @@ export async function generateHypotheses(
   
   for (const driver of drivers) {
     const contrib = contributions.find(c => c.driver === driver.id);
-    const association = associations.find(a => a.driver === driver.name);
-    const temporal = temporalAlignments.find(t => t.driver === driver.name);
-    const segment = segmentConsistency.find(s => s.driver === driver.name);
+    const association = associations.find(a => a.driver === driver.id);
+    const temporal = temporalAlignments.find(t => t.driver === driver.id);
+    const segment = segmentConsistency.find(s => s.driver === driver.id);
     const contradiction = contradictions.find(c => c.driver === driver.id);
     
     if (!contrib) continue;
