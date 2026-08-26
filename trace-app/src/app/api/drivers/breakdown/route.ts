@@ -2,6 +2,15 @@ import { NextResponse } from "next/server";
 import { calculateDimensionContribution } from "@/server/driver/contribution";
 import { normalizeMetric } from "@/server/kpi/definitions";
 
+function supportsDimension(metric: string, dimension: string): boolean {
+  const normalizedMetric = normalizeMetric(metric);
+  if (dimension === "channel") {
+    return ["revenue", "orders", "aov"].includes(normalizedMetric);
+  }
+  // region and product are supported for all metrics
+  return true;
+}
+
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const rawMetric = searchParams.get("metric") ?? "revenue";
@@ -19,8 +28,15 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "Missing or invalid dimension. Must be: region, product, or channel" }, { status: 400 });
   }
 
+  const metric = normalizeMetric(rawMetric);
+  
+  if (!supportsDimension(metric, dimension)) {
+    return NextResponse.json({ 
+      error: `Dimension '${dimension}' not supported for metric '${metric}'. Supported: region, product${supportsDimension(metric, "channel") ? ", channel" : ""}` 
+    }, { status: 400 });
+  }
+
   try {
-    const metric = normalizeMetric(rawMetric);
     const contributions = await calculateDimensionContribution(metric, period, dimension, { region, product, channel });
     
     return NextResponse.json({

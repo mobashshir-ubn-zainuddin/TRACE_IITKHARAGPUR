@@ -5,6 +5,7 @@ import "@xyflow/react/dist/style.css";
 
 interface EvidenceNodeData {
   label: string;
+  [key: string]: unknown;
 }
 
 interface EvidenceItem {

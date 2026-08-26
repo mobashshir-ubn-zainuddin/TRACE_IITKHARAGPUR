@@ -1,6 +1,13 @@
 import { getDB } from "../db";
 import type { AssociationResult } from "./types";
 import { DEFAULT_DRIVER_CONFIG } from "./config";
+import { getKPIDefinition, normalizeMetric, getAllKPIMetrics } from "../kpi/definitions";
+import { getDriverDefinition, getDriversForKPI } from "./definitions";
+
+function isValidKPIMetric(metric: string): boolean {
+  const allMetrics = getAllKPIMetrics();
+  return allMetrics.includes(metric.toLowerCase());
+}
 
 function pearsonCorrelation(x: number[], y: number[]): number {
   const n = x.length;
@@ -107,21 +114,21 @@ export async function calculateAllAssociations(
   period: string,
   filters?: { region?: string; product?: string; channel?: string }
 ): Promise<AssociationResult[]> {
-  const { getDriverDefinition, getDriversForKPI } = await import("./definitions");
-  const kpiDef = await import("../kpi/definitions").then(m => m.getKPIDefinition(metric));
+  const kpiDef = getKPIDefinition(metric);
   
   if (!kpiDef) throw new Error(`Unknown metric: ${metric}`);
   
-  const drivers = getDriversForKPI(kpiDef.name);
+  const allDrivers = getDriversForKPI(kpiDef.name);
+  const drivers = allDrivers.filter(d => isValidKPIMetric(d.id));
   const results: AssociationResult[] = [];
   
   for (const driver of drivers) {
     try {
-      const result = await calculateAssociation(kpiDef.name, driver.id, period, {});
+      const result = await calculateAssociation(kpiDef.name, driver.id, period, filters);
       results.push(result);
-    } catch (e) {
+    } catch {
       results.push({
-        driver: driver.name,
+        driver: driver.id,
         pearsonR: 0,
         spearmanRho: 0,
         sampleSize: 0,

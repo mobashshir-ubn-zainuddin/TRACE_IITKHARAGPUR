@@ -7,7 +7,17 @@ import { calculateDriverContributions } from "./contribution";
 import { calculateDimensionContribution } from "./contribution";
 import type { DriverHypothesis, DriverAnalysis, EvidenceRequest, TemporalAlignment, SegmentConsistency, Contradiction } from "./types";
 import { DEFAULT_DRIVER_CONFIG } from "./config";
-import { getKPIDefinition, normalizeMetric } from "../kpi/definitions";
+import { getKPIDefinition, normalizeMetric, getAllKPIMetrics } from "../kpi/definitions";
+
+function isValidKPIMetric(metric: string): boolean {
+  const allMetrics = getAllKPIMetrics();
+  return allMetrics.includes(metric.toLowerCase());
+}
+
+function supportsChannelDimension(metric: string): boolean {
+  const normalizedMetric = normalizeMetric(metric);
+  return ["revenue", "orders", "aov"].includes(normalizedMetric);
+}
 
 function normalizeContribution(contributionPct: number): number {
   if (contributionPct >= 50) return 0.9;
@@ -62,20 +72,46 @@ export async function generateHypotheses(
   
   if (!kpiDef) throw new Error(`Unknown metric: ${metric}`);
   
-  const drivers = getDriversForKPI(kpiDef.name);
+  const allDrivers = getDriversForKPI(kpiDef.name);
+  // Filter to only drivers that are valid KPI metrics (have historical data)
+  const drivers = allDrivers.filter(d => isValidKPIMetric(d.id));
   const config = DEFAULT_DRIVER_CONFIG;
   const hypotheses: DriverHypothesis[] = [];
   
+  const channelSupported = supportsChannelDimension(normalizedMetric);
+  const dimensionPromises = [
+    calculateDimensionContribution(metric, period, "region", filters),
+    calculateDimensionContribution(metric, period, "product", filters),
+  ];
+  
+  if (channelSupported) {
+    dimensionPromises.push(calculateDimensionContribution(metric, period, "channel", filters));
+  }
+  
   const [contributions, dimensionContribs, associations, temporalAlignments, segmentConsistency] = await Promise.all([
     calculateDriverContributions(kpiDef.name, period, filters),
-    Promise.all([
-      calculateDimensionContribution(metric, period, "region", filters),
-      calculateDimensionContribution(metric, period, "product", filters),
-      calculateDimensionContribution(metric, period, "channel", filters),
-    ]),
-    Promise.all(drivers.map(d => calculateAssociation(kpiDef.name, d.id, period, filters))),
-    Promise.all(drivers.map(d => calculateTemporalAlignment(kpiDef.name, d.id, period, filters))),
-    Promise.all(drivers.map(d => calculateSegmentConsistency(kpiDef.name, d.id, period, "region", filters))),
+    Promise.all(dimensionPromises),
+    Promise.all(drivers.map(async d => {
+      try {
+        return await calculateAssociation(kpiDef.name, d.id, period, filters);
+      } catch {
+        return { driver: d.id, pearsonR: 0, spearmanRho: 0, sampleSize: 0, associationStrength: "none" as const };
+      }
+    })),
+    Promise.all(drivers.map(async d => {
+      try {
+        return await calculateTemporalAlignment(kpiDef.name, d.id, period, filters);
+      } catch {
+        return { driver: d.id, bestLag: 0, lagCorrelation: 0, temporalScore: 0 };
+      }
+    })),
+    Promise.all(drivers.map(async d => {
+      try {
+        return await calculateSegmentConsistency(kpiDef.name, d.id, period, "region", filters);
+      } catch {
+        return { driver: d.id, consistencyScore: 0, consistentSegments: [], inconsistentSegments: [] };
+      }
+    })),
   ]);
   
   const contradictions = await detectContradictions(kpiDef.name, period, filters);

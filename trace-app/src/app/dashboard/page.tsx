@@ -59,6 +59,81 @@ interface TopSignal {
   signalStrength: number;
 }
 
+// Module 3: Driver Decomposition & Hypothesis Engine types
+interface DriverHypothesis {
+  id: string;
+  name: string;
+  description: string;
+  driver: string;
+  claim: string;
+  expectedDirection: "positive" | "negative";
+  scope: {
+    metric: string;
+    period: string;
+    region?: string;
+    product?: string;
+    channel?: string;
+  };
+  contributionPct?: number;
+  associationScore?: number;
+  temporalAlignment?: number;
+  segmentConsistency?: number;
+  causalPlausibility?: number;
+  evidenceAvailability?: number;
+  score: number;
+  confidence: number;
+  status: "strong_candidate" | "candidate" | "weak_candidate" | "insufficient_data";
+  caveats: string[];
+}
+
+interface DimensionContribution {
+  name: string;
+  change: number;
+  changePct: number;
+  contributionPct: number;
+}
+
+interface DriverAnalysis {
+  metric: string;
+  period: string;
+  totalChange: number;
+  totalChangePct: number;
+  dimensions: DimensionContribution[];
+  drivers: DriverHypothesis[];
+  alternatives: DriverHypothesis[];
+  contradictions: Array<{
+    driver: string;
+    metric: string;
+    expectedDirection: "positive" | "negative";
+    observedDirection: "positive" | "negative";
+    effect: "weakens" | "invalidates";
+    magnitude: number;
+  }>;
+  evidenceRequests: Array<{
+    hypothesisId: string;
+    metric: string;
+    period: string;
+    driver: string;
+    query: string;
+    filters: { region?: string; product?: string; dateStart?: string; dateEnd?: string };
+    requiredEvidence: string[];
+  }>;
+  confidence: number;
+}
+
+interface BreakdownResponse {
+  metric: string;
+  period: string;
+  dimension: string;
+  contributions: DimensionContribution[];
+}
+
+interface HypothesesResponse {
+  metric: string;
+  period: string;
+  hypotheses: DriverHypothesis[];
+}
+
 interface SignalHistoryItem {
   period: string;
   signalStrength: number;
@@ -374,6 +449,312 @@ function SignalHistorySection({ history, loading, error }: {
           </span>
         ))}
       </div>
+</div>
+    );
+  }
+
+// Module 3: Helper functions
+function getHypothesisStatusColor(status: string): string {
+  switch (status) {
+    case "strong_candidate": return "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200";
+    case "candidate": return "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200";
+    case "weak_candidate": return "bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200";
+    case "insufficient_data": return "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200";
+    default: return "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200";
+  }
+}
+
+function getHypothesisStatusIcon(status: string) {
+  switch (status) {
+    case "strong_candidate": return <CheckCircle className="w-4 h-4 text-green-600" />;
+    case "candidate": return <Target className="w-4 h-4 text-blue-600" />;
+    case "weak_candidate": return <AlertTriangle className="w-4 h-4 text-amber-600" />;
+    case "insufficient_data": return <Minus className="w-4 h-4 text-gray-600" />;
+    default: return <Minus className="w-4 h-4 text-gray-600" />;
+  }
+}
+
+function formatPctValue(num: number | undefined): string {
+  if (num === undefined || num === null) return "N/A";
+  const sign = num >= 0 ? "+" : "";
+  return `${sign}${num.toFixed(1)}%`;
+}
+
+
+
+// Module 3: Driver Analysis Section
+function DriverAnalysisSection({ analysis, loading, error }: { 
+  analysis: DriverAnalysis | null; 
+  loading: boolean; 
+  error: string | null;
+}) {
+  if (loading) {
+    return (
+      <div className="p-4 rounded-xl bg-white dark:bg-zinc-800 shadow-lg animate-pulse">
+        <div className="h-6 bg-gray-200 dark:bg-zinc-700 rounded w-1/4 mb-4"></div>
+        <div className="h-4 bg-gray-200 dark:bg-zinc-700 rounded w-1/2 mb-2"></div>
+        <div className="h-4 bg-gray-200 dark:bg-zinc-700 rounded w-3/4"></div>
+      </div>
+    );
+  }
+
+  if (error || !analysis) {
+    return (
+      <div className="p-4 rounded-xl bg-white dark:bg-zinc-800 shadow-lg border-l-4 border-gray-400">
+        <p className="text-gray-600 dark:text-gray-300">Driver analysis unavailable</p>
+        {error && <p className="text-sm text-red-600 dark:text-red-400 mt-1">{error}</p>}
+      </div>
+    );
+  }
+
+  const { drivers, confidence, contradictions, period, totalChangePct } = analysis;
+
+  return (
+    <div className="p-4 rounded-xl bg-white dark:bg-zinc-800 shadow-lg border-l-4 border-purple-500">
+      <div className="flex items-start justify-between mb-4">
+        <div>
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+            <Target className="w-5 h-5 text-purple-600" /> Driver Analysis
+          </h3>
+          <p className="text-sm text-gray-500 dark:text-gray-400">Period: {period} | Overall Change: {formatPctValue(totalChangePct)} | Confidence: {(confidence * 100).toFixed(0)}%</p>
+        </div>
+      </div>
+
+      {drivers.length > 0 && (
+        <div className="space-y-3 mb-4">
+          <h4 className="font-medium text-gray-900 dark:text-white">Top Drivers</h4>
+          {drivers.slice(0, 5).map((driver) => (
+            <div key={driver.id} className="p-3 rounded-lg bg-gray-50 dark:bg-zinc-900 border border-gray-200 dark:border-zinc-700">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <span className="font-mono text-purple-600 dark:text-purple-400">{driver.id}</span>
+                  <div>
+                    <p className="font-medium text-gray-900 dark:text-white">{driver.name}</p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">{driver.description}</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className={`px-2 py-1 rounded text-xs font-medium ${getHypothesisStatusColor(driver.status)}`}>
+                    {getHypothesisStatusIcon(driver.status)} {driver.status.replace("_", " ").toUpperCase()}
+                  </span>
+                  <span className="px-2 py-1 rounded text-xs font-medium bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200">
+                    Score: {driver.score.toFixed(2)}
+                  </span>
+                  <span className="px-2 py-1 rounded text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+                    Confidence: {(driver.confidence * 100).toFixed(0)}%
+                  </span>
+                </div>
+              </div>
+              <div className="mt-2 grid grid-cols-2 md:grid-cols-4 gap-2 text-xs text-gray-600 dark:text-gray-400">
+                <div>Contribution: <span className="font-medium">{formatPctValue(driver.contributionPct)}</span></div>
+                <div>Association: <span className="font-medium">{driver.associationScore !== undefined ? driver.associationScore.toFixed(2) : "N/A"}</span></div>
+                <div>Temporal: <span className="font-medium">{driver.temporalAlignment !== undefined ? (driver.temporalAlignment * 100).toFixed(0) + "%" : "N/A"}</span></div>
+                <div>Segment: <span className="font-medium">{driver.segmentConsistency !== undefined ? (driver.segmentConsistency * 100).toFixed(0) + "%" : "N/A"}</span></div>
+              </div>
+              {driver.caveats.length > 0 && (
+                <div className="mt-2 text-xs text-amber-600 dark:text-amber-400">
+                  {driver.caveats.map((c, idx) => <div key={idx}>⚠ {c}</div>)}
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+
+      {contradictions.length > 0 && (
+        <details className="mt-4">
+          <summary className="text-sm text-red-600 dark:text-red-400 cursor-pointer hover:text-red-700 dark:hover:text-red-300 flex items-center gap-2">
+            <AlertTriangle className="w-4 h-4" /> {contradictions.length} Contradiction(s) Detected
+          </summary>
+          <div className="mt-2 space-y-2 text-sm text-red-600 dark:text-red-400">
+            {contradictions.map((c, i) => (
+              <div key={i} className="p-2 rounded bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800">
+                <p><strong>{c.driver}</strong>: Expected {c.expectedDirection} trend, observed {c.observedDirection} ({c.effect})</p>
+                <p className="text-xs">Metric: {c.metric} | Magnitude: {c.magnitude.toFixed(2)}</p>
+              </div>
+            ))}
+          </div>
+        </details>
+      )}
+    </div>
+  );
+}
+
+// Module 3: Dimension Breakdown Section
+function DimensionBreakdownSection({ breakdown, loading, error, period }: { 
+  breakdown: {region: DimensionContribution[]; product: DimensionContribution[]; channel: DimensionContribution[]};
+  loading: boolean; 
+  error: string | null;
+  period: string;
+}) {
+  if (loading) {
+    return (
+      <div className="p-4 rounded-xl bg-white dark:bg-zinc-800 shadow-lg animate-pulse">
+        <div className="h-6 bg-gray-200 dark:bg-zinc-700 rounded w-1/4 mb-4"></div>
+        {[...Array(3)].map((_, i) => (
+          <div key={i} className="h-10 bg-gray-200 dark:bg-zinc-700 rounded mb-2"></div>
+        ))}
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="p-4 rounded-xl bg-white dark:bg-zinc-800 shadow-lg border-l-4 border-gray-400">
+        <p className="text-gray-600 dark:text-gray-300">Dimension breakdown unavailable</p>
+        <p className="text-sm text-red-600 dark:text-red-400 mt-1">{error}</p>
+      </div>
+    );
+  }
+
+  const dimensions = [
+    { key: "region", label: "Region", data: breakdown.region },
+    { key: "product", label: "Product", data: breakdown.product },
+    { key: "channel", label: "Channel", data: breakdown.channel },
+  ];
+
+  return (
+    <div className="p-4 rounded-xl bg-white dark:bg-zinc-800 shadow-lg border-l-4 border-indigo-500">
+      <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3 flex items-center gap-2">
+        <Target className="w-5 h-5 text-indigo-600" /> Dimension Breakdown — {period}
+      </h3>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {dimensions.map((dim) => (
+          <div key={dim.key} className="p-3 rounded-lg bg-gray-50 dark:bg-zinc-900">
+            <h4 className="font-medium text-gray-900 dark:text-white mb-2">{dim.label}</h4>
+            {dim.data.length === 0 ? (
+              <p className="text-sm text-gray-500 dark:text-gray-400">No data available</p>
+            ) : (
+              <div className="space-y-2 max-h-60 overflow-y-auto">
+                {dim.data
+                  .filter(d => Math.abs(d.contributionPct) > 0.1)
+                  .sort((a, b) => Math.abs(b.contributionPct) - Math.abs(a.contributionPct))
+                  .slice(0, 8)
+                  .map((item, i) => (
+                    <div key={`${dim.key}-${i}`} className="flex items-center justify-between text-sm">
+                      <span className="font-medium text-gray-900 dark:text-white truncate pr-2">{item.name}</span>
+                      <div className="flex items-center gap-2 text-right">
+                        <span className={`font-mono ${item.changePct >= 0 ? "text-green-600" : "text-red-600"}`}>
+                          {formatPctValue(item.changePct)}
+                        </span>
+                        <span className="px-2 py-0.5 rounded text-xs font-medium bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-200">
+                          {item.contributionPct.toFixed(1)}%
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// Module 3: Hypotheses Section
+function HypothesesSection({ hypotheses, loading, error }: { 
+  hypotheses: DriverHypothesis[]; 
+  loading: boolean; 
+  error: string | null;
+}) {
+  if (loading) {
+    return (
+      <div className="p-4 rounded-xl bg-white dark:bg-zinc-800 shadow-lg animate-pulse">
+        <div className="h-6 bg-gray-200 dark:bg-zinc-700 rounded w-1/4 mb-4"></div>
+        {[...Array(5)].map((_, i) => (
+          <div key={i} className="h-10 bg-gray-200 dark:bg-zinc-700 rounded mb-2"></div>
+        ))}
+      </div>
+    );
+  }
+
+  if (error || hypotheses.length === 0) {
+    return (
+      <div className="p-4 rounded-xl bg-white dark:bg-zinc-800 shadow-lg border-l-4 border-gray-400">
+        <p className="text-gray-600 dark:text-gray-300">Hypotheses unavailable</p>
+        {error && <p className="text-sm text-red-600 dark:text-red-400 mt-1">{error}</p>}
+      </div>
+    );
+  }
+
+  return (
+    <div className="p-4 rounded-xl bg-white dark:bg-zinc-800 shadow-lg border-l-4 border-pink-500">
+      <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3 flex items-center gap-2">
+        <Target className="w-5 h-5 text-pink-600" /> Generated Hypotheses
+      </h3>
+      <div className="overflow-x-auto">
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="text-left text-gray-500 dark:text-gray-400 border-b border-gray-200 dark:border-zinc-700">
+              <th className="pb-2 px-2 font-medium">Hypothesis</th>
+              <th className="pb-2 px-2 font-medium text-center">Status</th>
+              <th className="pb-2 px-2 font-medium text-center">Score</th>
+              <th className="pb-2 px-2 font-medium text-center">Confidence</th>
+              <th className="pb-2 px-2 font-medium text-center">Contribution</th>
+              <th className="pb-2 px-2 font-medium">Claim</th>
+            </tr>
+          </thead>
+          <tbody>
+            {hypotheses.map((h) => (
+              <tr key={h.id} className="border-b border-gray-100 dark:border-zinc-800 hover:bg-gray-50 dark:hover:bg-zinc-900">
+                <td className="py-2 px-2">
+                  <div className="flex items-center gap-2">
+                    <span className="font-mono text-pink-600 dark:text-pink-400">{h.id}</span>
+                    <div>
+                      <p className="font-medium text-gray-900 dark:text-white">{h.name}</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">{h.driver}</p>
+                    </div>
+                  </div>
+                </td>
+                <td className="py-2 px-2 text-center">
+                  <span className={`px-2 py-0.5 rounded text-xs font-medium ${getHypothesisStatusColor(h.status)}`}>
+                    {getHypothesisStatusIcon(h.status)} {h.status.replace("_", " ")}
+                  </span>
+                </td>
+                <td className="py-2 px-2 text-center font-mono text-purple-600 dark:text-purple-400">
+                  {h.score.toFixed(2)}
+                </td>
+                <td className="py-2 px-2 text-center font-mono text-blue-600 dark:text-blue-400">
+                  {(h.confidence * 100).toFixed(0)}%
+                </td>
+                <td className="py-2 px-2 text-center font-mono text-indigo-600 dark:text-indigo-400">
+                  {formatPctValue(h.contributionPct)}
+                </td>
+                <td className="py-2 px-2 text-gray-700 dark:text-gray-300 max-w-xs truncate">
+                  {h.claim}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <details className="mt-4">
+        <summary className="text-sm text-gray-500 dark:text-gray-400 cursor-pointer hover:text-gray-700 dark:hover:text-gray-200">
+          Show hypothesis details
+        </summary>
+        <div className="mt-2 space-y-3 text-xs text-gray-600 dark:text-gray-400">
+          {hypotheses.map((h) => (
+            <div key={h.id} className="p-3 rounded bg-gray-50 dark:bg-zinc-900 border border-gray-200 dark:border-zinc-700">
+              <p className="font-medium text-gray-900 dark:text-white mb-1">{h.id}: {h.name}</p>
+              <p className="mb-1">{h.claim}</p>
+              <div className="grid grid-cols-2 md:grid-cols-6 gap-1 text-xs">
+                <span>Association: {h.associationScore !== undefined ? h.associationScore.toFixed(2) : "N/A"}</span>
+                <span>Temporal: {h.temporalAlignment !== undefined ? (h.temporalAlignment * 100).toFixed(0) + "%" : "N/A"}</span>
+                <span>Segment: {h.segmentConsistency !== undefined ? (h.segmentConsistency * 100).toFixed(0) + "%" : "N/A"}</span>
+                <span>Causal: {h.causalPlausibility !== undefined ? (h.causalPlausibility * 100).toFixed(0) + "%" : "N/A"}</span>
+                <span>Evidence: {h.evidenceAvailability !== undefined ? (h.evidenceAvailability * 100).toFixed(0) + "%" : "N/A"}</span>
+                <span>Direction: {h.expectedDirection}</span>
+              </div>
+              {h.caveats.length > 0 && (
+                <div className="mt-1 text-amber-600 dark:text-amber-400">
+                  {h.caveats.map((c, idx) => <div key={idx}>⚠ {c}</div>)}
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      </details>
     </div>
   );
 }
@@ -463,21 +844,46 @@ export default function Dashboard() {
   
   const [signalHistory, setSignalHistory] = useState<SignalHistoryItem[]>([]);
 
+  // Module 3 state
+  const [driverAnalysis, setDriverAnalysis] = useState<DriverAnalysis | null>(null);
+  const [driverLoading, setDriverLoading] = useState<boolean>(false);
+  const [driverError, setDriverError] = useState<string | null>(null);
+  
+  const [dimensionBreakdown, setDimensionBreakdown] = useState<{region: DimensionContribution[]; product: DimensionContribution[]; channel: DimensionContribution[]}>({region: [], product: [], channel: []});
+  const [breakdownLoading, setBreakdownLoading] = useState<boolean>(false);
+  const [breakdownError, setBreakdownError] = useState<string | null>(null);
+  
+  const [hypotheses, setHypotheses] = useState<DriverHypothesis[]>([]);
+  const [hypothesesLoading, setHypothesesLoading] = useState<boolean>(false);
+  const [hypothesesError, setHypothesesError] = useState<string | null>(null);
+
   // Request management
   const signalFetch = useFetchWithAbort<KPISignal>();
   const topSignalsFetch = useFetchWithAbort<{ signals: TopSignal[] }>();
   const historyFetch = useFetchWithAbort<{ history: SignalHistoryItem[] }>();
+  const driverFetch = useFetchWithAbort<DriverAnalysis>();
+  const breakdownFetch = useFetchWithAbort<BreakdownResponse>();
+  const hypothesesFetch = useFetchWithAbort<HypothesesResponse>();
 
   // Cancel all in-flight requests when metric changes
   useEffect(() => {
     signalFetch.cancel();
     historyFetch.cancel();
+    driverFetch.cancel();
+    breakdownFetch.cancel();
+    hypothesesFetch.cancel();
     
     // Use setTimeout to avoid synchronous setState in effect
     setTimeout(() => {
       setSignal(null);
       setSignalError(null);
       setSignalHistory([]);
+      setDriverAnalysis(null);
+      setDriverError(null);
+      setDimensionBreakdown({region: [], product: [], channel: []});
+      setBreakdownError(null);
+      setHypotheses([]);
+      setHypothesesError(null);
     }, 0);
   }, [metric]);
 
@@ -596,12 +1002,86 @@ export default function Dashboard() {
   //   fetchSignalHistory();
   // }, [metric, historyFetch]);
 
+  // Module 3: Fetch driver analysis
+  useEffect(() => {
+    if (!latestPeriod) return;
+    
+    async function fetchDriverAnalysis() {
+      setDriverLoading(true);
+      setDriverError(null);
+      try {
+        const data = await driverFetch.fetchWithAbort(`/api/drivers?metric=${metric}&period=${latestPeriod}`);
+        if (data) setDriverAnalysis(data);
+      } catch (e) {
+        if (e instanceof Error && e.name !== 'AbortError') {
+          setDriverError(e.message);
+        }
+      } finally {
+        setDriverLoading(false);
+      }
+    }
+    fetchDriverAnalysis();
+  }, [metric, latestPeriod, driverFetch]);
+
+  // Module 3: Fetch dimension breakdown for region, product, channel
+  useEffect(() => {
+    if (!latestPeriod) return;
+    
+    async function fetchDimensionBreakdown() {
+      setBreakdownLoading(true);
+      setBreakdownError(null);
+      try {
+        const dimensions: ("region" | "product" | "channel")[] = ["region", "product", "channel"];
+        const results = await Promise.all(
+          dimensions.map(dim => 
+            breakdownFetch.fetchWithAbort(`/api/drivers/breakdown?metric=${metric}&period=${latestPeriod}&dimension=${dim}`)
+          )
+        );
+        
+        if (results[0]) setDimensionBreakdown(prev => ({...prev, region: results[0]!.contributions}));
+        if (results[1]) setDimensionBreakdown(prev => ({...prev, product: results[1]!.contributions}));
+        if (results[2]) setDimensionBreakdown(prev => ({...prev, channel: results[2]!.contributions}));
+      } catch (e) {
+        if (e instanceof Error && e.name !== 'AbortError') {
+          setBreakdownError(e.message);
+        }
+      } finally {
+        setBreakdownLoading(false);
+      }
+    }
+    fetchDimensionBreakdown();
+  }, [metric, latestPeriod, breakdownFetch]);
+
+  // Module 3: Fetch hypotheses
+  useEffect(() => {
+    if (!latestPeriod) return;
+    
+    async function fetchHypotheses() {
+      setHypothesesLoading(true);
+      setHypothesesError(null);
+      try {
+        const data = await hypothesesFetch.fetchWithAbort(`/api/hypotheses?metric=${metric}&period=${latestPeriod}`);
+        if (data) setHypotheses(data.hypotheses || []);
+      } catch (e) {
+        if (e instanceof Error && e.name !== 'AbortError') {
+          setHypothesesError(e.message);
+        }
+      } finally {
+        setHypothesesLoading(false);
+      }
+    }
+    fetchHypotheses();
+  }, [metric, latestPeriod, hypothesesFetch]);
+
   // Cleanup on unmount
   useEffect(() => {
     return () => {
       signalFetch.cancel();
       topSignalsFetch.cancel();
       historyFetch.cancel();
+      driverFetch.cancel();
+      breakdownFetch.cancel();
+      hypothesesFetch.cancel();
     };
   }, []);
 
@@ -653,6 +1133,28 @@ export default function Dashboard() {
         history={signalHistory} 
         loading={false} 
         error={null}
+      />
+
+      {/* Module 3: Driver Analysis Section */}
+      <DriverAnalysisSection 
+        analysis={driverAnalysis} 
+        loading={driverLoading} 
+        error={driverError} 
+      />
+
+      {/* Module 3: Dimension Breakdown Section */}
+      <DimensionBreakdownSection 
+        breakdown={dimensionBreakdown} 
+        loading={breakdownLoading} 
+        error={breakdownError}
+        period={latestPeriod}
+      />
+
+      {/* Module 3: Hypotheses Section */}
+      <HypothesesSection 
+        hypotheses={hypotheses} 
+        loading={hypothesesLoading} 
+        error={hypothesesError} 
       />
 
       {/* Existing KPI Chart & Cards - Preserved */}

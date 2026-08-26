@@ -4,8 +4,13 @@ import { calculateDimensionContribution } from "./contribution";
 import { calculateAllAssociations } from "./association";
 import { calculateAllSegmentConsistency } from "./segmentation";
 import { detectContradictions } from "./contradiction";
-import { getKPIDefinition, normalizeMetric } from "../kpi/definitions";
+import { getKPIDefinition, normalizeMetric, getAllKPIMetrics } from "../kpi/definitions";
 import type { DriverAnalysis, DriverHypothesis, DimensionContribution, EvidenceRequest } from "./types";
+
+function supportsChannelDimension(metric: string): boolean {
+  const normalizedMetric = normalizeMetric(metric);
+  return ["revenue", "orders", "aov"].includes(normalizedMetric);
+}
 
 export async function analyzeDrivers(
   metric: string,
@@ -18,6 +23,16 @@ export async function analyzeDrivers(
     throw new Error(`Unsupported metric: ${metric}`);
   }
 
+  const channelSupported = supportsChannelDimension(normalizedMetric);
+  const dimensionPromises = [
+    calculateDimensionContribution(normalizedMetric, period, "region" as const, filters),
+    calculateDimensionContribution(normalizedMetric, period, "product" as const, filters),
+  ];
+  
+  if (channelSupported) {
+    dimensionPromises.push(calculateDimensionContribution(normalizedMetric, period, "channel" as const, filters));
+  }
+
   const [
     contributions,
     dimensionContribs,
@@ -26,11 +41,7 @@ export async function analyzeDrivers(
     contradictions,
   ] = await Promise.all([
     calculateDriverContributions(normalizedMetric, period, filters),
-    Promise.all([
-      calculateDimensionContribution(normalizedMetric, period, "region" as const, filters),
-      calculateDimensionContribution(normalizedMetric, period, "product" as const, filters),
-      calculateDimensionContribution(normalizedMetric, period, "channel" as const, filters),
-    ]),
+    Promise.all(dimensionPromises),
     calculateAllAssociations(normalizedMetric, period, filters),
     calculateAllSegmentConsistency(normalizedMetric, period, "region" as const, filters ?? {}),
     detectContradictions(normalizedMetric, period, filters),
