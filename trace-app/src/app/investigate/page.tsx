@@ -113,7 +113,18 @@ export default function InvestigatePage() {
                   cursor={{ fill: 'var(--muted)' }}
                   contentStyle={{ backgroundColor: 'var(--card)', borderColor: 'var(--border)', borderRadius: '8px' }}
                   itemStyle={{ color: 'var(--foreground)' }}
-                  formatter={(value: number | undefined) => value !== undefined ? [`₹${value}M`, 'Contribution'] : ['', '']}
+                  formatter={(value: unknown) => {
+                    if (value === undefined || value === null) return ['', ''];
+                    let num: number;
+                    if (Array.isArray(value)) {
+                      num = typeof value[0] === 'string' ? parseFloat(value[0]) : (value[0] as number);
+                    } else if (typeof value === 'string') {
+                      num = parseFloat(value);
+                    } else {
+                      num = value as number;
+                    }
+                    return isNaN(num) ? ['', ''] : [`₹${num}M`, 'Contribution'];
+                  }}
                 />
                 <Bar dataKey="value" radius={[4, 4, 4, 4]}>
                   {decompositionData.map((entry, index) => (
