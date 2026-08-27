@@ -5,12 +5,13 @@
  * Pipeline: EvidenceRequest → Query Builder → Metadata Filter → Keyword + Vector → Merge → Rerank → Top-K
  */
 
-import { keywordSearch, type KeywordResult, keywordResultToEvidenceItem, hashContent, classifyDirection, escapeRegExp } from "./keyword";
-import { vectorSearch, type VectorResult, vectorResultToEvidenceItem } from "./vector";
+import { keywordSearch, type KeywordResult, keywordResultToEvidenceItem, classifyDirection, escapeRegExp } from "./keyword";
+import { vectorSearch, type VectorResult, vectorResultToEvidenceItem, type VectorSearchTelemetry } from "./vector";
 import { structuredSearch, type StructuredSearchResult } from "./structured";
 import { rerank } from "./reranker";
 import { buildQueries } from "../queryBuilder";
 import type { EvidenceRequest, EvidenceItem, EvidenceSourceType, QueryBuilderOutput } from "../types";
+import { generateContentHash } from "../embeddings/provider";
 
 export interface HybridSearchOptions {
   evidenceRequest: EvidenceRequest;
@@ -100,7 +101,7 @@ function mergedToEvidenceItems(
       dateEnd: item.metadata.dateEnd,
       retrievalMethod: m.source === "both" ? "hybrid" : m.source,
       embeddingModel: isVector ? item.metadata.embeddingModel : undefined,
-      contentHash: hashContent(item.text),
+      contentHash: generateContentHash(item.text),
       timestamp: new Date().toISOString(),
     } as const;
     
@@ -161,57 +162,50 @@ export async function hybridSearch(options: HybridSearchOptions): Promise<Hybrid
   
   // Run structured, keyword and vector search in parallel
   const structuredStartTime = Date.now();
-  const structuredResults = await structuredSearch(evidenceRequest);
-  const structuredLatencyMs = Date.now() - structuredStartTime;
+  const structuredPromise = structuredSearch(evidenceRequest);
   
   const keywordStartTime = Date.now();
-  const keywordResults = await keywordSearch({
+  const keywordPromise = keywordSearch({
     query: primaryQuery,
     filters,
     limit: keywordLimit,
     minScore: minKeywordScore,
   });
-  const keywordLatencyMs = Date.now() - keywordStartTime;
   
   const vectorStartTime = Date.now();
-  const vectorResults = await vectorSearch({
+  const vectorPromise = vectorSearch({
     query: primaryQuery,
     filters,
     limit: vectorLimit,
     minSimilarity: minVectorSimilarity,
   });
+  
+  const [structuredResults, keywordResults, vectorResults] = await Promise.all([
+    structuredPromise,
+    keywordPromise,
+    vectorPromise,
+  ]);
+  
+  const structuredLatencyMs = Date.now() - structuredStartTime;
+  const keywordLatencyMs = Date.now() - keywordStartTime;
   const vectorLatencyMs = Date.now() - vectorStartTime;
   
-  // Merge structured results with keyword and vector results
-  const structuredEvidence = structuredResults.evidence;
-  const keywordEvidence = keywordResults;
-  const vectorEvidence = vectorResults;
+  // Extract vector telemetry
+  const { results: vectorResultsData, telemetry: vectorTelemetry } = vectorResults;
   
-  // For now, convert structured evidence to a format compatible with merging
-  // In a full implementation, we would have a unified merging strategy
-  const allEvidence = [
-    ...structuredEvidence,
-    ...keywordResults,
-    ...vectorResults
-  ];
+  // Merge keyword and vector results using mergeResults
+  const merged = mergeResults(keywordResults, vectorResults.results);
   
-  // Convert to EvidenceItems
-  let evidenceItems = allEvidence.map((item, index) => {
-    if ('similarity' in item) {
-      // VectorResult
-      return vectorResultToEvidenceItem(item, evidenceRequest.hypothesisId, evidenceRequest.driver, expectedDirection);
-    } else if ('score' in item) {
-      // KeywordResult
-      return keywordResultToEvidenceItem(item, evidenceRequest.hypothesisId, evidenceRequest.driver, expectedDirection);
-    } else {
-      // Structured result - already an EvidenceItem
-      return {
-        ...item,
-        hypothesisId: evidenceRequest.hypothesisId,
-        driver: evidenceRequest.driver,
-      };
-    }
-  });
+// Convert merged results to EvidenceItems
+  let evidenceItems = mergedToEvidenceItems(merged, evidenceRequest.hypothesisId, evidenceRequest.driver, expectedDirection);
+  
+  // Add structured evidence
+  const structuredEvidence = structuredResults.evidence.map(item => ({
+    ...item,
+    hypothesisId: evidenceRequest.hypothesisId,
+    driver: evidenceRequest.driver,
+  }));
+  evidenceItems = [...structuredEvidence, ...evidenceItems];
   
   // Rerank if enabled
   let rerankingLatencyMs = 0;
@@ -230,9 +224,9 @@ export async function hybridSearch(options: HybridSearchOptions): Promise<Hybrid
     evidence: evidenceItems,
     telemetry: {
       keywordCandidateCount: keywordResults.length,
-      vectorCandidateCount: vectorResults.length,
+      vectorCandidateCount: vectorResults.results.length,
       structuredCandidateCount: structuredResults.evidence.length,
-      mergedCandidateCount: structuredResults.evidence.length + keywordResults.length + vectorResults.length,
+      mergedCandidateCount: merged.length + structuredResults.evidence.length,
       rerankedCount: evidenceItems.length,
       finalCount: evidenceItems.length,
       keywordLatencyMs,
@@ -241,10 +235,10 @@ export async function hybridSearch(options: HybridSearchOptions): Promise<Hybrid
       rerankingLatencyMs,
       totalLatencyMs: Date.now() - startTime,
       retrievalLatencyMs: totalLatencyMs,
-      embeddingLatencyMs: 0, // Will be populated by embedding service
+      embeddingLatencyMs: vectorTelemetry.embeddingLatencyMs,
       topK: finalLimit,
-      embeddingCacheHit: false,
-      embeddingCacheMiss: false,
+      embeddingCacheHit: vectorTelemetry.embeddingCacheHit,
+      embeddingCacheMiss: vectorTelemetry.embeddingCacheMiss,
     },
     queryBuilderOutput,
   };
