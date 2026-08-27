@@ -29,6 +29,7 @@ interface SyntheticEvidenceChunk {
 }
 
 import type { EvidenceSourceType } from "./types";
+import { generateContentHash } from "@/server/evidence/embeddings/provider";
 
 interface SyntheticEvidenceChunk {
   text: string;
@@ -522,11 +523,13 @@ export function getSyntheticEvidenceForDriver(
 
 /** 
  * Seed the database with synthetic evidence
- * Clears existing synthetic evidence and inserts fresh data
+ * Clears existing synthetic evidence and inserts fresh data with embeddings
  */
 export async function seedSyntheticEvidence(): Promise<void> {
   const { getDB } = await import("../db");
+  const { getEmbeddingService } = await import("./embeddings");
   const db = await getDB();
+  const embeddingService = getEmbeddingService();
   
   // Clear existing synthetic evidence (keep real data if any)
   await db.exec(`DELETE FROM documents WHERE source IN (
@@ -536,7 +539,7 @@ export async function seedSyntheticEvidence(): Promise<void> {
   
   // Insert documents and chunks
   for (const doc of SYNTHETIC_EVIDENCE_DOCUMENTS) {
-    const contentHash = hashContent(JSON.stringify(doc.chunks));
+    const contentHash = generateContentHash(JSON.stringify(doc.chunks));
     
     const docResult = await db.run(`
       INSERT INTO documents (source, title, document_type, region, product, topic, document_date, authority_score, created_at, content_hash)
@@ -547,24 +550,28 @@ export async function seedSyntheticEvidence(): Promise<void> {
     
     for (let i = 0; i < doc.chunks.length; i++) {
       const chunk = doc.chunks[i];
-      const chunkHash = hashContent(chunk.text);
+      const chunkHash = generateContentHash(chunk.text);
       
-      await db.run(`
+      const chunkResult = await db.run(`
         INSERT INTO document_chunks (document_id, chunk_index, text, region, product, date_start, date_end, metadata)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?)
       `, documentId, i, chunk.text, chunk.region, chunk.product, chunk.date_start, chunk.date_end, JSON.stringify(chunk.metadata));
+      
+      const chunkId = chunkResult.lastID;
+      
+      if (chunkId === undefined) {
+        console.warn(`Failed to get chunk ID for chunk ${i} of document ${documentId}`);
+        continue;
+      }
+      
+      // Generate and persist embedding for this chunk
+      try {
+        await embeddingService.embedChunk(chunkId, chunk.text);
+      } catch (error) {
+        console.warn(`Failed to generate embedding for chunk ${chunkId}:`, error);
+      }
     }
   }
   
-  console.log(`Seeded ${SYNTHETIC_EVIDENCE_DOCUMENTS.length} synthetic evidence documents`);
-}
-
-/** Simple content hashing for deduplication */
-function hashContent(content: string): string {
-  let hash = 0;
-  for (let i = 0; i < content.length; i++) {
-    hash = ((hash << 5) - hash) + content.charCodeAt(i);
-    hash = hash & hash;
-  }
-  return Math.abs(hash).toString(16);
+console.log(`Seeded ${SYNTHETIC_EVIDENCE_DOCUMENTS.length} synthetic evidence documents with embeddings`);
 }

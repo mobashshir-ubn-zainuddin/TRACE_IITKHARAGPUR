@@ -9,7 +9,8 @@ import { getDB } from "../../db";
 import { getEmbeddingService } from "../embeddings";
 import type { EvidenceSourceType, EvidenceItem, Provenance } from "../types";
 import { cosineSimilarity } from "./reranker";
-import { hashContent, classifyDirection } from "./keyword";
+import { classifyDirection } from "./keyword";
+import { generateContentHash } from "../embeddings/provider";
 
 export interface VectorSearchOptions {
   query: string;
@@ -48,8 +49,14 @@ export interface VectorResult {
   };
 }
 
+export interface VectorSearchTelemetry {
+  embeddingLatencyMs: number;
+  embeddingCacheHit: boolean;
+  embeddingCacheMiss: boolean;
+}
+
 /** Search document chunks using vector similarity */
-export async function vectorSearch(options: VectorSearchOptions): Promise<VectorResult[]> {
+export async function vectorSearch(options: VectorSearchOptions): Promise<{ results: VectorResult[]; telemetry: VectorSearchTelemetry }> {
   const { 
     query, 
     filters = {}, 
@@ -62,7 +69,7 @@ export async function vectorSearch(options: VectorSearchOptions): Promise<Vector
   const embeddingService = getEmbeddingService();
   
   // Generate query embedding
-  const { embedding: queryEmbedding, fromCache, latencyMs } = await embeddingService.embed(query);
+  const { embedding: queryEmbedding, fromCache, latencyMs } = await embeddingService.embedQuery(query);
   
   // Build metadata filter conditions
   const conditions: string[] = [];
@@ -100,11 +107,13 @@ export async function vectorSearch(options: VectorSearchOptions): Promise<Vector
     params.push(...filters.topic);
   }
   
-  // Add model filter
-  if (model) {
-    conditions.push("e.model = ?");
-    params.push(model);
-  }
+  // Add provider/model/dimension filter to ensure compatible embeddings
+  conditions.push("e.provider = ?");
+  params.push("gemini");
+  conditions.push("e.model = ?");
+  params.push("gemini-embedding-001");
+  conditions.push("e.dimension = ?");
+  params.push(768);
   
   const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
   
@@ -124,6 +133,7 @@ export async function vectorSearch(options: VectorSearchOptions): Promise<Vector
       d.authority_score,
       d.document_date,
       e.embedding,
+      e.provider as embedding_provider,
       e.model as embedding_model
     FROM document_chunks dc
     JOIN documents d ON dc.document_id = d.id
@@ -138,7 +148,7 @@ export async function vectorSearch(options: VectorSearchOptions): Promise<Vector
   const rows = await getDB().then(db => db.all(sql, ...params));
   
   if (rows.length === 0) {
-    return [];
+    return { results: [], telemetry: { embeddingLatencyMs: latencyMs, embeddingCacheHit: fromCache, embeddingCacheMiss: !fromCache } };
   }
   
   // Parse embeddings and calculate similarities
@@ -160,7 +170,7 @@ export async function vectorSearch(options: VectorSearchOptions): Promise<Vector
     .sort((a, b) => b.similarity - a.similarity)
     .slice(0, limit);
   
-  return results.map(r => ({
+  const results_mapped = results.map(r => ({
     chunkId: r.chunk_id,
     documentId: r.document_id,
     text: r.text,
@@ -177,9 +187,14 @@ export async function vectorSearch(options: VectorSearchOptions): Promise<Vector
       authorityScore: r.authority_score,
       documentDate: r.document_date,
       chunkIndex: r.chunk_index,
-      embeddingModel: r.embedding_model,
+      embeddingModel: r.embedding_provider + "/" + r.embedding_model,
     },
   }));
+  
+  return { 
+    results: results_mapped, 
+    telemetry: { embeddingLatencyMs: latencyMs, embeddingCacheHit: fromCache, embeddingCacheMiss: !fromCache } 
+  };
 }
 
 /** Convert vector result to EvidenceItem */
@@ -200,7 +215,7 @@ export function vectorResultToEvidenceItem(
     dateEnd: result.metadata.dateEnd,
     retrievalMethod: "vector",
     embeddingModel: result.metadata.embeddingModel,
-    contentHash: hashContent(result.text),
+    contentHash: generateContentHash(result.text),
     timestamp: new Date().toISOString(),
   };
   

@@ -6,6 +6,7 @@
  */
 
 import { getDB } from "../../db";
+import { generateContentHash } from "../embeddings/provider";
 import type { EvidenceSourceType, EvidenceItem, Provenance } from "../types";
 
 export interface KeywordSearchOptions {
@@ -191,7 +192,7 @@ export function keywordResultToEvidenceItem(
     dateStart: result.metadata.dateStart,
     dateEnd: result.metadata.dateEnd,
     retrievalMethod: "keyword",
-    contentHash: hashContent(result.text),
+    contentHash: generateContentHash(result.text),
     timestamp: new Date().toISOString(),
   };
   
@@ -212,16 +213,6 @@ export function keywordResultToEvidenceItem(
     evidenceScore: 0, // Will be calculated in scoring
     provenance,
   };
-}
-
-/** Simple hash for content deduplication */
-export function hashContent(content: string): string {
-  let hash = 0;
-  for (let i = 0; i < content.length; i++) {
-    hash = ((hash << 5) - hash) + content.charCodeAt(i);
-    hash = hash & hash;
-  }
-  return Math.abs(hash).toString(16);
 }
 
 /** Basic direction classification */

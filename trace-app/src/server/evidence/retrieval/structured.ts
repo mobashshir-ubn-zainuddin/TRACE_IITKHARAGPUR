@@ -7,7 +7,7 @@
 
 import { getDB } from "../../db";
 import type { EvidenceRequest, EvidenceItem, Provenance, EvidenceSourceType } from "../types";
-import { hashContent } from "./keyword";
+import { generateContentHash } from "../embeddings/provider";
 
 type RetrievalMethod = "structured" | "keyword" | "vector" | "hybrid";
 
@@ -67,7 +67,7 @@ const provenance: Provenance = {
           metric: "",
           period: "",
           query: `Structured query for ${metric}`,
-          contentHash: hashContent(JSON.stringify({ metric, value: valueNum })),
+          contentHash: generateContentHash(JSON.stringify({ metric, value: valueNum })),
           timestamp: new Date().toISOString(),
           retrievalMethod: "structured" as RetrievalMethod,
         };
@@ -90,7 +90,7 @@ const provenance: Provenance = {
             metric: "",
             period: "",
             query: `Structured query for ${metric}`,
-            contentHash: hashContent(JSON.stringify({ metric, value: valueNum })),
+            contentHash: generateContentHash(JSON.stringify({ metric, value: valueNum })),
             timestamp: new Date().toISOString(),
             retrievalMethod: "structured" as RetrievalMethod,
           },
