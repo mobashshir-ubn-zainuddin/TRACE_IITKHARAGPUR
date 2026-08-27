@@ -1,155 +1,186 @@
-import { getDB } from "../db";
+/**
+ * Association engine (Module 3, Tasks 7 and 8).
+ *
+ * Two corrections relative to the previous implementation:
+ *
+ * 1. DRIVER RESOLUTION. It used to call `getKPIHistoryBatched(driverId)`, which
+ *    only understands the five KPI metrics. Every other driver threw, the throw
+ *    was swallowed, and the result was reported as `pearsonR = 0` -- statistically
+ *    indistinguishable from "measured, and genuinely uncorrelated". It now uses
+ *    `getDriverHistory`, and genuinely missing data is reported as
+ *    `pearsonR: null, insufficientData: true` instead of a fabricated zero.
+ *
+ * 2. MOVEMENT, NOT LEVELS. It used to correlate raw KPI levels. Two series that
+ *    both trend upward over 18 months correlate near 1.0 whether or not they
+ *    move together, so trending levels manufacture spurious association. We now
+ *    correlate period-over-period percentage changes.
+ *
+ * Significance (Task 8) uses t = r * sqrt((n-2)/(1-r^2)) on df = n-2, evaluated
+ * against a two-tailed Student t distribution.
+ *
+ * INTERPRETATION: `isStatisticallySignificant` means the observed linear
+ * association is unlikely under the null of zero association. It is NOT a claim
+ * of causation and carries no directional/causal implication on its own.
+ */
+
 import type { AssociationResult } from "./types";
-import { DEFAULT_DRIVER_CONFIG } from "./config";
-import { getKPIDefinition, normalizeMetric, getAllKPIMetrics } from "../kpi/definitions";
-import { getDriverDefinition, getDriversForKPI } from "./definitions";
+import { DEFAULT_DRIVER_CONFIG, type DriverConfig } from "./config";
+import { getKPIDefinition, normalizeMetric } from "../kpi/definitions";
+import { getDriversForKPI } from "./definitions";
+import {
+  getDriverHistory,
+  getMonthsForPeriod,
+  isDriverHistorySupported,
+  ANALYSIS_WINDOW_MONTHS,
+  UNSUPPORTED_DRIVERS,
+  type DriverFilters,
+} from "./history";
+import {
+  pearsonCorrelation,
+  spearmanCorrelation,
+  correlationPValue,
+  toMovementSeries,
+  alignMovementSeries,
+} from "./stats";
 
-function isValidKPIMetric(metric: string): boolean {
-  const allMetrics = getAllKPIMetrics();
-  return allMetrics.includes(metric.toLowerCase());
-}
+/** Months of history pulled for correlation. Shared with temporal.ts so both reuse one cached scan. */
+export const ASSOCIATION_WINDOW_MONTHS = ANALYSIS_WINDOW_MONTHS;
 
-function pearsonCorrelation(x: number[], y: number[]): number {
-  const n = x.length;
-  if (n !== y.length || n < 2) return 0;
-  
-  const sumX = x.reduce((a, b) => a + b, 0);
-  const sumY = y.reduce((a, b) => a + b, 0);
-  const sumXY = x.reduce((sum, xi, i) => sum + xi * y[i], 0);
-  const sumX2 = x.reduce((sum, xi) => sum + xi * xi, 0);
-  const sumY2 = y.reduce((sum, yi) => sum + yi * yi, 0);
-  
-  const numerator = n * sumXY - sumX * sumY;
-  const denominator = Math.sqrt((n * sumX2 - sumX * sumX) * (n * sumY2 - sumY * sumY));
-  
-  if (denominator === 0) return 0;
-  return numerator / denominator;
-}
-
-function spearmanCorrelation(x: number[], y: number[]): number {
-  const n = x.length;
-  if (n !== y.length || n < 2) return 0;
-  
-  function rank(values: number[]): number[] {
-    const indexed = values.map((v, i) => ({ value: v, index: i }));
-    indexed.sort((a, b) => a.value - b.value);
-    const ranks = new Array(n);
-    let i = 0;
-    while (i < n) {
-      let j = i;
-      while (j < n && indexed[j].value === indexed[i].value) j++;
-      const avgRank = (i + j + 1) / 2;
-      for (let k = i; k < j; k++) {
-        ranks[indexed[k].index] = avgRank;
-      }
-      i = j;
-    }
-    return ranks;
-  }
-  
-  const rx = rank(x);
-  const ry = rank(y);
-  return pearsonCorrelation(rx, ry);
-}
-
-function getAssociationStrength(r: number): "none" | "weak" | "moderate" | "strong" {
+function getAssociationStrength(
+  r: number,
+  thresholds: DriverConfig["correlationThresholds"]
+): "none" | "weak" | "moderate" | "strong" {
   const absR = Math.abs(r);
-  if (absR < 0.3) return "none";
-  if (absR < 0.5) return "weak";
-  if (absR < 0.7) return "moderate";
+  if (absR < thresholds.none) return "none";
+  if (absR < thresholds.weak) return "weak";
+  if (absR < thresholds.moderate) return "moderate";
   return "strong";
 }
 
+function insufficient(
+  driver: string,
+  sampleSize: number,
+  reason: string,
+  unsupportedDriver = false
+): AssociationResult {
+  return {
+    driver,
+    pearsonR: null,
+    spearmanRho: null,
+    sampleSize,
+    associationStrength: "none",
+    pValue: null,
+    isStatisticallySignificant: false,
+    alpha: DEFAULT_DRIVER_CONFIG.significanceAlpha,
+    insufficientData: true,
+    unsupportedDriver,
+    reason,
+  };
+}
+
+/**
+ * Correlate a driver's movement series against a KPI's movement series.
+ *
+ * @param metric  KPI id (revenue, orders, aov, conversion, marketingROI)
+ * @param driver  driver id resolvable by `getDriverHistory`
+ */
 export async function calculateAssociation(
   metric: string,
   driver: string,
   period: string,
-  filters?: { region?: string; product?: string; channel?: string }
+  filters?: DriverFilters,
+  config: DriverConfig = DEFAULT_DRIVER_CONFIG
 ): Promise<AssociationResult> {
-  const { getKPIHistoryBatched } = await import("../kpi");
-  const config = DEFAULT_DRIVER_CONFIG;
-  
-  const normalizedMetric = metric.toLowerCase();
-  const months = await getMonthsForPeriod(period, 12);
-  
-  const [metricHistory, driverHistory] = await Promise.all([
-    getKPIHistoryBatched(metric, months, {}),
-    getKPIHistoryBatched(driver, months, {}),
-  ]);
-  
-  const metricMap = new Map(metricHistory.map(h => [h.period, h.value]));
-  const driverMap = new Map(driverHistory.map(h => [h.period, h.value]));
-  
-  const commonPeriods = metricHistory
-    .filter(h => driverMap.has(h.period))
-    .map(h => h.period);
-  
-  if (commonPeriods.length < config.minimumCorrelationSamples) {
-    return {
+  const normalizedMetric = normalizeMetric(metric);
+
+  if (!isDriverHistorySupported(driver)) {
+    return insufficient(
       driver,
-      pearsonR: null,
-      spearmanRho: null,
-      sampleSize: commonPeriods.length,
-      associationStrength: "none",
-      insufficientData: true,
-    };
+      0,
+      UNSUPPORTED_DRIVERS[driver] ?? `No history resolver is defined for driver "${driver}".`,
+      true
+    );
   }
-  
-  const x = commonPeriods.map(p => metricMap.get(p)!);
-  const y = commonPeriods.map(p => driverMap.get(p)!);
-  
+
+  const months = getMonthsForPeriod(period, ASSOCIATION_WINDOW_MONTHS);
+
+  const [metricHistory, driverHistory] = await Promise.all([
+    getDriverHistory(normalizedMetric, months, filters),
+    getDriverHistory(driver, months, filters),
+  ]);
+
+  const metricMovement = toMovementSeries(metricHistory.periods);
+  const driverMovement = toMovementSeries(driverHistory.periods);
+  const { x, y } = alignMovementSeries(metricMovement, driverMovement);
+
+  const n = x.length;
+  if (n < config.minimumCorrelationSamples) {
+    return insufficient(
+      driver,
+      n,
+      `Only ${n} paired movement observations available; ${config.minimumCorrelationSamples} required.`
+    );
+  }
+
   const pearsonR = pearsonCorrelation(x, y);
   const spearmanRho = spearmanCorrelation(x, y);
-  
+
+  // A constant movement series (zero variance) leaves correlation undefined.
+  if (pearsonR === null) {
+    return insufficient(
+      driver,
+      n,
+      "Correlation is undefined: one of the movement series has zero variance."
+    );
+  }
+
+  const pValue = correlationPValue(pearsonR, n);
+  const alpha = config.significanceAlpha;
+
   return {
     driver,
     pearsonR,
     spearmanRho,
-    sampleSize: commonPeriods.length,
-    associationStrength: getAssociationStrength(Math.max(Math.abs(pearsonR), Math.abs(spearmanRho))),
+    sampleSize: n,
+    associationStrength: getAssociationStrength(pearsonR, config.correlationThresholds),
+    pValue,
+    isStatisticallySignificant: pValue !== null && pValue <= alpha,
+    alpha,
+    insufficientData: false,
   };
 }
 
+/**
+ * Associations for every driver of `metric`.
+ * Unlike the previous version, drivers are NOT filtered down to those that
+ * happen to be KPI metrics -- that filter is what hid most drivers from the
+ * statistical layer entirely.
+ */
 export async function calculateAllAssociations(
   metric: string,
   period: string,
-  filters?: { region?: string; product?: string; channel?: string }
+  filters?: DriverFilters,
+  config: DriverConfig = DEFAULT_DRIVER_CONFIG
 ): Promise<AssociationResult[]> {
-  const kpiDef = getKPIDefinition(metric);
-  
+  const normalizedMetric = normalizeMetric(metric);
+  const kpiDef = getKPIDefinition(normalizedMetric);
   if (!kpiDef) throw new Error(`Unknown metric: ${metric}`);
-  
-  const allDrivers = getDriversForKPI(kpiDef.name);
-  const drivers = allDrivers.filter(d => isValidKPIMetric(d.id));
-  const results: AssociationResult[] = [];
-  
-  for (const driver of drivers) {
-    try {
-      const result = await calculateAssociation(kpiDef.name, driver.id, period, filters);
-      results.push(result);
-    } catch {
-      results.push({
-        driver: driver.id,
-        pearsonR: 0,
-        spearmanRho: 0,
-        sampleSize: 0,
-        associationStrength: "none",
-      });
-    }
-  }
-  
-  return results;
+
+  const drivers = getDriversForKPI(kpiDef.name);
+
+  return Promise.all(
+    drivers.map(async (d) => {
+      try {
+        return await calculateAssociation(kpiDef.name, d.id, period, filters, config);
+      } catch (error) {
+        return insufficient(
+          d.id,
+          0,
+          `Association could not be computed: ${error instanceof Error ? error.message : String(error)}`
+        );
+      }
+    })
+  );
 }
 
-async function getMonthsForPeriod(endPeriod: string, monthsBack: number): Promise<string[]> {
-  const months: string[] = [];
-  const [year, month] = endPeriod.split("-").map(Number);
-  const date = new Date(year, month - 1, 1);
-  
-  for (let i = monthsBack - 1; i >= 0; i--) {
-    const d = new Date(date);
-    d.setMonth(d.getMonth() - i);
-    months.push(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`);
-  }
-  return months;
-}
+export { getMonthsForPeriod };

@@ -64,6 +64,7 @@ export async function runMigrations(): Promise<void> {
     CREATE INDEX IF NOT EXISTS idx_sales_region ON sales_transactions(region_id);
     CREATE INDEX IF NOT EXISTS idx_sales_product ON sales_transactions(product_id);
     CREATE INDEX IF NOT EXISTS idx_sales_order ON sales_transactions(order_id);
+    CREATE INDEX IF NOT EXISTS idx_sales_date_region_product ON sales_transactions(transaction_date, region_id, product_id);
 
     -- Marketing daily (grain: daily)
     CREATE TABLE IF NOT EXISTS marketing_daily (
@@ -71,6 +72,8 @@ export async function runMigrations(): Promise<void> {
       date TEXT NOT NULL,
       region_id INTEGER NOT NULL,
       product_id INTEGER,
+      channel TEXT NOT NULL,
+      campaign TEXT NOT NULL,
       sessions INTEGER NOT NULL,
       conversions INTEGER NOT NULL,
       marketing_spend INTEGER NOT NULL,
@@ -81,6 +84,10 @@ export async function runMigrations(): Promise<void> {
 
     CREATE INDEX IF NOT EXISTS idx_marketing_date ON marketing_daily(date);
     CREATE INDEX IF NOT EXISTS idx_marketing_region ON marketing_daily(region_id);
+    CREATE INDEX IF NOT EXISTS idx_marketing_product ON marketing_daily(product_id);
+    CREATE INDEX IF NOT EXISTS idx_marketing_channel ON marketing_daily(channel);
+    CREATE INDEX IF NOT EXISTS idx_marketing_campaign ON marketing_daily(campaign);
+    CREATE INDEX IF NOT EXISTS idx_marketing_date_region ON marketing_daily(date, region_id);
 
     -- Operations daily (grain: daily)
     CREATE TABLE IF NOT EXISTS operations_daily (
@@ -98,6 +105,7 @@ export async function runMigrations(): Promise<void> {
     CREATE INDEX IF NOT EXISTS idx_ops_date ON operations_daily(date);
     CREATE INDEX IF NOT EXISTS idx_ops_region ON operations_daily(region_id);
     CREATE INDEX IF NOT EXISTS idx_ops_product ON operations_daily(product_id);
+    CREATE INDEX IF NOT EXISTS idx_ops_date_region_product ON operations_daily(date, region_id, product_id);
 
     -- Decisions (existing)
     CREATE TABLE IF NOT EXISTS decisions (

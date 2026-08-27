@@ -1,6 +1,8 @@
 export interface DriverConfig {
   minimumCorrelationSamples: number;
   minHistoryPeriods: number;
+  /** Significance level for correlation tests. p <= alpha => statistically significant. */
+  significanceAlpha: number;
   correlationThresholds: {
     none: number;
     weak: number;
@@ -13,12 +15,37 @@ export interface DriverConfig {
     major: number;
   };
   temporalAlignment: {
+    /** Most negative lag tested. Negative lag = driver FOLLOWS the KPI. */
+    minLagMonths: number;
+    /** Most positive lag tested. Positive lag = driver LEADS the KPI. */
     maxLagMonths: number;
     alignmentThreshold: number;
+    /** Minimum paired observations required at a given lag for it to be considered. */
+    minObservations: number;
+    /**
+     * Multiplier applied to the temporal score when the driver FOLLOWS the KPI.
+     * A driver that only moves after the KPI cannot explain the KPI movement,
+     * so it must not receive strong temporal support.
+     */
+    lagsPenaltyFactor: number;
+    /** Multiplier when driver and KPI move contemporaneously (no precedence shown). */
+    contemporaneousFactor: number;
   };
   segmentConsistency: {
     minSegmentsForConsistency: number;
     consistencyThreshold: number;
+    /** Relative change below which a segment is treated as "did not move". */
+    materialChangePct: number;
+  };
+  contradiction: {
+    /** Association-based contradictions require at least this many observations. */
+    minSampleSize: number;
+    /** ...and a p-value at or below this. */
+    alpha: number;
+    /** ...and |r| at least this large, so trivial-but-significant effects don't trigger. */
+    minAbsCorrelation: number;
+    /** Fraction of segments that must contradict before a segment-level contradiction is raised. */
+    segmentContradictionThreshold: number;
   };
   hypothesisWeights: {
     contribution: number;
@@ -47,6 +74,7 @@ export interface DriverConfig {
 export const DEFAULT_DRIVER_CONFIG: DriverConfig = {
   minimumCorrelationSamples: 6,
   minHistoryPeriods: 3,
+  significanceAlpha: 0.05,
   correlationThresholds: {
     none: 0.3,
     weak: 0.5,
@@ -59,12 +87,25 @@ export const DEFAULT_DRIVER_CONFIG: DriverConfig = {
     major: 0.3,
   },
   temporalAlignment: {
+    // Task 9: the search must be symmetric. Testing only 0..+3 cannot distinguish
+    // "driver leads KPI" from "driver follows KPI".
+    minLagMonths: -3,
     maxLagMonths: 3,
     alignmentThreshold: 0.5,
+    minObservations: 5,
+    lagsPenaltyFactor: 0.25,
+    contemporaneousFactor: 0.7,
   },
   segmentConsistency: {
     minSegmentsForConsistency: 2,
     consistencyThreshold: 0.7,
+    materialChangePct: 1.0,
+  },
+  contradiction: {
+    minSampleSize: 6,
+    alpha: 0.05,
+    minAbsCorrelation: 0.3,
+    segmentContradictionThreshold: 0.5,
   },
   hypothesisWeights: {
     contribution: 0.30,
@@ -86,6 +127,7 @@ export const DEFAULT_DRIVER_CONFIG: DriverConfig = {
   },
   evidenceAvailabilityWeights: {
     structured: 1.0,
-    unstructured: 0.6,
+    // Stays 0-weighted until Module 4 supplies real retrieved evidence.
+    unstructured: 0.0,
   },
 };

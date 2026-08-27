@@ -1,113 +1,103 @@
-import { generateHypotheses, generateEvidenceRequests } from "./hypothesis";
-import { calculateDriverContributions } from "./contribution";
-import { calculateDimensionContribution } from "./contribution";
-import { calculateAllAssociations } from "./association";
-import { calculateAllSegmentConsistency } from "./segmentation";
-import { detectContradictions } from "./contradiction";
-import { getKPIDefinition, normalizeMetric, getAllKPIMetrics } from "../kpi/definitions";
-import { computeKPI } from "../kpi";
-import type { DriverAnalysis, DriverHypothesis, DimensionContribution, EvidenceRequest } from "./types";
+/**
+ * Module 3 public surface.
+ *
+ * `analyzeDrivers()` and `generateHypotheses()` now share ONE analysis context
+ * (Task 17), so requesting both for the same scope costs a single computation.
+ */
 
-function supportsChannelDimension(metric: string): boolean {
-  const normalizedMetric = normalizeMetric(metric);
-  return ["revenue", "orders", "aov"].includes(normalizedMetric);
-}
+import { buildHypothesesFromContext, generateEvidenceRequests } from "./hypothesis";
+import { getDriverAnalysisContext } from "./context";
+import { normalizeMetric } from "../kpi/definitions";
+import { DEFAULT_DRIVER_CONFIG, type DriverConfig } from "./config";
+import type { DriverAnalysis, EvidenceRequest } from "./types";
+import type { DriverFilters } from "./history";
 
 export async function analyzeDrivers(
   metric: string,
   period: string,
-  filters?: { region?: string; product?: string; channel?: string }
+  filters?: DriverFilters,
+  config: DriverConfig = DEFAULT_DRIVER_CONFIG
 ): Promise<DriverAnalysis> {
   const normalizedMetric = normalizeMetric(metric);
-  const kpiDef = getKPIDefinition(normalizedMetric);
-  if (!kpiDef) {
-    throw new Error(`Unsupported metric: ${metric}`);
-  }
+  const ctx = await getDriverAnalysisContext(normalizedMetric, period, filters ?? {}, config);
 
-  // Get current and previous KPI values to calculate total change
-  const filterOpts = { region: filters?.region, product: filters?.product, channel: filters?.channel };
-  const prevPeriod = getPreviousPeriod(period);
-  
-  const [currentKPI, previousKPI] = await Promise.all([
-    computeKPI(normalizedMetric, period, filterOpts),
-    computeKPI(normalizedMetric, prevPeriod, filterOpts),
-  ]);
-
-  const totalChange = currentKPI.value - previousKPI.value;
-  const totalChangePct = previousKPI.value !== 0 ? ((currentKPI.value - previousKPI.value) / previousKPI.value) * 100 : 0;
-
-  const channelSupported = supportsChannelDimension(normalizedMetric);
-  const dimensionPromises = [
-    calculateDimensionContribution(normalizedMetric, period, "region" as const, filters),
-    calculateDimensionContribution(normalizedMetric, period, "product" as const, filters),
-  ];
-  
-  if (channelSupported) {
-    dimensionPromises.push(calculateDimensionContribution(normalizedMetric, period, "channel" as const, filters));
-  }
-
-  const [
-    contributions,
-    dimensionContribs,
-    associations,
-    segmentConsistency,
-    contradictions,
-  ] = await Promise.all([
-    calculateDriverContributions(normalizedMetric, period, filters),
-    Promise.all(dimensionPromises),
-    calculateAllAssociations(normalizedMetric, period, filters),
-    calculateAllSegmentConsistency(normalizedMetric, period, "region" as const, filters ?? {}),
-    detectContradictions(normalizedMetric, period, filters),
-  ]);
-
-  const flatDimensions = dimensionContribs.flat();
-  const hypotheses = await generateHypotheses(metric, period, filters);
+  // Same context -> no recomputation of associations/segments/contradictions.
+  const hypotheses = buildHypothesesFromContext(ctx);
 
   const evidenceRequests: EvidenceRequest[] = [];
   for (const hypothesis of hypotheses) {
     if (hypothesis.status !== "insufficient_data") {
-      const requests = generateEvidenceRequests(hypothesis.driver, metric, period, filters);
-      evidenceRequests.push(...requests);
+      evidenceRequests.push(
+        ...generateEvidenceRequests(hypothesis.driver, normalizedMetric, period, filters)
+      );
     }
   }
 
-  const totalConfidence = hypotheses.length > 0
-    ? hypotheses.reduce((sum, h) => sum + h.confidence, 0) / hypotheses.length
-    : 0;
+  const scored = hypotheses.filter((h) => h.status !== "insufficient_data");
+  const confidence =
+    scored.length > 0 ? scored.reduce((sum, h) => sum + h.confidence, 0) / scored.length : 0;
 
   return {
     metric: normalizedMetric,
     period,
-    totalChange,
-    totalChangePct,
-    dimensions: flatDimensions,
+    totalChange: ctx.totalChange,
+    totalChangePct: ctx.totalChangePct,
+    dimensions: ctx.dimensions,
+    contributions: ctx.contributions,
     drivers: hypotheses,
     alternatives: hypotheses.slice(1, 4),
-    contradictions,
+    contradictions: ctx.contradictions,
     evidenceRequests,
-    confidence: totalConfidence,
+    confidence,
+    unsupportedDrivers: ctx.unsupportedDrivers,
+    segmentationDimension: ctx.segmentationDimension,
   };
 }
 
-function getPreviousPeriod(period: string): string {
-  const [year, month] = period.split("-").map(Number);
-  const date = new Date(year, month - 2, 1);
-  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
-}
+export type {
+  DriverAnalysis,
+  DriverHypothesis,
+  DimensionContribution,
+  DriverContribution,
+  EvidenceRequest,
+  AssociationResult,
+  TemporalAlignment,
+  SegmentConsistency,
+  Contradiction,
+} from "./types";
 
-async function getDriverAnalysis(
-  metric: string,
-  period: string,
-  filters?: { region?: string; product?: string; channel?: string }
-): Promise<DriverAnalysis> {
-  return analyzeDrivers(metric, period, filters);
-}
-
-export type { DriverAnalysis, DriverHypothesis, DimensionContribution, EvidenceRequest } from "./types";
-export { getDriverDefinition, getDriversForKPI } from "./definitions";
-export { calculateDriverContributions, calculateDimensionContribution } from "./contribution";
+export { getDriverDefinition, getDriversForKPI, getAllDriverIds, DRIVER_DEFINITIONS } from "./definitions";
+export {
+  calculateDriverContributions,
+  calculateDimensionContribution,
+  calculateRevenueDecomposition,
+  calculateProductMixDecomposition,
+  shapleyTwoFactorChange,
+  contributionShares,
+} from "./contribution";
 export { calculateAssociation, calculateAllAssociations } from "./association";
-export { calculateTemporalAlignment } from "./temporal";
-export { calculateSegmentConsistency, calculateCounterSegmentComparison } from "./segmentation";
-export { detectContradictions } from "./contradiction";
-export { generateHypotheses, generateEvidenceRequests } from "./hypothesis";
+export { calculateTemporalAlignment, calculateAllTemporalAlignments } from "./temporal";
+export { calculateSegmentConsistency, calculateCounterSegmentComparison, calculateAllSegmentConsistency } from "./segmentation";
+export { detectContradictions, deriveContradictions } from "./contradiction";
+export {
+  generateHypotheses,
+  generateEvidenceRequests,
+  buildHypothesesFromContext,
+  calculateCausalPlausibility,
+  calculateEvidenceAvailability,
+} from "./hypothesis";
+export { getDriverAnalysisContext, type DriverAnalysisContext } from "./context";
+export {
+  getDriverHistory,
+  getDriverBreakdown,
+  getMonthsForPeriod,
+  isDriverHistorySupported,
+  driverSupportsDimension,
+  getSupportedDriverIds,
+  getDriverHistoryFormula,
+  UNSUPPORTED_DRIVERS,
+  type DriverFilters,
+  type DriverHistory,
+} from "./history";
+export { driverCache, makeDriverCacheKey, DRIVER_CACHE_TTL_MS } from "./cache";
+export { DEFAULT_DRIVER_CONFIG, type DriverConfig } from "./config";
