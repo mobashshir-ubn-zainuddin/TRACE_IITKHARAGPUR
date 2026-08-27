@@ -5211,7 +5211,529 @@ That separation should be preserved throughout the entire project.
 Module 1 establishes truth → Module 2 establishes signal → Module 3 establishes candidate explanations → Module 4 establishes evidence.
 
 
+1. What is already implemented
 
+Your current Module 3 has essentially all major components:
+
+Module 3 capability	Status
+Driver definitions	✅
+Revenue → Orders/AOV decomposition	✅
+AOV mathematical decomposition	✅
+Dimension contribution	✅
+Pearson correlation	✅
+Spearman correlation	✅
+Temporal alignment	⚠️ Partial
+Segment consistency	⚠️ Partial
+Contradiction detection	⚠️ Partial
+Hypothesis generation	✅
+Hypothesis ranking	⚠️ Needs correction
+Confidence score	⚠️ Needs correction
+Evidence requests	⚠️ Skeleton only
+Alternative hypotheses	✅
+Abstention / insufficient data	✅
+API /api/drivers	✅
+API /api/hypotheses	✅
+Dashboard integration	✅
+Build	✅
+Ground-truth validation	❌
+Performance optimization	❌
+
+The repository architecture itself matches the intended pipeline: contribution → correlations → hypotheses, which is exactly what the implementation plan calls the Driver/Investigation Engine.
+
+2. The biggest issue: some "implemented" calculations aren't actually valid yet
+
+This is the part I would fix before adding more UI.
+
+A. Revenue decomposition is inconsistent
+
+You currently have a proper Shapley helper:
+
+shapleyTwoFactorChange()
+
+and calculateRevenueDecomposition() correctly uses it.
+
+But calculateDriverContributions() uses a different sequential decomposition:
+
+ordersContribution = ΔOrders × previous AOV
+aovContribution = ΔAOV × previous Orders
+interaction = remaining change
+
+So the same revenue problem has two different decomposition methodologies in the code.
+
+Your uploaded contribution.ts shows exactly this inconsistency.
+
+Fix
+
+Use the same Shapley allocation everywhere:
+
+For:
+
+$$ R = O \times A $$
+
+where:
+
+\(R\) = Revenue
+\(O\) = Orders
+\(A\) = AOV
+
+then:
+
+$$ \phi_O = \frac{1}{2} [(O_1A_0-O_0A_0)+(O_1A_1-O_0A_1)] $$ $$ \phi_A = \frac{1}{2} [(O_0A_1-O_0A_0)+(O_1A_1-O_1A_0)] $$
+
+and:
+
+$$ \Delta R = \phi_O+\phi_A $$
+
+No residual should be necessary.
+
+Shapley attribution is specifically useful here because the contributions sum exactly to the total change rather than depending on the arbitrary order in which factors are decomposed.
+
+Important: don't call the interaction "0 = no interaction". It means the interaction has been allocated between Orders and AOV by the chosen Shapley convention.
+
+3. Dimension contribution has a UI/math interpretation problem
+
+Your screenshots show things such as:
+
+North 101.1%
+West -10.0%
+
+That is not necessarily mathematically wrong.
+
+It is a signed contribution to net change, not a "share of total impact".
+
+For example:
+
+$$ Contribution_i = \frac{\Delta KPI_i}{\Delta KPI_{total}}\times100 $$
+
+can absolutely produce:
+
+101%
+-10%
+120%
+-20%
+
+because positive and negative segments offset each other.
+
+You already have both:
+
+signedContributionPct
+magnitudeContributionPct
+
+in the type definition.
+
+The UI should therefore show two different concepts:
+
+Signed contribution
+
+North: +101.1% of net change
+
+and
+
+Magnitude share
+
+North: 86.9% of absolute movement
+
+Do not display 101.1% as though it means "North represents 101.1% of the decline."
+
+4. Major problem: most drivers cannot currently be statistically tested
+
+This is probably the most important backend issue.
+
+Your association.ts does:
+
+getKPIHistoryBatched(driver)
+
+But getKPIHistoryBatched() only understands actual KPI metrics such as:
+
+revenue
+orders
+AOV
+conversion
+marketingROI
+
+Your driver definitions contain things like:
+
+price
+discount
+productMix
+refunds
+availability
+stockouts
+traffic
+marketing
+attributed_revenue
+marketing_spend
+
+Those are not KPI IDs.
+
+So the association engine catches the failure and returns:
+
+pearsonR = 0
+sampleSize = 0
+associationStrength = none
+
+Your code explicitly does this fallback.
+
+This explains many of the screenshots showing:
+
+Association: 0.00
+Temporal: 0%
+Segment: 0%
+
+for potentially meaningful drivers.
+
+This needs to change.
+
+You need a:
+
+Driver History Resolver
+
+that knows how to calculate the historical time series for every driver definition.
+
+For example:
+
+Driver	Historical formula
+Orders	COUNT(DISTINCT order_id)
+AOV	SUM(net_revenue)/COUNT(DISTINCT order_id)
+Price	SUM(gross_revenue)/SUM(quantity)
+Discount	SUM(discount)/SUM(gross_revenue)
+Refunds	SUM(refund)/SUM(gross_revenue)
+Conversion	SUM(conversions)/SUM(sessions)
+Traffic	SUM(sessions)
+Stockouts	AVG(stockout_rate)
+Availability	AVG(1-stockout_rate)
+Marketing Spend	SUM(marketing_spend)
+Attributed Revenue	SUM(attributed_revenue)
+5. There is also a driver-definition problem
+
+Your driver definitions currently say:
+
+Price:
+SUM(net_revenue) / SUM(quantity)
+
+That is not really price.
+
+Because net_revenue already contains discount effects.
+
+A better price definition is:
+
+$$ Price = \frac{\sum GrossRevenue} {\sum Quantity} $$
+
+or equivalently, if gross_revenue = unit_price × quantity:
+
+$$ Price = \frac{\sum(unitPrice_i \times quantity_i)} {\sum quantity_i} $$
+
+Your current definition is visible in definitions.ts.
+
+This matters because otherwise the system can double-count discounting as price movement.
+
+6. Product Mix needs a real mathematical definition
+
+This one is currently only a label:
+
+"Shift in product category proportions affecting AOV"
+
+That's not enough for statistical testing.
+
+For AOV:
+
+$$ AOV = \sum_i s_i p_i $$
+
+where:
+
+$$ s_i = \frac{Orders_i}{Orders_{total}} $$
+
+and
+
+$$ p_i = \frac{Revenue_i}{Orders_i} $$
+
+Then AOV change can be decomposed into:
+
+Product-mix effect
+$$ \phi_{mix} = \frac{1}{2} \left[ \sum_i(s_{i1}-s_{i0})p_{i0} + \sum_i(s_{i1}-s_{i0})p_{i1} \right] $$
+Within-product price/AOV effect
+$$ \phi_{within} = \frac{1}{2} \left[ \sum_i s_{i0}(p_{i1}-p_{i0}) + \sum_i s_{i1}(p_{i1}-p_{i0}) \right] $$
+
+and:
+
+$$ \Delta AOV = \phi_{mix}+\phi_{within} $$
+
+That gives you a real quantitative product-mix driver, instead of simply declaring it a candidate.
+
+7. Temporal alignment is only partially correct
+
+Your current temporal engine searches:
+
+lag = 0 → 3 months
+
+and picks the maximum absolute correlation.
+
+The problem is that:
+
+high correlation at lag 0
+
+doesn't establish that the driver preceded the KPI.
+
+You need a signed lag interpretation.
+
+Define:
+
+$$ r_L = Corr(\Delta Driver_{t-L}, \Delta KPI_t) $$
+
+where:
+
+\(L>0\): driver leads KPI
+\(L=0\): contemporaneous
+\(L<0\): driver lags KPI
+
+For example:
+
+Stockouts ↑
+    ↓ one month
+Orders ↓
+
+should receive stronger temporal support than:
+
+Orders ↓
+    ↓ one month
+Stockouts ↑
+
+The second pattern should actually be treated as contradictory to the proposed causal direction.
+
+8. Correlation should use changes, not raw KPI levels
+
+Currently the association code correlates the historical KPI levels directly:
+
+Revenue:
+10M
+10.2M
+10.5M
+10.8M
+...
+
+Driver:
+5
+5.2
+5.5
+5.7
+...
+
+That can produce high correlation simply because both series trend upward.
+
+For this application, use:
+
+$$ \Delta\%X_t = \frac{X_t-X_{t-1}}{X_{t-1}} $$
+
+or log changes:
+
+$$ g_t=\ln(X_t)-\ln(X_{t-1}) $$
+
+Then calculate Pearson/Spearman on the movement series.
+
+This makes the result much more relevant to:
+
+"Did the driver move when the KPI moved?"
+
+rather than:
+
+"Do both variables happen to trend over 18 months?"
+
+9. Statistical significance is missing
+
+You already have:
+
+pValue?: number
+
+in AssociationResult, but you don't calculate it.
+
+Add:
+
+$$ t = \frac{r\sqrt{n-2}} {\sqrt{1-r^2}} $$
+
+with:
+
+$$ df=n-2 $$
+
+and calculate the two-tailed p-value from the Student's t distribution.
+
+Then distinguish:
+
+r = -0.82
+p = 0.003
+
+from:
+
+r = -0.82
+p = 0.42
+
+The first is statistically supported association; the second is not.
+
+10. Your hypothesis score has a real bug
+
+This is particularly important.
+
+Current code does:
+
+evidenceRequests.length / 5
+
+to calculate:
+
+evidenceAvailability
+
+But evidenceRequests are generated from:
+
+candidateLevers
+
+So:
+
+more candidate levers → higher "evidence availability"
+
+That is backwards.
+
+Five requested pieces of evidence does not mean five pieces of evidence are actually available.
+
+Your current implementation shows this directly.
+
+Until Module 4 provides real evidence retrieval, this should either be:
+
+structuredEvidenceAvailability
+
+based on actual data coverage,
+
+or:
+
+0
+
+with:
+
+"Unstructured evidence not yet evaluated."
+
+Do not reward a hypothesis merely because you generated more evidence requests.
+
+11. Causal plausibility is also currently arbitrary
+
+Current logic effectively does:
+
+score = 0.5
+
+controllable → +0.1
+candidateLevers > 2 → +0.1
+expectedDirection === negative → +0.1
+
+So a negative driver gets extra causal plausibility simply because it is negative.
+
+That is not defensible.
+
+The current implementation is visible in hypothesis.ts.
+
+Replace this with deterministic domain-rule compatibility:
+
+causalPlausibility =
+  directionConsistency
+  × mechanismAvailability
+  × temporalPrecedence
+
+or, preferably, keep causal plausibility as a separate rule score and don't pretend it is statistically estimated.
+
+12. Your biggest performance problem
+
+This is visible directly in your logs.
+
+You currently have:
+
+/api/hypotheses revenue → 88 seconds
+/api/drivers revenue → 2.2 minutes
+
+That is far too slow for a hackathon demo.
+
+And the reason is visible in the architecture.
+
+analyzeDrivers() calculates:
+
+contributions
+dimensions
+associations
+segment consistency
+contradictions
+
+and then calls:
+
+generateHypotheses()
+
+which calculates many of those things again.
+
+generateHypotheses() itself performs multiple DB-heavy operations for every driver.
+
+So the engine is doing duplicated work.
+
+13. One more important upstream problem
+
+Your marketing_daily schema currently contains:
+
+date
+region_id
+product_id
+sessions
+conversions
+marketing_spend
+attributed_revenue
+
+There is no channel or campaign column.
+
+But your driver definitions claim that marketing/conversion drivers support:
+
+channel
+campaign
+
+and your UI confirms this mismatch:
+
+/api/drivers/breakdown?metric=conversion&dimension=channel → 400
+/api/drivers/breakdown?metric=marketingROI&dimension=channel → 400
+
+This isn't a Module 3 algorithm bug. It is a Module 1 data-model mismatch that prevents Module 3 from fully supporting the intended analysis.
+
+Your data generator also only generates:
+
+region × product
+
+for marketing data, not channel/campaign.
+
+Do not fake channel/campaign results.
+
+Either:
+
+add those dimensions to the marketing schema + generator, or
+explicitly remove channel/campaign from the supported dimensions.
+
+For the hackathon, I recommend adding them, because the specification explicitly wants those dimensions.
+
+14. What I would do next
+
+Do not start Module 4 yet.
+
+Do this sequence:
+
+CURRENT
+   ↓
+Module 3 mathematical/statistical correction
+   ↓
+Driver-history resolver
+   ↓
+Temporal + segment correction
+   ↓
+Hypothesis scoring correction
+   ↓
+Remove duplicated computation
+   ↓
+Performance < 5–10 sec
+   ↓
+Ground-truth evaluation
+   ↓
+UI validation
+   ↓
+Module 3 COMPLETE
+   ↓
+Module 4 Evidence/RAG
 1. Where We Are Right Now
 
 The final system should look like this:
