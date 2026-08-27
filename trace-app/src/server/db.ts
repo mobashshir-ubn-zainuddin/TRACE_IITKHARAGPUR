@@ -18,6 +18,10 @@ export async function getDB(): Promise<Database<sqlite3.Database, sqlite3.Statem
 
 export async function runMigrations(): Promise<void> {
   const db = await getDB();
+  
+  // Drop and recreate marketing_daily to ensure schema is correct
+  await db.exec(`DROP TABLE IF EXISTS marketing_daily;`);
+
   await db.exec(`
     -- Dimensions
     CREATE TABLE IF NOT EXISTS regions (
@@ -164,6 +168,7 @@ export async function runMigrations(): Promise<void> {
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       chunk_id INTEGER NOT NULL,
       embedding TEXT NOT NULL,  -- JSON serialized vector
+      provider TEXT NOT NULL DEFAULT 'unknown',
       model TEXT NOT NULL,
       dimension INTEGER NOT NULL,
       content_hash TEXT NOT NULL,
@@ -172,8 +177,9 @@ export async function runMigrations(): Promise<void> {
     );
 
     CREATE INDEX IF NOT EXISTS idx_embeddings_chunk ON embeddings(chunk_id);
-    CREATE INDEX IF NOT EXISTS idx_embeddings_model ON embeddings(model);
+    CREATE INDEX IF NOT EXISTS idx_embeddings_provider_model ON embeddings(provider, model);
     CREATE INDEX IF NOT EXISTS idx_embeddings_content_hash ON embeddings(content_hash);
+    CREATE UNIQUE INDEX IF NOT EXISTS idx_embeddings_unique ON embeddings(chunk_id, provider, model, dimension);
 
     -- Evidence scores table
     CREATE TABLE IF NOT EXISTS evidence_scores (
