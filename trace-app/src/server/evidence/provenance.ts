@@ -13,6 +13,7 @@
  * No evidence may exist without traceable provenance.
  */
 
+import { createHash } from "crypto";
 import type { EvidenceItem, EvidenceHypothesis, EvidencePackage, Provenance } from "./types";
 export type { Provenance } from "./types";
 
@@ -81,12 +82,7 @@ export function enrichProvenance(item: EvidenceItem): EvidenceItem {
 
 /** Generate content hash for deduplication and integrity */
 export function generateContentHash(content: string): string {
-  let hash = 0;
-  for (let i = 0; i < content.length; i++) {
-    hash = ((hash << 5) - hash) + content.charCodeAt(i);
-    hash = hash & hash;
-  }
-  return `sha256:${Math.abs(hash).toString(16).padStart(16, "0")}`;
+  return createHash("sha256").update(content, "utf8").digest("hex");
 }
 
 /** Create provenance for structured evidence */

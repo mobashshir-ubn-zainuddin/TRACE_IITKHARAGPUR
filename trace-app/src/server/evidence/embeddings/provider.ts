@@ -13,6 +13,8 @@ import { createHash } from "crypto";
 export interface EmbeddingProvider {
   /** Provider name for identification */
   readonly name: string;
+  /** Embedding model name */
+  readonly model: string;
   /** Embedding dimension */
   readonly dimension: number;
   /** Generate embedding for a single text */
@@ -37,14 +39,25 @@ export interface CacheEntry {
   contentHash: string;
   embedding: number[];
   model: string;
+  provider: string;
   dimension: number;
   createdAt: string;
 }
 
+/** Generate canonical SHA-256 content hash */
+export function generateContentHash(content: string): string {
+  return createHash("sha256").update(content, "utf8").digest("hex");
+}
+
 /** Simple deterministic embedding using text hashing (fallback when no model available) */
 export class DeterministicEmbeddingProvider implements EmbeddingProvider {
-  readonly name = "deterministic-hash";
-  readonly dimension = 384;
+  readonly name = "deterministic";
+  readonly model = "deterministic-hash";
+  readonly dimension: number;
+
+  constructor(dimension: number = 768) {
+    this.dimension = dimension;
+  }
 
   private textToVector(text: string, dim: number): number[] {
     // Create a deterministic but distributed vector from text
@@ -148,6 +161,7 @@ export class GeminiEmbeddingProvider implements EmbeddingProvider {
 /** Real local embedding provider using Transformers.js (when available) */
 export class TransformersEmbeddingProvider implements EmbeddingProvider {
   readonly name = "transformers-local";
+  readonly model = "all-MiniLM-L6-v2";
   readonly dimension = 384; // all-MiniLM-L6-v2 dimension
   private pipeline: ((text: string, options: { pooling: string; normalize: boolean }) => Promise<{ data: Float32Array }>) | null = null;
   private initPromise: Promise<void> | null = null;
@@ -178,7 +192,7 @@ export class TransformersEmbeddingProvider implements EmbeddingProvider {
     
     if (!this.pipeline) {
       // Fallback to deterministic
-      const fallback = new DeterministicEmbeddingProvider();
+      const fallback = new DeterministicEmbeddingProvider(this.dimension);
       return fallback.embed(text);
     }
     
@@ -190,7 +204,7 @@ export class TransformersEmbeddingProvider implements EmbeddingProvider {
     await this.initialize();
     
     if (!this.pipeline) {
-      const fallback = new DeterministicEmbeddingProvider();
+      const fallback = new DeterministicEmbeddingProvider(this.dimension);
       return fallback.embedBatch(texts);
     }
     
@@ -215,14 +229,24 @@ export class EmbeddingService {
   private provider: EmbeddingProvider;
   private cache: Map<string, CacheEntry> = new Map();
   private modelName: string;
+  private providerName: string;
   private dimension: number;
+  private initPromise: Promise<void> | null = null;
 
   constructor(provider?: EmbeddingProvider) {
     // Use Gemini if available, otherwise transformers, otherwise deterministic
     this.provider = provider || createDefaultProvider();
-    this.modelName = this.provider.name;
+    this.providerName = this.provider.name;
+    this.modelName = this.provider.model;
     this.dimension = this.provider.dimension;
-    this.loadCache();
+    this.initPromise = this.loadCache();
+  }
+
+  /** Ensure initialization is complete */
+  private async ensureInitialized(): Promise<void> {
+    if (this.initPromise) {
+      await this.initPromise;
+    }
   }
 
   /** Load cache from database */
@@ -230,40 +254,41 @@ export class EmbeddingService {
     try {
       const db = await getDB();
       const rows = await db.all(`
-        SELECT content_hash, embedding, model, dimension, created_at 
+        SELECT content_hash, embedding, model, provider, dimension, created_at 
         FROM embeddings 
-        WHERE model = ? AND dimension = ?
-      `, this.modelName, this.dimension);
+        WHERE provider = ? AND model = ? AND dimension = ?
+      `, this.providerName, this.modelName, this.dimension);
       
       for (const row of rows) {
         this.cache.set(row.content_hash, {
           contentHash: row.content_hash,
           embedding: JSON.parse(row.embedding),
           model: row.model,
+          provider: row.provider,
           dimension: row.dimension,
           createdAt: row.created_at,
         });
       }
-      console.log(`Loaded ${this.cache.size} cached embeddings for ${this.modelName}`);
+      console.log(`Loaded ${this.cache.size} cached embeddings for ${this.providerName}/${this.modelName} (dim=${this.dimension})`);
     } catch (error) {
       console.warn("Could not load embedding cache:", error);
     }
   }
 
-  /** Generate content hash for caching */
-  private contentHash(text: string): string {
-    // Use crypto for proper SHA-256 hash
-    const hash = createHash("sha256").update(text, "utf8").digest("hex");
-    return `${this.modelName}:${this.dimension}:${hash}`;
+  /** Generate cache key with provider/model/dimension separation */
+  private cacheKey(contentHash: string): string {
+    return `${this.providerName}:${this.modelName}:${this.dimension}:${contentHash}`;
   }
 
-  /** Get embedding with caching */
-  async embed(text: string): Promise<{ embedding: number[]; fromCache: boolean; latencyMs: number }> {
+  /** Get embedding for query text (NOT persisted to database) */
+  async embedQuery(text: string): Promise<{ embedding: number[]; fromCache: boolean; latencyMs: number; fallbackUsed?: boolean }> {
+    await this.ensureInitialized();
     const startTime = Date.now();
-    const hash = this.contentHash(text);
+    const contentHash = generateContentHash(text);
+    const cacheKey = this.cacheKey(contentHash);
     
     // Check memory cache
-    const cached = this.cache.get(hash);
+    const cached = this.cache.get(cacheKey);
     if (cached) {
       return {
         embedding: cached.embedding,
@@ -272,40 +297,104 @@ export class EmbeddingService {
       };
     }
     
-    // Generate embedding
-    const embedding = await this.provider.embed(text);
+    // Generate embedding with fallback on provider failure
+    let embedding: number[];
+    let fallbackUsed = false;
+    try {
+      embedding = await this.provider.embed(text);
+    } catch (error) {
+      console.warn(`Embedding provider ${this.provider.name} failed, falling back to deterministic:`, error);
+      const fallback = new DeterministicEmbeddingProvider(this.dimension);
+      embedding = await fallback.embed(text);
+      fallbackUsed = true;
+    }
     
     // Validate dimension
     if (embedding.length !== this.dimension) {
       throw new Error(`Embedding dimension mismatch: expected ${this.dimension}, got ${embedding.length}`);
     }
     
-    // Store in memory cache
-    this.cache.set(hash, {
-      contentHash: hash,
+    // Store in memory cache with provider-specific key
+    this.cache.set(cacheKey, {
+      contentHash,
       embedding,
-      model: this.modelName,
+      model: fallbackUsed ? "deterministic-hash" : this.modelName,
+      provider: fallbackUsed ? "deterministic" : this.providerName,
       dimension: this.dimension,
       createdAt: new Date().toISOString(),
     });
     
-    // Persist to database (async, don't await)
-    this.persistEmbedding(hash, embedding).catch(console.error);
-    
-    return { embedding, fromCache: false, latencyMs: Date.now() - startTime };
+    // Query embeddings are NOT persisted to database
+    return { embedding, fromCache: false, latencyMs: Date.now() - startTime, fallbackUsed };
   }
 
-  /** Batch embed with caching */
-  async embedBatch(texts: string[]): Promise<{ embeddings: number[][]; fromCache: boolean[]; latencyMs: number }> {
+  /** Get embedding for document chunk (persisted to database) */
+  async embedChunk(chunkId: number, text: string): Promise<{ embedding: number[]; fromCache: boolean; latencyMs: number; fallbackUsed?: boolean }> {
+    await this.ensureInitialized();
     const startTime = Date.now();
-    const hashes = texts.map(t => this.contentHash(t));
+    const contentHash = generateContentHash(text);
+    const cacheKey = this.cacheKey(contentHash);
+    
+    // Check memory cache
+    const cached = this.cache.get(cacheKey);
+    if (cached) {
+      return {
+        embedding: cached.embedding,
+        fromCache: true,
+        latencyMs: Date.now() - startTime,
+      };
+    }
+    
+    // Generate embedding with fallback on provider failure
+    let embedding: number[];
+    let fallbackUsed = false;
+    try {
+      embedding = await this.provider.embed(text);
+    } catch (error) {
+      console.warn(`Embedding provider ${this.provider.name} failed, falling back to deterministic:`, error);
+      const fallback = new DeterministicEmbeddingProvider(this.dimension);
+      embedding = await fallback.embed(text);
+      fallbackUsed = true;
+    }
+    
+    // Validate dimension
+    if (embedding.length !== this.dimension) {
+      throw new Error(`Embedding dimension mismatch: expected ${this.dimension}, got ${embedding.length}`);
+    }
+    
+    const modelName = fallbackUsed ? "deterministic-hash" : this.modelName;
+    const providerName = fallbackUsed ? "deterministic" : this.providerName;
+    
+    // Store in memory cache
+    this.cache.set(cacheKey, {
+      contentHash,
+      embedding,
+      model: modelName,
+      provider: providerName,
+      dimension: this.dimension,
+      createdAt: new Date().toISOString(),
+    });
+    
+    // Persist to database with actual chunk_id
+    this.persistEmbedding(chunkId, contentHash, embedding, modelName, providerName).catch(console.error);
+    
+    return { embedding, fromCache: false, latencyMs: Date.now() - startTime, fallbackUsed };
+  }
+
+  /** Batch embed for query texts (NOT persisted) */
+  async embedQueryBatch(texts: string[]): Promise<{ embeddings: number[][]; fromCache: boolean[]; latencyMs: number; fallbackUsed?: boolean }> {
+    await this.ensureInitialized();
+    const startTime = Date.now();
+    const hashes = texts.map(t => generateContentHash(t));
+    const cacheKeys = hashes.map(h => this.cacheKey(h));
     const results: number[][] = [];
     const fromCache: boolean[] = [];
     const toGenerate: { index: number; text: string }[] = [];
+    let fallbackUsed = false;
     
     // Check cache for all
     for (let i = 0; i < texts.length; i++) {
-      const cached = this.cache.get(hashes[i]);
+      const cached = this.cache.get(cacheKeys[i]);
       if (cached) {
         results[i] = cached.embedding;
         fromCache[i] = true;
@@ -317,20 +406,28 @@ export class EmbeddingService {
     
     // Generate missing embeddings
     if (toGenerate.length > 0) {
-      const generated = await this.provider.embedBatch(toGenerate.map(t => t.text));
+      let generated: number[][];
+      try {
+        generated = await this.provider.embedBatch(toGenerate.map(t => t.text));
+      } catch (error) {
+        console.warn(`Embedding provider ${this.provider.name} failed, falling back to deterministic:`, error);
+        const fallback = new DeterministicEmbeddingProvider(this.dimension);
+        generated = await fallback.embedBatch(toGenerate.map(t => t.text));
+        fallbackUsed = true;
+      }
       for (let j = 0; j < toGenerate.length; j++) {
         const { index } = toGenerate[j];
         results[index] = generated[j];
         const hash = hashes[index];
-        this.cache.set(hash, {
+        const cacheKey = this.cacheKey(hash);
+        this.cache.set(cacheKey, {
           contentHash: hash,
           embedding: generated[j],
-          model: this.modelName,
+          model: fallbackUsed ? "deterministic-hash" : this.modelName,
+          provider: fallbackUsed ? "deterministic" : this.providerName,
           dimension: this.dimension,
           createdAt: new Date().toISOString(),
         });
-        // Persist async
-        this.persistEmbedding(hash, generated[j]).catch(console.error);
       }
     }
     
@@ -338,22 +435,91 @@ export class EmbeddingService {
       embeddings: results,
       fromCache,
       latencyMs: Date.now() - startTime,
+      fallbackUsed,
     };
   }
 
-  /** Persist embedding to database */
-  private async persistEmbedding(contentHash: string, embedding: number[]): Promise<void> {
+  /** Batch embed for document chunks (persisted) */
+  async embedChunkBatch(chunkIds: number[], texts: string[]): Promise<{ embeddings: number[][]; fromCache: boolean[]; latencyMs: number; fallbackUsed?: boolean }> {
+    await this.ensureInitialized();
+    const startTime = Date.now();
+    const hashes = texts.map(t => generateContentHash(t));
+    const cacheKeys = hashes.map(h => this.cacheKey(h));
+    const results: number[][] = [];
+    const fromCache: boolean[] = [];
+    const toGenerate: { index: number; chunkId: number; text: string }[] = [];
+    let fallbackUsed = false;
+    
+    // Check cache for all
+    for (let i = 0; i < texts.length; i++) {
+      const cached = this.cache.get(cacheKeys[i]);
+      if (cached) {
+        results[i] = cached.embedding;
+        fromCache[i] = true;
+      } else {
+        toGenerate.push({ index: i, chunkId: chunkIds[i], text: texts[i] });
+        fromCache[i] = false;
+      }
+    }
+    
+    // Generate missing embeddings
+    if (toGenerate.length > 0) {
+      let generated: number[][];
+      try {
+        generated = await this.provider.embedBatch(toGenerate.map(t => t.text));
+      } catch (error) {
+        console.warn(`Embedding provider ${this.provider.name} failed, falling back to deterministic:`, error);
+        const fallback = new DeterministicEmbeddingProvider(this.dimension);
+        generated = await fallback.embedBatch(toGenerate.map(t => t.text));
+        fallbackUsed = true;
+      }
+      const modelName = fallbackUsed ? "deterministic-hash" : this.modelName;
+      const providerName = fallbackUsed ? "deterministic" : this.providerName;
+      for (let j = 0; j < toGenerate.length; j++) {
+        const { index, chunkId } = toGenerate[j];
+        results[index] = generated[j];
+        const hash = hashes[index];
+        const cacheKey = this.cacheKey(hash);
+        this.cache.set(cacheKey, {
+          contentHash: hash,
+          embedding: generated[j],
+          model: modelName,
+          provider: providerName,
+          dimension: this.dimension,
+          createdAt: new Date().toISOString(),
+        });
+        // Persist async with actual chunk_id
+        this.persistEmbedding(chunkId, hash, generated[j], modelName, providerName).catch(console.error);
+      }
+    }
+    
+    return {
+      embeddings: results,
+      fromCache,
+      latencyMs: Date.now() - startTime,
+      fallbackUsed,
+    };
+  }
+
+  /** Persist embedding to database with proper chunk_id */
+  private async persistEmbedding(chunkId: number, contentHash: string, embedding: number[], model: string, provider: string): Promise<void> {
     const db = await getDB();
+    // Use UPSERT with unique constraint on (chunk_id, provider, model, dimension)
     await db.run(`
-      INSERT OR REPLACE INTO embeddings (chunk_id, embedding, model, dimension, content_hash, created_at)
-      VALUES (?, ?, ?, ?, ?, datetime('now'))
-    `, 0, JSON.stringify(embedding), this.modelName, this.dimension, contentHash);
+      INSERT INTO embeddings (chunk_id, embedding, provider, model, dimension, content_hash, created_at)
+      VALUES (?, ?, ?, ?, ?, ?, datetime('now'))
+      ON CONFLICT(chunk_id, provider, model, dimension) DO UPDATE SET
+        embedding = excluded.embedding,
+        content_hash = excluded.content_hash,
+        created_at = excluded.created_at
+    `, chunkId, JSON.stringify(embedding), provider, model, this.dimension, contentHash);
   }
 
   /** Get cache statistics */
-  getCacheStats(): { size: number; model: string; dimension: number } {
+  getCacheStats(): { size: number; provider: string; model: string; dimension: number } {
     return {
       size: this.cache.size,
+      provider: this.providerName,
       model: this.modelName,
       dimension: this.dimension,
     };
@@ -389,7 +555,7 @@ export function createDefaultProvider(): EmbeddingProvider {
     case "gemini":
       if (!process.env.GEMINI_API_KEY) {
         console.warn("GEMINI_API_KEY not set, falling back to deterministic provider");
-        return new DeterministicEmbeddingProvider();
+        return new DeterministicEmbeddingProvider(768);
       }
       const dimension = parseInt(process.env.GEMINI_EMBEDDING_DIMENSION || "768", 10);
       return new GeminiEmbeddingProvider({ apiKey: process.env.GEMINI_API_KEY!, dimension });
@@ -398,6 +564,9 @@ export function createDefaultProvider(): EmbeddingProvider {
       return new TransformersEmbeddingProvider();
     
     default:
-      return new DeterministicEmbeddingProvider();
+      return new DeterministicEmbeddingProvider(768);
   }
 }
+
+export { EmbeddingProvider, DeterministicEmbeddingProvider, TransformersEmbeddingProvider, GeminiEmbeddingProvider, EmbeddingService, getEmbeddingService, resetEmbeddingService, createDefaultProvider };
+export type { CacheEntry, EmbeddingProviderConfig, EmbeddingProviderType };
