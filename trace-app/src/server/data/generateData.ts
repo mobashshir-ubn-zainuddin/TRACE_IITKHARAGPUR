@@ -86,6 +86,25 @@ async function main() {
   const channels = ["Online", "Retail", "Partner"];
   let orderCounter = 10000;
 
+  // Marketing channel/campaign taxonomy.
+  // Sessions and spend are SPLIT across these combos (weights sum to 1.0 per level)
+  // so that region/product-level marketing aggregates stay comparable to the
+  // pre-channel dataset instead of being multiplied by the number of channels.
+  const marketingMix: Array<{ channel: string; channelWeight: number; campaigns: Array<{ name: string; weight: number }> }> = [
+    { channel: "Online", channelWeight: 0.5, campaigns: [
+      { name: "Search_Brand", weight: 0.6 },
+      { name: "Social_Prospecting", weight: 0.4 },
+    ] },
+    { channel: "Retail", channelWeight: 0.3, campaigns: [
+      { name: "InStore_Promo", weight: 0.6 },
+      { name: "Local_Awareness", weight: 0.4 },
+    ] },
+    { channel: "Partner", channelWeight: 0.2, campaigns: [
+      { name: "Affiliate_Network", weight: 0.6 },
+      { name: "Marketplace_Ads", weight: 0.4 },
+    ] },
+  ];
+
   const baseParams: Record<number, Record<number, { baseOrders: number; basePrice: number; seasonality: number }>> = {};
   for (const region of regions) {
     baseParams[region.id] = {};
@@ -98,7 +117,7 @@ async function main() {
   }
 
   const salesBatch: Array<[string, string, number, number, string, number, number, number, number]> = [];
-  const marketingBatch: Array<[string, number, number, number, number, number, number]> = [];
+  const marketingBatch: Array<[string, number, number, string, string, number, number, number, number]> = [];
   const opsBatch: Array<[string, number, number, number, number, number]> = [];
 
   for (const month of months) {
@@ -142,16 +161,33 @@ async function main() {
           const dateStr = `${month}-${day.toString().padStart(2, "0")}`;
           const baseSessions = randomInt(500, 2000);
           const baseConvRate = randomBetween(0.02, 0.06);
-          const sessions = Math.round(baseSessions * seasonalFactor * randomBetween(0.8, 1.2));
-          let conversions = Math.round(sessions * baseConvRate * randomBetween(0.8, 1.2));
-          const spend = randomInt(50000, 200000);
-          const attributed = Math.round(conversions * params.basePrice * randomBetween(0.8, 1.2));
+          const daySessions = Math.round(baseSessions * seasonalFactor * randomBetween(0.8, 1.2));
+          const dayConvNoise = randomBetween(0.8, 1.2);
+          const daySpend = randomInt(50000, 200000);
+          const dayAttrNoise = randomBetween(0.8, 1.2);
 
-          if (isGroundTruthMonth && region.id === 1) {
-            conversions = Math.round(conversions * 0.75);
+          for (const mix of marketingMix) {
+            for (const campaign of mix.campaigns) {
+              const share = mix.channelWeight * campaign.weight;
+              const sessions = Math.round(daySessions * share);
+              const spend = Math.round(daySpend * share);
+              let conversions = Math.round(sessions * baseConvRate * dayConvNoise);
+
+              if (isGroundTruthMonth) {
+                // North Aug-2026: conversion deteriorates, concentrated in Online.
+                // Blended effect across the mix is ~0.75x, matching the original scenario.
+                const channelFactor = mix.channel === "Online" ? 0.6 : 0.9;
+                conversions = Math.round(conversions * channelFactor);
+              }
+
+              const attributed = Math.round(conversions * params.basePrice * dayAttrNoise);
+
+              marketingBatch.push([
+                dateStr, region.id, product.id, mix.channel, campaign.name,
+                sessions, conversions, spend, attributed,
+              ]);
+            }
           }
-
-          marketingBatch.push([dateStr, region.id, product.id, sessions, conversions, spend, attributed]);
         }
 
         for (let day = 1; day <= daysInMonth; day++) {
@@ -190,8 +226,8 @@ async function main() {
       if (marketingBatch.length > 0) {
         await db.exec("BEGIN TRANSACTION");
         const stmt = await db.prepare(
-          `INSERT INTO marketing_daily (date, region_id, product_id, sessions, conversions, marketing_spend, attributed_revenue)
-           VALUES (?, ?, ?, ?, ?, ?, ?)`
+          `INSERT INTO marketing_daily (date, region_id, product_id, channel, campaign, sessions, conversions, marketing_spend, attributed_revenue)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
         );
         for (const row of marketingBatch) {
           await stmt.run(row);
@@ -222,7 +258,7 @@ async function main() {
   console.log("  - Product B stockouts: 25-40%");
   console.log("  - Premium mix shift (Product A down)");
   console.log("  - Higher discounting (10-25%)");
-  console.log("  - Conversion rate drop (~25%)");
+  console.log("  - Conversion rate drop (~25% blended; Online -40%, other channels -10%)");
 
   await db.close();
 }

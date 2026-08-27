@@ -74,12 +74,19 @@ interface DriverHypothesis {
     product?: string;
     channel?: string;
   };
-  contributionPct?: number;
-  associationScore?: number;
-  temporalAlignment?: number;
-  segmentConsistency?: number;
-  causalPlausibility?: number;
-  evidenceAvailability?: number;
+  contributionPct?: number | null;
+  signedContributionPct?: number | null;
+  magnitudeContributionPct?: number | null;
+  associationScore?: number | null;
+  pValue?: number | null;
+  isStatisticallySignificant?: boolean;
+  sampleSize?: number;
+  temporalAlignment?: number | null;
+  bestLag?: number;
+  lagDirection?: "leads" | "contemporaneous" | "lags";
+  segmentConsistency?: number | null;
+  causalPlausibility?: number | null;
+  evidenceAvailability?: number | null;
   score: number;
   confidence: number;
   status: "strong_candidate" | "candidate" | "weak_candidate" | "insufficient_data";
@@ -90,7 +97,49 @@ interface DimensionContribution {
   name: string;
   change: number;
   changePct: number;
+  /** Share of NET change. May exceed 100% or be negative -- NOT a share of impact. */
   contributionPct: number;
+  signedContributionPct?: number | null;
+  /** Share of ABSOLUTE movement. Sums to ~100% across segments. */
+  magnitudeContributionPct?: number | null;
+}
+
+/**
+ * Statistical evidence for a hypothesis, stated without asserting causation.
+ * Distinguishes "not measurable" from "measured and weak".
+ */
+function AssociationLabel({ h }: { h: DriverHypothesis }) {
+  if (h.associationScore === null || h.associationScore === undefined) {
+    return <span className="text-gray-500 dark:text-gray-400" title="No resolvable history for this driver">Not measurable</span>;
+  }
+  const sig = h.isStatisticallySignificant;
+  return (
+    <span className={sig ? "text-gray-900 dark:text-white" : "text-gray-500 dark:text-gray-400"}>
+      r={h.associationScore.toFixed(2)}
+      {h.pValue !== null && h.pValue !== undefined ? (h.pValue < 0.001 ? ", p<0.001" : ", p=" + h.pValue.toFixed(3)) : ""}
+      {h.sampleSize ? ", n=" + h.sampleSize : ""}
+      {" "}
+      <span className={sig ? "text-emerald-600 dark:text-emerald-400" : "text-amber-600 dark:text-amber-400"}>
+        {sig ? "significant" : "not significant"}
+      </span>
+    </span>
+  );
+}
+
+/** Lag direction in words. A driver that FOLLOWS the metric cannot explain it. */
+function TemporalLabel({ h }: { h: DriverHypothesis }) {
+  if (h.temporalAlignment === null || h.temporalAlignment === undefined || h.lagDirection === undefined) {
+    return <span className="text-gray-500 dark:text-gray-400">Not measurable</span>;
+  }
+  const lag = Math.abs(h.bestLag ?? 0);
+  const unit = lag === 1 ? "month" : "months";
+  if (h.lagDirection === "leads") {
+    return <span className="text-emerald-600 dark:text-emerald-400">leads by {lag} {unit}</span>;
+  }
+  if (h.lagDirection === "lags") {
+    return <span className="text-amber-600 dark:text-amber-400" title="Moves after the metric, so it cannot account for the metric movement">follows by {lag} {unit}</span>;
+  }
+  return <span>contemporaneous</span>;
 }
 
 interface DriverAnalysis {
@@ -546,10 +595,10 @@ function DriverAnalysisSection({ analysis, loading, error }: {
                 </div>
               </div>
               <div className="mt-2 grid grid-cols-2 md:grid-cols-4 gap-2 text-xs text-gray-600 dark:text-gray-400">
-                <div>Contribution: <span className="font-medium">{formatPctValue(driver.contributionPct)}</span></div>
-                <div>Association: <span className="font-medium">{driver.associationScore !== undefined ? driver.associationScore.toFixed(2) : "N/A"}</span></div>
-                <div>Temporal: <span className="font-medium">{driver.temporalAlignment !== undefined ? (driver.temporalAlignment * 100).toFixed(0) + "%" : "N/A"}</span></div>
-                <div>Segment: <span className="font-medium">{driver.segmentConsistency !== undefined ? (driver.segmentConsistency * 100).toFixed(0) + "%" : "N/A"}</span></div>
+                <div title="Share of total absolute movement">Magnitude share: <span className="font-medium">{driver.magnitudeContributionPct != null ? driver.magnitudeContributionPct.toFixed(1) + "%" : "n/a"}</span></div>
+                <div title="Statistical association on period-over-period movement. Association is not causation.">Associated: <span className="font-medium"><AssociationLabel h={driver} /></span></div>
+                <div title="Whether the driver moved before, with, or after the metric">Timing: <span className="font-medium"><TemporalLabel h={driver} /></span></div>
+                <div>Segment: <span className="font-medium">{driver.segmentConsistency != null ? (driver.segmentConsistency * 100).toFixed(0) + "%" : "Not measurable"}</span></div>
               </div>
               {driver.caveats.length > 0 && (
                 <div className="mt-2 text-xs text-amber-600 dark:text-amber-400">
@@ -627,22 +676,36 @@ function DimensionBreakdownSection({ breakdown, loading, error, period }: {
             ) : (
               <div className="space-y-2 max-h-60 overflow-y-auto">
                 {dim.data
-                  .filter(d => Math.abs(d.contributionPct) > 0.1)
-                  .sort((a, b) => Math.abs(b.contributionPct) - Math.abs(a.contributionPct))
+                  .filter(d => Math.abs(d.magnitudeContributionPct ?? d.contributionPct) > 0.1)
+                  .sort((a, b) => Math.abs(b.magnitudeContributionPct ?? b.contributionPct) - Math.abs(a.magnitudeContributionPct ?? a.contributionPct))
                   .slice(0, 8)
-                  .map((item, i) => (
-                    <div key={`${dim.key}-${i}`} className="flex items-center justify-between text-sm">
-                      <span className="font-medium text-gray-900 dark:text-white truncate pr-2">{item.name}</span>
-                      <div className="flex items-center gap-2 text-right">
-                        <span className={`font-mono ${item.changePct >= 0 ? "text-green-600" : "text-red-600"}`}>
-                          {formatPctValue(item.changePct)}
-                        </span>
-                        <span className="px-2 py-0.5 rounded text-xs font-medium bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-200">
-                          {item.contributionPct.toFixed(1)}%
-                        </span>
+                  .map((item, i) => {
+                    const signed = item.signedContributionPct ?? item.contributionPct;
+                    const magnitude = item.magnitudeContributionPct;
+                    return (
+                      <div key={`${dim.key}-${i}`} className="text-sm">
+                        <div className="flex items-center justify-between">
+                          <span className="font-medium text-gray-900 dark:text-white truncate pr-2">{item.name}</span>
+                          <span className={`font-mono ${item.changePct >= 0 ? "text-green-600" : "text-red-600"}`}>
+                            {formatPctValue(item.changePct)}
+                          </span>
+                        </div>
+                        {/* Two DISTINCT quantities. Net contribution is a share of the net
+                            change and may exceed 100%; magnitude share is the share of
+                            absolute movement and sums to ~100%. */}
+                        <div className="flex items-center gap-3 mt-0.5 text-[11px] text-gray-500 dark:text-gray-400">
+                          <span title="Share of the net change. Can exceed 100% or be negative when segments offset each other.">
+                            Net contribution: <span className="font-mono text-gray-700 dark:text-gray-300">{signed >= 0 ? "+" : ""}{signed.toFixed(1)}%</span>
+                          </span>
+                          {magnitude != null && (
+                            <span title="Share of total absolute movement across segments. Sums to ~100%.">
+                              Magnitude share: <span className="font-mono text-gray-700 dark:text-gray-300">{magnitude.toFixed(1)}%</span>
+                            </span>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
               </div>
             )}
           </div>
@@ -691,7 +754,7 @@ function HypothesesSection({ hypotheses, loading, error }: {
               <th className="pb-2 px-2 font-medium text-center">Status</th>
               <th className="pb-2 px-2 font-medium text-center">Score</th>
               <th className="pb-2 px-2 font-medium text-center">Confidence</th>
-              <th className="pb-2 px-2 font-medium text-center">Contribution</th>
+              <th className="pb-2 px-2 font-medium text-center" title="Share of total absolute movement">Magnitude share</th>
               <th className="pb-2 px-2 font-medium">Claim</th>
             </tr>
           </thead>
@@ -719,7 +782,7 @@ function HypothesesSection({ hypotheses, loading, error }: {
                   {(h.confidence * 100).toFixed(0)}%
                 </td>
                 <td className="py-2 px-2 text-center font-mono text-indigo-600 dark:text-indigo-400">
-                  {formatPctValue(h.contributionPct)}
+                  {h.magnitudeContributionPct != null ? h.magnitudeContributionPct.toFixed(1) + "%" : "n/a"}
                 </td>
                 <td className="py-2 px-2 text-gray-700 dark:text-gray-300 max-w-xs truncate">
                   {h.claim}
@@ -738,14 +801,17 @@ function HypothesesSection({ hypotheses, loading, error }: {
             <div key={h.id} className="p-3 rounded bg-gray-50 dark:bg-zinc-900 border border-gray-200 dark:border-zinc-700">
               <p className="font-medium text-gray-900 dark:text-white mb-1">{h.id}: {h.name}</p>
               <p className="mb-1">{h.claim}</p>
-              <div className="grid grid-cols-2 md:grid-cols-6 gap-1 text-xs">
-                <span>Association: {h.associationScore !== undefined ? h.associationScore.toFixed(2) : "N/A"}</span>
-                <span>Temporal: {h.temporalAlignment !== undefined ? (h.temporalAlignment * 100).toFixed(0) + "%" : "N/A"}</span>
-                <span>Segment: {h.segmentConsistency !== undefined ? (h.segmentConsistency * 100).toFixed(0) + "%" : "N/A"}</span>
-                <span>Causal: {h.causalPlausibility !== undefined ? (h.causalPlausibility * 100).toFixed(0) + "%" : "N/A"}</span>
-                <span>Evidence: {h.evidenceAvailability !== undefined ? (h.evidenceAvailability * 100).toFixed(0) + "%" : "N/A"}</span>
-                <span>Direction: {h.expectedDirection}</span>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-1 text-xs">
+                <span>Associated with metric: <AssociationLabel h={h} /></span>
+                <span>Timing: <TemporalLabel h={h} /></span>
+                <span>Segment consistency: {h.segmentConsistency != null ? (h.segmentConsistency * 100).toFixed(0) + "%" : "Not measurable"}</span>
+                <span title="Rule-based mechanism compatibility. Kept separate from statistical association.">Causal plausibility: {h.causalPlausibility != null ? (h.causalPlausibility * 100).toFixed(0) + "%" : "n/a"}</span>
+                <span title="Fraction of required quantitative observations present. Unstructured evidence pending Module 4.">Structured evidence: {h.evidenceAvailability != null ? (h.evidenceAvailability * 100).toFixed(0) + "%" : "n/a"}</span>
+                <span>Expected direction: {h.expectedDirection}</span>
               </div>
+              <p className="mt-1 text-[11px] text-gray-500 dark:text-gray-400 italic">
+                Statistical association only; this does not establish that the driver caused the change.
+              </p>
               {h.caveats.length > 0 && (
                 <div className="mt-1 text-amber-600 dark:text-amber-400">
                   {h.caveats.map((c, idx) => <div key={idx}>⚠ {c}</div>)}
