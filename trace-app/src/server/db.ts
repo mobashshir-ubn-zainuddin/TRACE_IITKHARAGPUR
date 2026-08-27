@@ -114,6 +114,101 @@ export async function runMigrations(): Promise<void> {
       action TEXT NOT NULL,
       timestamp TEXT NOT NULL
     );
+
+    -- ===== MODULE 4: UNSTRUCTURED EVIDENCE TABLES =====
+    
+    -- Documents table
+    CREATE TABLE IF NOT EXISTS documents (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      source TEXT NOT NULL,
+      title TEXT,
+      document_type TEXT,
+      region TEXT,
+      product TEXT,
+      topic TEXT,
+      document_date TEXT,
+      authority_score REAL DEFAULT 0.5,
+      created_at TEXT NOT NULL,
+      content_hash TEXT NOT NULL
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_documents_region ON documents(region);
+    CREATE INDEX IF NOT EXISTS idx_documents_product ON documents(product);
+    CREATE INDEX IF NOT EXISTS idx_documents_topic ON documents(topic);
+    CREATE INDEX IF NOT EXISTS idx_documents_date ON documents(document_date);
+    CREATE INDEX IF NOT EXISTS idx_documents_source ON documents(source);
+    CREATE INDEX IF NOT EXISTS idx_documents_content_hash ON documents(content_hash);
+
+    -- Document chunks table
+    CREATE TABLE IF NOT EXISTS document_chunks (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      document_id INTEGER NOT NULL,
+      chunk_index INTEGER NOT NULL,
+      text TEXT NOT NULL,
+      region TEXT,
+      product TEXT,
+      date_start TEXT,
+      date_end TEXT,
+      metadata TEXT,  -- JSON metadata
+      FOREIGN KEY (document_id) REFERENCES documents(id) ON DELETE CASCADE
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_chunks_document ON document_chunks(document_id);
+    CREATE INDEX IF NOT EXISTS idx_chunks_region ON document_chunks(region);
+    CREATE INDEX IF NOT EXISTS idx_chunks_product ON document_chunks(product);
+    CREATE INDEX IF NOT EXISTS idx_chunks_date_start ON document_chunks(date_start);
+    CREATE INDEX IF NOT EXISTS idx_chunks_date_end ON document_chunks(date_end);
+
+    -- Embeddings table
+    CREATE TABLE IF NOT EXISTS embeddings (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      chunk_id INTEGER NOT NULL,
+      embedding TEXT NOT NULL,  -- JSON serialized vector
+      model TEXT NOT NULL,
+      dimension INTEGER NOT NULL,
+      content_hash TEXT NOT NULL,
+      created_at TEXT NOT NULL,
+      FOREIGN KEY (chunk_id) REFERENCES document_chunks(id) ON DELETE CASCADE
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_embeddings_chunk ON embeddings(chunk_id);
+    CREATE INDEX IF NOT EXISTS idx_embeddings_model ON embeddings(model);
+    CREATE INDEX IF NOT EXISTS idx_embeddings_content_hash ON embeddings(content_hash);
+
+    -- Evidence scores table
+    CREATE TABLE IF NOT EXISTS evidence_scores (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      hypothesis_id TEXT NOT NULL,
+      chunk_id INTEGER NOT NULL,
+      semantic_score REAL,
+      source_score REAL,
+      temporal_score REAL,
+      entity_score REAL,
+      alignment_score REAL,
+      final_score REAL,
+      classification TEXT,  -- support | contradict | neutral
+      created_at TEXT NOT NULL,
+      FOREIGN KEY (chunk_id) REFERENCES document_chunks(id) ON DELETE CASCADE
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_evidence_scores_hypothesis ON evidence_scores(hypothesis_id);
+    CREATE INDEX IF NOT EXISTS idx_evidence_scores_chunk ON evidence_scores(chunk_id);
+    CREATE INDEX IF NOT EXISTS idx_evidence_scores_classification ON evidence_scores(classification);
+
+    -- Evidence relations table (for graph)
+    CREATE TABLE IF NOT EXISTS evidence_relations (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      hypothesis_id TEXT NOT NULL,
+      evidence_id INTEGER NOT NULL,
+      relation TEXT NOT NULL,  -- supports | contradicts | neutral
+      strength REAL,
+      created_at TEXT NOT NULL,
+      FOREIGN KEY (evidence_id) REFERENCES document_chunks(id) ON DELETE CASCADE
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_evidence_relations_hypothesis ON evidence_relations(hypothesis_id);
+    CREATE INDEX IF NOT EXISTS idx_evidence_relations_evidence ON evidence_relations(evidence_id);
+    CREATE INDEX IF NOT EXISTS idx_evidence_relations_relation ON evidence_relations(relation);
   `);
 }
 
