@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
-import { ReactFlow, Background, Controls, type Edge, type Node } from "@xyflow/react";
+import { ReactFlow, Background, Controls, type Edge, type Node, type NodeTypes, type EdgeTypes } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 
 interface GraphNode {
@@ -39,9 +39,72 @@ interface EvidenceGraphResponse {
   provenanceSummary: unknown;
 }
 
+const nodeTypes: NodeTypes = {
+  hypothesis: ({ data }) => (
+    <div style={{ padding: 8, background: "#fef3c7", border: "1px solid #f59e0b", borderRadius: 4, minWidth: 140 }}>
+      <div style={{ fontWeight: 600, fontSize: 12 }}>{data.label}</div>
+      <div style={{ fontSize: 10, color: "#92400e" }}>Hypothesis</div>
+    </div>
+  ),
+  evidence: ({ data }) => (
+    <div style={{ padding: 8, background: "#dbeafe", border: "1px solid #3b82f6", borderRadius: 4, minWidth: 140 }}>
+      <div style={{ fontWeight: 600, fontSize: 12 }}>{data.label}</div>
+      <div style={{ fontSize: 10, color: "#1e40af" }}>Evidence</div>
+    </div>
+  ),
+  source: ({ data }) => (
+    <div style={{ padding: 8, background: "#dcfce7", border: "1px solid #22c55e", borderRadius: 4, minWidth: 140 }}>
+      <div style={{ fontWeight: 600, fontSize: 12 }}>{data.label}</div>
+      <div style={{ fontSize: 10, color: "#166534" }}>Source</div>
+    </div>
+  ),
+  kpi: ({ data }) => (
+    <div style={{ padding: 8, background: "#fce7f3", border: "1px solid #ec4899", borderRadius: 4, minWidth: 140 }}>
+      <div style={{ fontWeight: 600, fontSize: 12 }}>{data.label}</div>
+      <div style={{ fontSize: 10, color: "#be185d" }}>KPI</div>
+    </div>
+  ),
+  default: ({ data }) => (
+    <div style={{ padding: 8, background: "#f3f4f6", border: "1px solid #d1d5db", borderRadius: 4, minWidth: 140 }}>
+      <div style={{ fontWeight: 600, fontSize: 12 }}>{data.label}</div>
+      <div style={{ fontSize: 10, color: "#6b7280" }}>{data.type}</div>
+    </div>
+  ),
+};
+
+const edgeTypes: EdgeTypes = {
+  supports: ({ data }) => (
+    <>
+      <path stroke="#22c55e" strokeWidth={2} strokeDasharray="5,5" />
+      {data?.strength && <text fill="#166534" fontSize={10} textAnchor="middle" dominantBaseline="middle">Supports</text>}
+    </>
+  ),
+  contradicts: ({ data }) => (
+    <>
+      <path stroke="#ef4444" strokeWidth={2} strokeDasharray="5,5" />
+      {data?.strength && <text fill="#991b1b" fontSize={10} textAnchor="middle" dominantBaseline="middle">Contradicts</text>}
+    </>
+  ),
+  neutral: ({ data }) => (
+    <path stroke="#9ca3af" strokeWidth={2} strokeDasharray="5,5" />
+  ),
+  from_source: ({ data }) => (
+    <path stroke="#3b82f6" strokeWidth={2} />
+  ),
+  about_driver: ({ data }) => (
+    <path stroke="#f59e0b" strokeWidth={2} strokeDasharray="5,5" />
+  ),
+  about_kpi: ({ data }) => (
+    <path stroke="#8b5cf6" strokeWidth={2} strokeDasharray="5,5" />
+  ),
+  default: ({ data }) => (
+    <path stroke="#9ca3af" strokeWidth={2} />
+  ),
+};
+
 export function EvidenceGraph() {
   const [metric, setMetric] = useState<string>("revenue");
-  const [period, setPeriod] = useState<string>("2024-08");
+  const [period, setPeriod] = useState<string>("2026-08");
   const [nodes, setNodes] = useState<Node<{ label: string; type: string }>[]>([]);
   const [edges, setEdges] = useState<Edge[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -56,31 +119,31 @@ export function EvidenceGraph() {
         if (!res.ok) {
           throw new Error(`API error: ${res.status} ${res.statusText}`);
         }
-        const result: EvidenceGraphResponse = await res.json();
+        const result = await res.json();
         const graphData = result.graphData;
         
         if (!graphData || !graphData.nodes || !graphData.edges) {
           throw new Error("Invalid graph data received from API");
         }
         
-        const n: Node<{ label: string; type: string }>[] = graphData.nodes.map((node, i) => ({
+        const n = graphData.nodes.map((node: GraphNode, i: number) => ({
           id: node.id,
-          type: node.type,
+          type: node.type || "default",
           data: { label: node.label, type: node.type },
           position: { x: node.properties?.x as number || i * 150, y: node.properties?.y as number || 0 },
           style: { width: 140, padding: 8, background: "#4f46e5", color: "white", borderRadius: 4, border: "1px solid #3730a3" },
         }));
         
-        const e: Edge[] = graphData.edges.map((edge) => ({
+        const e = graphData.edges.map((edge: GraphEdge) => ({
           id: edge.id,
           source: edge.source,
           target: edge.target,
-          type: edge.type,
+          type: edge.type || "default",
           animated: true,
-          style: { stroke: edge.type === "contradicts" ? "#ef4444" : "#22c55e", strokeWidth: 2 },
+          style: { stroke: edge.type === "contradicts" ? "#ef4444" : edge.type === "supports" ? "#22c55e" : "#9ca3af", strokeWidth: 2 },
           label: edge.type,
           labelStyle: { fontSize: 10, fill: "#fff" },
-          labelBgStyle: { fill: edge.type === "contradicts" ? "#ef4444" : "#22c55e", padding: 2, borderRadius: 2 },
+          labelBgStyle: { fill: edge.type === "contradicts" ? "#ef4444" : edge.type === "supports" ? "#22c55e" : "#9ca3af", padding: 2, borderRadius: 2 },
         }));
         
         setNodes(n);
@@ -117,11 +180,24 @@ export function EvidenceGraph() {
           className="rounded p-2 bg-white dark:bg-zinc-800 text-black dark:text-gray-100"
         />
       </div>
+      {error && (
+        <div className="mb-4 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+          <p className="text-red-700 dark:text-red-300 font-medium">Error loading evidence graph:</p>
+          <p className="text-red-600 dark:text-red-400 text-sm mt-1">{error}</p>
+          <p className="text-red-500 dark:text-red-500 text-xs mt-2">Falling back to structured/keyword evidence only.</p>
+        </div>
+      )}
       {loading ? (
         <p className="text-gray-600 dark:text-gray-300">Loading evidence…</p>
       ) : (
         <div style={{ width: "100%", height: 500 }} className="bg-white dark:bg-zinc-800 rounded">
-          <ReactFlow nodes={nodes} edges={edges} fitView>
+          <ReactFlow
+            nodes={nodes}
+            edges={edges}
+            fitView
+            nodeTypes={nodeTypes}
+            edgeTypes={edgeTypes}
+          >
             <Background />
             <Controls />
           </ReactFlow>

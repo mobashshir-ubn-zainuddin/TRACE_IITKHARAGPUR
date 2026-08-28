@@ -69,8 +69,37 @@ export async function vectorSearch(options: VectorSearchOptions): Promise<{ resu
   const db = await getDB();
   const embeddingService = getEmbeddingService();
   
-  // Generate query embedding
-  const { embedding: queryEmbedding, fromCache, latencyMs } = await embeddingService.embedQuery(query);
+  // Generate query embedding with graceful fallback
+  let queryEmbedding: number[];
+  let fromCache = false;
+  let latencyMs = 0;
+  let vectorUnavailable = false;
+  
+  try {
+    const result = await embeddingService.embedQuery(query);
+    queryEmbedding = result.embedding;
+    fromCache = result.fromCache;
+    latencyMs = result.latencyMs;
+  } catch (error) {
+    console.warn(`Vector search unavailable: ${error instanceof Error ? error.message : String(error)}`);
+    vectorUnavailable = true;
+    queryEmbedding = [];
+    latencyMs = 0;
+    fromCache = false;
+  }
+  
+  // If vector search is unavailable, return empty results gracefully
+  if (vectorUnavailable || queryEmbedding.length === 0) {
+    return { 
+      results: [], 
+      telemetry: { 
+        embeddingLatencyMs: latencyMs, 
+        embeddingCacheHit: fromCache, 
+        embeddingCacheMiss: !fromCache,
+        vectorUnavailable: true
+      } 
+    };
+  }
   
   // Build metadata filter conditions
   const conditions: string[] = [];
@@ -107,14 +136,6 @@ export async function vectorSearch(options: VectorSearchOptions): Promise<{ resu
     conditions.push(`d.topic IN (${placeholders})`);
     params.push(...filters.topic);
   }
-  
-  // Add provider/model/dimension filter to ensure compatible embeddings
-  conditions.push("e.provider = ?");
-  params.push("gemini");
-  conditions.push("e.model = ?");
-  params.push("gemini-embedding-001");
-  conditions.push("e.dimension = ?");
-  params.push(768);
   
   const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
   
@@ -155,7 +176,7 @@ if (rows.length === 0) {
         embeddingLatencyMs: latencyMs, 
         embeddingCacheHit: fromCache, 
         embeddingCacheMiss: !fromCache,
-        vectorUnavailable: false
+        vectorUnavailable
       } 
     };
   }
@@ -206,7 +227,7 @@ if (rows.length === 0) {
       embeddingLatencyMs: latencyMs, 
       embeddingCacheHit: fromCache, 
       embeddingCacheMiss: !fromCache,
-      vectorUnavailable: false
+      vectorUnavailable
     } 
   };
 }

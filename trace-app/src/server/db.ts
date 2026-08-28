@@ -19,9 +19,6 @@ export async function getDB(): Promise<Database<sqlite3.Database, sqlite3.Statem
 export async function runMigrations(): Promise<void> {
   const db = await getDB();
   
-  // Drop and recreate marketing_daily to ensure schema is correct
-  await db.exec(`DROP TABLE IF EXISTS marketing_daily;`);
-
   await db.exec(`
     -- Dimensions
     CREATE TABLE IF NOT EXISTS regions (
@@ -47,7 +44,9 @@ export async function runMigrations(): Promise<void> {
       last_refreshed_at TEXT NOT NULL,
       description TEXT
     );
+  `);
 
+  await db.exec(`
     -- Sales transactions (grain: transaction)
     CREATE TABLE IF NOT EXISTS sales_transactions (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -69,7 +68,9 @@ export async function runMigrations(): Promise<void> {
     CREATE INDEX IF NOT EXISTS idx_sales_product ON sales_transactions(product_id);
     CREATE INDEX IF NOT EXISTS idx_sales_order ON sales_transactions(order_id);
     CREATE INDEX IF NOT EXISTS idx_sales_date_region_product ON sales_transactions(transaction_date, region_id, product_id);
+  `);
 
+  await db.exec(`
     -- Marketing daily (grain: daily)
     CREATE TABLE IF NOT EXISTS marketing_daily (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -92,7 +93,9 @@ export async function runMigrations(): Promise<void> {
     CREATE INDEX IF NOT EXISTS idx_marketing_channel ON marketing_daily(channel);
     CREATE INDEX IF NOT EXISTS idx_marketing_campaign ON marketing_daily(campaign);
     CREATE INDEX IF NOT EXISTS idx_marketing_date_region ON marketing_daily(date, region_id);
+  `);
 
+  await db.exec(`
     -- Operations daily (grain: daily)
     CREATE TABLE IF NOT EXISTS operations_daily (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -110,7 +113,9 @@ export async function runMigrations(): Promise<void> {
     CREATE INDEX IF NOT EXISTS idx_ops_region ON operations_daily(region_id);
     CREATE INDEX IF NOT EXISTS idx_ops_product ON operations_daily(product_id);
     CREATE INDEX IF NOT EXISTS idx_ops_date_region_product ON operations_daily(date, region_id, product_id);
+  `);
 
+  await db.exec(`
     -- Decisions (existing)
     CREATE TABLE IF NOT EXISTS decisions (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -118,9 +123,10 @@ export async function runMigrations(): Promise<void> {
       action TEXT NOT NULL,
       timestamp TEXT NOT NULL
     );
+  `);
 
+  await db.exec(`
     -- ===== MODULE 4: UNSTRUCTURED EVIDENCE TABLES =====
-    
     -- Documents table
     CREATE TABLE IF NOT EXISTS documents (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -153,7 +159,7 @@ export async function runMigrations(): Promise<void> {
       product TEXT,
       date_start TEXT,
       date_end TEXT,
-      metadata TEXT,  -- JSON metadata
+      metadata TEXT,
       FOREIGN KEY (document_id) REFERENCES documents(id) ON DELETE CASCADE
     );
 
@@ -167,7 +173,7 @@ export async function runMigrations(): Promise<void> {
     CREATE TABLE IF NOT EXISTS embeddings (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       chunk_id INTEGER NOT NULL,
-      embedding TEXT NOT NULL,  -- JSON serialized vector
+      embedding TEXT NOT NULL,
       provider TEXT NOT NULL DEFAULT 'unknown',
       model TEXT NOT NULL,
       dimension INTEGER NOT NULL,
@@ -192,7 +198,7 @@ export async function runMigrations(): Promise<void> {
       entity_score REAL,
       alignment_score REAL,
       final_score REAL,
-      classification TEXT,  -- support | contradict | neutral
+      classification TEXT,
       created_at TEXT NOT NULL,
       FOREIGN KEY (chunk_id) REFERENCES document_chunks(id) ON DELETE CASCADE
     );
@@ -206,7 +212,7 @@ export async function runMigrations(): Promise<void> {
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       hypothesis_id TEXT NOT NULL,
       evidence_id INTEGER NOT NULL,
-      relation TEXT NOT NULL,  -- supports | contradicts | neutral
+      relation TEXT NOT NULL,
       strength REAL,
       created_at TEXT NOT NULL,
       FOREIGN KEY (evidence_id) REFERENCES document_chunks(id) ON DELETE CASCADE
@@ -216,6 +222,105 @@ export async function runMigrations(): Promise<void> {
     CREATE INDEX IF NOT EXISTS idx_evidence_relations_evidence ON evidence_relations(evidence_id);
     CREATE INDEX IF NOT EXISTS idx_evidence_relations_relation ON evidence_relations(relation);
   `);
+
+  await db.exec(`
+    -- ===== USER UPLOAD TABLES =====
+    -- Uploaded files metadata
+    CREATE TABLE IF NOT EXISTS uploaded_files (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      filename TEXT NOT NULL,
+      original_filename TEXT NOT NULL,
+      mime_type TEXT NOT NULL,
+      size_bytes INTEGER NOT NULL,
+      content_hash TEXT NOT NULL,
+      status TEXT NOT NULL DEFAULT 'uploaded',
+      created_at TEXT NOT NULL DEFAULT (datetime('now'))
+    );
+    
+    CREATE INDEX IF NOT EXISTS idx_uploaded_files_hash ON uploaded_files(content_hash);
+    CREATE INDEX IF NOT EXISTS idx_uploaded_files_status ON uploaded_files(status);
+    CREATE INDEX IF NOT EXISTS idx_uploaded_files_created ON uploaded_files(created_at);
+
+    -- Uploaded datasets metadata
+    CREATE TABLE IF NOT EXISTS uploaded_datasets (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      file_id INTEGER NOT NULL,
+      name TEXT NOT NULL,
+      source_type TEXT NOT NULL,
+      row_count INTEGER NOT NULL DEFAULT 0,
+      column_count INTEGER NOT NULL DEFAULT 0,
+      schema_hash TEXT NOT NULL,
+      uploaded_at TEXT NOT NULL DEFAULT (datetime('now')),
+      status TEXT NOT NULL DEFAULT 'active',
+      FOREIGN KEY (file_id) REFERENCES uploaded_files(id) ON DELETE CASCADE
+    );
+    
+    CREATE INDEX IF NOT EXISTS idx_uploaded_datasets_file ON uploaded_datasets(file_id);
+    CREATE INDEX IF NOT EXISTS idx_uploaded_datasets_status ON uploaded_datasets(status);
+
+    -- Dataset columns metadata
+    CREATE TABLE IF NOT EXISTS dataset_columns (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      dataset_id INTEGER NOT NULL,
+      source_column TEXT NOT NULL,
+      canonical_field TEXT,
+      physical_type TEXT NOT NULL,
+      semantic_type TEXT,
+      role TEXT,
+      nullable INTEGER DEFAULT 1,
+      unique_ratio REAL,
+      FOREIGN KEY (dataset_id) REFERENCES uploaded_datasets(id) ON DELETE CASCADE
+    );
+    
+    CREATE INDEX IF NOT EXISTS idx_dataset_columns_dataset ON dataset_columns(dataset_id);
+
+    -- Dataset column mappings
+    CREATE TABLE IF NOT EXISTS dataset_mappings (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      dataset_id INTEGER NOT NULL,
+      source_column TEXT NOT NULL,
+      canonical_field TEXT NOT NULL,
+      confidence REAL DEFAULT 1.0,
+      confirmed_by_user INTEGER DEFAULT 0,
+      FOREIGN KEY (dataset_id) REFERENCES uploaded_datasets(id) ON DELETE CASCADE
+    );
+    
+    CREATE INDEX IF NOT EXISTS idx_dataset_mappings_dataset ON dataset_mappings(dataset_id);
+
+    -- Uploaded rows (structured data rows)
+    CREATE TABLE IF NOT EXISTS uploaded_rows (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      dataset_id INTEGER NOT NULL,
+      row_index INTEGER NOT NULL,
+      data TEXT NOT NULL,
+      FOREIGN KEY (dataset_id) REFERENCES uploaded_datasets(id) ON DELETE CASCADE
+    );
+    
+    CREATE INDEX IF NOT EXISTS idx_uploaded_rows_dataset ON uploaded_rows(dataset_id);
+    CREATE INDEX IF NOT EXISTS idx_uploaded_rows_index ON uploaded_rows(dataset_id, row_index);
+
+    -- Analysis runs (track M1->M4 pipeline executions)
+    CREATE TABLE IF NOT EXISTS analysis_runs (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      dataset_id INTEGER NOT NULL,
+      metric TEXT NOT NULL,
+      period TEXT NOT NULL,
+      filters TEXT,
+      status TEXT NOT NULL DEFAULT 'pending',
+      kpi_result TEXT,
+      signal_result TEXT,
+      driver_result TEXT,
+      evidence_result TEXT,
+      error_message TEXT,
+      created_at TEXT NOT NULL DEFAULT (datetime('now')),
+      completed_at TEXT,
+      FOREIGN KEY (dataset_id) REFERENCES uploaded_datasets(id) ON DELETE CASCADE
+    );
+    
+    CREATE INDEX IF NOT EXISTS idx_analysis_runs_dataset ON analysis_runs(dataset_id);
+    CREATE INDEX IF NOT EXISTS idx_analysis_runs_status ON analysis_runs(status);
+    CREATE INDEX IF NOT EXISTS idx_analysis_runs_created ON analysis_runs(created_at);
+`);
 }
 
 // Repository functions for KPI calculations
