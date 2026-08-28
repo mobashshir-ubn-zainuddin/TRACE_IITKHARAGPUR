@@ -7,8 +7,8 @@ export async function GET(request: Request) {
     await initializeModule4();
     
     const { searchParams } = new URL(request.url);
-    const metric = searchParams.get("metric") ?? "revenue";
-    const period = searchParams.get("period");
+    const metric = searchParams.get("metric") ?? searchParams.get("kpi") ?? "revenue";
+    const period = searchParams.get("period") ?? searchParams.get("month");
     const driver = searchParams.get("driver");
     const region = searchParams.get("region");
     const product = searchParams.get("product");
