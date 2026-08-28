@@ -69,6 +69,11 @@ export async function vectorSearch(options: VectorSearchOptions): Promise<{ resu
   const db = await getDB();
   const embeddingService = getEmbeddingService();
   
+  // Get active embedding provider info for filtering stored embeddings
+  const activeProvider = embeddingService.getProviderName();
+  const activeModel = embeddingService.getModelName();
+  const activeDimension = embeddingService.getDimension();
+  
   // Generate query embedding with graceful fallback
   let queryEmbedding: number[];
   let fromCache = false;
@@ -136,6 +141,10 @@ export async function vectorSearch(options: VectorSearchOptions): Promise<{ resu
     conditions.push(`d.topic IN (${placeholders})`);
     params.push(...filters.topic);
   }
+  
+  // Filter embeddings by active provider/model/dimension to ensure compatibility
+  conditions.push("e.provider = ? AND e.model = ? AND e.dimension = ?");
+  params.push(activeProvider, activeModel, activeDimension);
   
   const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
   

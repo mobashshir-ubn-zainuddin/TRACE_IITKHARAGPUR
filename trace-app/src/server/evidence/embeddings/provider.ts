@@ -206,7 +206,8 @@ class EmbeddingService {
       `, this.providerName, this.modelName, this.dimension);
       
       for (const row of rows) {
-        this.cache.set(row.content_hash, {
+        const cacheKey = this.cacheKey(row.content_hash);
+        this.cache.set(cacheKey, {
           contentHash: row.content_hash,
           embedding: JSON.parse(row.embedding),
           model: row.model,
@@ -329,6 +330,7 @@ class EmbeddingService {
     const results: number[][] = [];
     const fromCache: boolean[] = [];
     const toGenerate: { index: number; text: string }[] = [];
+    let fallbackUsed = false;
     
     // Check cache for all
     for (let i = 0; i < texts.length; i++) {
@@ -348,8 +350,10 @@ class EmbeddingService {
       try {
         generated = await this.provider.embedBatch(toGenerate.map(t => t.text));
       } catch (error) {
-        console.error(`Embedding provider ${this.provider.name} failed:`, error);
-        throw new Error(`Embedding provider ${this.provider.name} unavailable: ${error instanceof Error ? error.message : String(error)}`);
+        console.warn(`Embedding provider ${this.provider.name} failed, falling back to deterministic:`, error);
+        fallbackUsed = true;
+        const fallback = new DeterministicEmbeddingProvider(this.dimension);
+        generated = await fallback.embedBatch(toGenerate.map(t => t.text));
       }
       for (let j = 0; j < toGenerate.length; j++) {
         const { index } = toGenerate[j];
@@ -371,11 +375,12 @@ class EmbeddingService {
       embeddings: results,
       fromCache,
       latencyMs: Date.now() - startTime,
+      fallbackUsed,
     };
   }
 
   /** Batch embed for document chunks (persisted) */
-  async embedChunkBatch(chunkIds: number[], texts: string[]): Promise<{ embeddings: number[][]; fromCache: boolean[]; latencyMs: number }> {
+  async embedChunkBatch(chunkIds: number[], texts: string[]): Promise<{ embeddings: number[][]; fromCache: boolean[]; latencyMs: number; fallbackUsed?: boolean }> {
     await this.ensureInitialized();
     const startTime = Date.now();
     const hashes = texts.map(t => generateContentHash(t));
@@ -383,6 +388,7 @@ class EmbeddingService {
     const results: number[][] = [];
     const fromCache: boolean[] = [];
     const toGenerate: { index: number; chunkId: number; text: string }[] = [];
+    let fallbackUsed = false;
     
     // Check cache for all
     for (let i = 0; i < texts.length; i++) {
@@ -402,8 +408,10 @@ class EmbeddingService {
       try {
         generated = await this.provider.embedBatch(toGenerate.map(t => t.text));
       } catch (error) {
-        console.error(`Embedding provider ${this.provider.name} failed:`, error);
-        throw new Error(`Embedding provider ${this.provider.name} unavailable: ${error instanceof Error ? error.message : String(error)}`);
+        console.warn(`Embedding provider ${this.provider.name} failed, falling back to deterministic:`, error);
+        fallbackUsed = true;
+        const fallback = new DeterministicEmbeddingProvider(this.dimension);
+        generated = await fallback.embedBatch(toGenerate.map(t => t.text));
       }
       for (let j = 0; j < toGenerate.length; j++) {
         const { index, chunkId } = toGenerate[j];
@@ -427,6 +435,7 @@ class EmbeddingService {
       embeddings: results,
       fromCache,
       latencyMs: Date.now() - startTime,
+      fallbackUsed,
     };
   }
 

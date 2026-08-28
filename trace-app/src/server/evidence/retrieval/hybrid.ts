@@ -43,6 +43,7 @@ export interface HybridSearchResult {
     topK: number;
     embeddingCacheHit: boolean;
     embeddingCacheMiss: boolean;
+    vectorUnavailable: boolean;
   };
   queryBuilderOutput: QueryBuilderOutput;
 }
@@ -160,9 +161,12 @@ export async function hybridSearch(options: HybridSearchOptions): Promise<Hybrid
     sourceType: queryBuilderOutput.unstructuredQueries[0]?.filters.sourceType,
   };
   
-  // Run structured, keyword and vector search in parallel
+  // Run structured, keyword and vector search in parallel with graceful error handling
   const structuredStartTime = Date.now();
-  const structuredPromise = structuredSearch(evidenceRequest);
+  const structuredPromise = structuredSearch(evidenceRequest).catch(err => {
+    console.warn("Structured search failed:", err);
+    return { evidence: [] } as StructuredSearchResult;
+  });
   
   const keywordStartTime = Date.now();
   const keywordPromise = keywordSearch({
@@ -170,6 +174,9 @@ export async function hybridSearch(options: HybridSearchOptions): Promise<Hybrid
     filters,
     limit: keywordLimit,
     minScore: minKeywordScore,
+  }).catch(err => {
+    console.warn("Keyword search failed:", err);
+    return [];
   });
   
   const vectorStartTime = Date.now();
@@ -178,6 +185,17 @@ export async function hybridSearch(options: HybridSearchOptions): Promise<Hybrid
     filters,
     limit: vectorLimit,
     minSimilarity: minVectorSimilarity,
+  }).catch(err => {
+    console.warn("Vector search failed:", err);
+    return { 
+      results: [], 
+      telemetry: { 
+        embeddingLatencyMs: 0, 
+        embeddingCacheHit: false, 
+        embeddingCacheMiss: false,
+        vectorUnavailable: true
+      } 
+    };
   });
   
   const [structuredResults, keywordResults, vectorResults] = await Promise.all([
@@ -193,8 +211,11 @@ export async function hybridSearch(options: HybridSearchOptions): Promise<Hybrid
   // Extract vector telemetry
   const { results: vectorResultsData, telemetry: vectorTelemetry } = vectorResults;
   
+  // Track if vector search was unavailable
+  const vectorUnavailable = vectorTelemetry?.vectorUnavailable === true;
+  
   // Merge keyword and vector results using mergeResults
-  const merged = mergeResults(keywordResults, vectorResults.results);
+  const merged = mergeResults(keywordResults, vectorResultsData);
   
 // Convert merged results to EvidenceItems
   let evidenceItems = mergedToEvidenceItems(merged, evidenceRequest.hypothesisId, evidenceRequest.driver, expectedDirection);
@@ -224,7 +245,7 @@ export async function hybridSearch(options: HybridSearchOptions): Promise<Hybrid
     evidence: evidenceItems,
     telemetry: {
       keywordCandidateCount: keywordResults.length,
-      vectorCandidateCount: vectorResults.results.length,
+      vectorCandidateCount: vectorResultsData.length,
       structuredCandidateCount: structuredResults.evidence.length,
       mergedCandidateCount: merged.length + structuredResults.evidence.length,
       rerankedCount: evidenceItems.length,
@@ -239,6 +260,7 @@ export async function hybridSearch(options: HybridSearchOptions): Promise<Hybrid
       topK: finalLimit,
       embeddingCacheHit: vectorTelemetry.embeddingCacheHit,
       embeddingCacheMiss: vectorTelemetry.embeddingCacheMiss,
+      vectorUnavailable,
     },
     queryBuilderOutput,
   };

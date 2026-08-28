@@ -36,7 +36,9 @@ export default function RootLayout({
           </div>
           <nav className="flex gap-6 text-sm font-medium text-muted-foreground">
             <Link href="/dashboard" className="hover:text-primary-foreground transition-colors">Dashboard</Link>
+            <Link href="/data" className="hover:text-primary-foreground transition-colors">Data</Link>
             <Link href="/investigate" className="hover:text-primary-foreground transition-colors">Investigations</Link>
+            <Link href="/chat" className="hover:text-primary-foreground transition-colors">Chat</Link>
             <Link href="#" className="hover:text-primary-foreground transition-colors">Settings</Link>
           </nav>
         </header>
