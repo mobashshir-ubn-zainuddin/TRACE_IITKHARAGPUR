@@ -53,6 +53,7 @@ export interface VectorSearchTelemetry {
   embeddingLatencyMs: number;
   embeddingCacheHit: boolean;
   embeddingCacheMiss: boolean;
+  vectorUnavailable: boolean;
 }
 
 /** Search document chunks using vector similarity */
@@ -147,8 +148,16 @@ export async function vectorSearch(options: VectorSearchOptions): Promise<{ resu
   
   const rows = await getDB().then(db => db.all(sql, ...params));
   
-  if (rows.length === 0) {
-    return { results: [], telemetry: { embeddingLatencyMs: latencyMs, embeddingCacheHit: fromCache, embeddingCacheMiss: !fromCache } };
+if (rows.length === 0) {
+    return { 
+      results: [], 
+      telemetry: { 
+        embeddingLatencyMs: latencyMs, 
+        embeddingCacheHit: fromCache, 
+        embeddingCacheMiss: !fromCache,
+        vectorUnavailable: false
+      } 
+    };
   }
   
   // Parse embeddings and calculate similarities
@@ -193,7 +202,12 @@ export async function vectorSearch(options: VectorSearchOptions): Promise<{ resu
   
   return { 
     results: results_mapped, 
-    telemetry: { embeddingLatencyMs: latencyMs, embeddingCacheHit: fromCache, embeddingCacheMiss: !fromCache } 
+    telemetry: { 
+      embeddingLatencyMs: latencyMs, 
+      embeddingCacheHit: fromCache, 
+      embeddingCacheMiss: !fromCache,
+      vectorUnavailable: false
+    } 
   };
 }
 
