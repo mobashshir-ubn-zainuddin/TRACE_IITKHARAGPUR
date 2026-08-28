@@ -38,6 +38,18 @@ async function main() {
     DELETE FROM data_sources;
     DELETE FROM products;
     DELETE FROM regions;
+    -- Preserve uploaded data tables
+    -- DELETE FROM uploaded_files;
+    -- DELETE FROM uploaded_datasets;
+    -- DELETE FROM dataset_columns;
+    -- DELETE FROM dataset_mappings;
+    -- DELETE FROM uploaded_rows;
+    -- DELETE FROM analysis_runs;
+    -- DELETE FROM documents;
+    -- DELETE FROM document_chunks;
+    -- DELETE FROM embeddings;
+    -- DELETE FROM evidence_scores;
+    -- DELETE FROM evidence_relations;
   `).catch(() => {
     // Tables might not exist yet, that's fine
   });

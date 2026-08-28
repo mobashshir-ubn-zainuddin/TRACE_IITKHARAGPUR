@@ -310,6 +310,103 @@ if (type === "number") detectedMeasures.push(header);
       .catch(console.error);
   };
 
+  // Preview content extracted to avoid JSX parsing issues
+  const previewContent = uploadState.preview ? (
+    <div className="mb-6 p-4 bg-gray-50 dark:bg-zinc-800 rounded-xl border border-gray-200 dark:border-zinc-700">
+      <h3 className="font-semibold text-gray-900 dark:text-white mb-3">File Preview</h3>
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+        <div className="p-3 bg-white dark:bg-zinc-800 rounded-lg">
+          <p className="text-sm text-gray-500 dark:text-gray-400">Rows</p>
+          <p className="text-2xl font-bold text-gray-900 dark:text-white">{uploadState.preview?.rowCount || 0}</p>
+        </div>
+        <div className="p-3 bg-white dark:bg-zinc-800 rounded-lg">
+          <p className="text-sm text-gray-500 dark:text-gray-400">Columns</p>
+          <p className="text-2xl font-bold text-gray-900 dark:text-white">{uploadState.preview?.columnCount || 0}</p>
+        </div>
+        <div className="p-3 bg-white dark:bg-zinc-800 rounded-lg">
+          <p className="text-sm text-gray-500 dark:text-gray-400">Detected Dimensions</p>
+          <p className="text-2xl font-bold text-gray-900 dark:text-white">{uploadState.preview?.schema?.detectedDimensions?.length || 0}</p>
+        </div>
+        <div className="p-3 bg-white dark:bg-zinc-800 rounded-lg">
+          <p className="text-sm text-gray-500 dark:text-gray-400">Detected Measures</p>
+          <p className="text-2xl font-bold text-gray-900 dark:text-white">{uploadState.preview?.schema?.detectedMeasures?.length || 0}</p>
+        </div>
+      </div>
+      
+      <div className="mb-4">
+        <h4 className="font-medium text-gray-900 dark:text-white mb-2">Column Mapping</h4>
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-gray-200 dark:border-zinc-700">
+                <th className="text-left p-2 font-medium text-gray-700 dark:text-gray-300">Source Column</th>
+                <th className="text-left p-2 font-medium text-gray-700 dark:text-gray-300">Mapped To</th>
+                <th className="text-left p-2 font-medium text-gray-700 dark:text-gray-300">Type</th>
+              </tr>
+            </thead>
+            <tbody>
+              {uploadState.preview?.headers?.map((header: string) => (
+                <tr key={header} className="border-b border-gray-100 dark:border-zinc-700">
+                  <td className="p-2 font-mono text-gray-900 dark:text-white">{header}</td>
+                  <td className="p-2">
+                    <select
+                      className="w-full px-2 py-1 text-sm border border-gray-300 dark:border-zinc-600 rounded bg-white dark:bg-zinc-800"
+                      defaultValue={uploadState.preview?.columnMapping?.[header] || header}
+                    >
+                      <option value="date">Date</option>
+                      <option value="revenue">Revenue</option>
+                      <option value="orders">Orders</option>
+                      <option value="quantity">Quantity</option>
+                      <option value="discount">Discount</option>
+                      <option value="region">Region</option>
+                      <option value="product">Product</option>
+                      <option value="channel">Channel</option>
+                      <option value="sessions">Sessions</option>
+                      <option value="conversions">Conversions</option>
+                      <option value="marketing_spend">Marketing Spend</option>
+                      <option value="inventory">Inventory</option>
+                      <option value="stockout_rate">Stockout Rate</option>
+                      <option value="delivery_delay">Delivery Delay</option>
+                      <option value={header}>{header} (Custom)</option>
+                    </select>
+                  </td>
+                  <td className="p-2 font-mono text-gray-600 dark:text-gray-400">
+                    {uploadState.preview?.schema?.columns?.find(c => c.name === header)?.type || "string"}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        
+        <div className="mb-4">
+          <h4 className="font-medium text-gray-900 dark:text-white mb-2">Data Preview</h4>
+          <div className="overflow-x-auto max-h-64">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-gray-200 dark:border-zinc-700">
+                  {uploadState.preview?.headers?.map((header: string) => (
+                    <th key={header} className="text-left p-2 font-medium text-gray-700 dark:text-gray-300">{header}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {uploadState.preview?.rows?.map((row: Record<string, unknown>, i: number) => (
+                  <tr key={i} className="border-b border-gray-100 dark:border-zinc-700">
+                    {uploadState.preview?.headers?.map((header: string) => (
+                      <td key={header} className="p-2 text-gray-900 dark:text-white">
+                        {row[header] ?? ""}
+                      </td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    ) : null;
+
   return (
     <div className="p-8 min-h-screen bg-zinc-100 dark:bg-zinc-900">
       <div className="max-w-6xl mx-auto">
@@ -391,8 +488,8 @@ if (type === "number") detectedMeasures.push(header);
                     <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">or click to browse</p>
                     <p className="text-xs text-gray-400 dark:text-gray-500 mt-2">CSV, XLSX, JSON, PDF, TXT, MD • Max 50MB</p>
                   </div>
-                )}
-              </div>
+}
+          </div>
             </div>
             
             {uploadState.error && (
@@ -402,7 +499,7 @@ if (type === "number") detectedMeasures.push(header);
               </div>
             )}
             
-            {uploadState.preview && (
+            {previewContent}
               <div className="mb-6 p-4 bg-gray-50 dark:bg-zinc-800 rounded-xl border border-gray-200 dark:border-zinc-700">
                 <h3 className="font-semibold text-gray-900 dark:text-white mb-3">File Preview</h3>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
@@ -495,9 +592,8 @@ if (type === "number") detectedMeasures.push(header);
                       </table>
                     </div>
 </div>
-                )}
               </div>
-             
+              
              {uploadState.success && (
               <div className="mb-4 p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
                 <p className="text-green-700 dark:text-green-300 font-medium">Upload Successful!</p>
