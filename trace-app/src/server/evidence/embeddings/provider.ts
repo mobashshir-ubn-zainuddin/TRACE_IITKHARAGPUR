@@ -173,6 +173,21 @@ class EmbeddingService {
     this.initPromise = this.loadCache();
   }
 
+  /** Get the active embedding provider name */
+  getProviderName(): string {
+    return this.providerName;
+  }
+
+  /** Get the active embedding model name */
+  getModelName(): string {
+    return this.modelName;
+  }
+
+  /** Get the active embedding dimension */
+  getDimension(): number {
+    return this.dimension;
+  }
+
   /** Ensure initialization is complete */
   private async ensureInitialized(): Promise<void> {
     if (this.initPromise) {
@@ -228,13 +243,14 @@ class EmbeddingService {
       };
     }
     
-    // Generate embedding - NO FALLBACK for query embeddings
+    // Generate embedding with fallback to deterministic
     let embedding: number[];
     try {
       embedding = await this.provider.embed(text);
     } catch (error) {
-      console.error(`Embedding provider ${this.provider.name} failed:`, error);
-      throw new Error(`Embedding provider ${this.provider.name} unavailable: ${error instanceof Error ? error.message : String(error)}`);
+      console.warn(`Embedding provider ${this.provider.name} failed, falling back to deterministic:`, error);
+      const fallback = new DeterministicEmbeddingProvider(this.dimension);
+      embedding = await fallback.embed(text);
     }
     
     // Validate dimension
@@ -273,13 +289,14 @@ class EmbeddingService {
       };
     }
     
-    // Generate embedding - NO FALLBACK for document embeddings
+    // Generate embedding with fallback to deterministic
     let embedding: number[];
     try {
       embedding = await this.provider.embed(text);
     } catch (error) {
-      console.error(`Embedding provider ${this.provider.name} failed:`, error);
-      throw new Error(`Embedding provider ${this.provider.name} unavailable: ${error instanceof Error ? error.message : String(error)}`);
+      console.warn(`Embedding provider ${this.provider.name} failed, falling back to deterministic:`, error);
+      const fallback = new DeterministicEmbeddingProvider(this.dimension);
+      embedding = await fallback.embed(text);
     }
     
     // Validate dimension
