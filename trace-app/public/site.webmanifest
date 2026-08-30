@@ -1,0 +1,16 @@
+{
+  "name": "TRACE | Business Intelligence",
+  "short_name": "TRACE",
+  "description": "AI-Powered Business Intelligence and Anomaly Investigation",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#3b82f6",
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "any",
+      "type": "image/x-icon"
+    }
+  ]
+}
