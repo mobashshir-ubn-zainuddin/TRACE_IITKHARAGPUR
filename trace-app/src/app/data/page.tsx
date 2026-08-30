@@ -721,5 +721,57 @@ if (type === "number") detectedMeasures.push(header);
           </div>
       </div>
     </div>
+  return (
+    <div className="p-8 min-h-screen bg-zinc-100 dark:bg-zinc-900">
+      <div className="max-w-6xl mx-auto">
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-black dark:text-white">Data Sources</h1>
+          <p className="text-gray-600 dark:text-gray-400 mt-2">
+            Upload and manage your business data files
+          </p>
+        </div>
+        
+        <div className="flex gap-4 mb-6">
+          <button
+            onClick={() => setActiveTab("upload")}
+            className={`px-4 py-2 rounded-lg font-medium ${
+              activeTab === "upload" 
+                ? "bg-blue-600 text-white" 
+                : "bg-white dark:bg-zinc-800 text-gray-700 dark:text-gray-300"
+            }`}
+          >
+            Upload Data
+          </button>
+          <button
+            onClick={() => setActiveTab("files")}
+            className={`px-4 py-2 rounded-lg font-medium ${
+              activeTab === "files" 
+                ? "bg-blue-600 text-white" 
+                : "bg-white dark:bg-zinc-800 text-gray-700 dark:text-gray-300"
+            }`}
+          >
+            My Files
+          </button>
+        </div>
+        
+        {activeTab === "upload" ? (
+          <UploadTab 
+            uploadState={uploadState} 
+            previewContent={previewContent} 
+            setUploadState={setUploadState} 
+            handleUpload={handleUpload} 
+            handleFileSelect={handleFileSelect} 
+            setActiveTab={setActiveTab}
+            router={router}
+          />
+        ) : (
+          <FilesTab 
+            files={files} 
+            handleRemoveFile={handleRemoveFile} 
+            setActiveTab={setActiveTab}
+          />
+        )}
+      </div>
+    </div>
   );
 }
