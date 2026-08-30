@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useSearchParams } from "next/navigation";
-import { ArrowLeft, Send, Loader2, Sparkles, MessageSquare, X, Copy, Check } from "lucide-react";
+import { ArrowLeft, Send, Loader2, Sparkles, MessageSquare, X, Copy, Check, AlertCircle } from "lucide-react";
 import Link from "next/link";
 
 interface ChatMessage {
@@ -64,19 +64,19 @@ export default function ChatPage() {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  const handleSend = useCallback(async () => {
-    if (!input.trim() || loading) return;
+  const handleSend = useCallback(async (messageOverride?: string) => {
+    const message = messageOverride ?? input;
+    if (!message.trim() || loading) return;
     
     const userMessage: ChatMessage = {
       id: `msg-${Date.now()}`,
       role: "user",
-      content: input,
+      content: message,
       timestamp: new Date(),
     };
     
     setMessages(prev => [...prev, userMessage]);
-    const currentInput = input;
-    setInput("");
+    if (!messageOverride) setInput("");
     setLoading(true);
     setError(null);
 
@@ -87,7 +87,7 @@ export default function ChatPage() {
         body: JSON.stringify({
           analysisId,
           datasetId,
-          message: currentInput,
+          message,
           context: analysisContext,
         }),
       });
@@ -136,8 +136,7 @@ export default function ChatPage() {
   };
 
   const handleSuggestedClick = (question: string) => {
-    setInput(question);
-    handleSend();
+    handleSend(question);
   };
 
   const copyToClipboard = (text: string) => {
@@ -278,14 +277,14 @@ export default function ChatPage() {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder={analysisId ? "Ask about this investigation..." : "Run an analysis first to enable chat"}
-            disabled={loading || !analysisId}
+            placeholder={analysisId ? "Ask about this investigation..." : "Type your question (analysis context will be used if available)"}
+            disabled={loading}
             className="flex-1 min-h-[44px] max-h-48 px-4 py-3 bg-white dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 rounded-xl text-sm resize-none focus:outline-none focus:ring-2 focus:ring-primary/50 disabled:opacity-50"
             rows={1}
           />
           <button
             onClick={handleSend}
-            disabled={loading || !input.trim() || !analysisId}
+            disabled={loading || !input.trim()}
             className="p-3 bg-primary text-primary-foreground rounded-xl hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex-shrink-0"
             aria-label="Send message"
           >
@@ -293,7 +292,7 @@ export default function ChatPage() {
           </button>
         </div>
         <p className="text-xs text-muted-foreground text-center mt-2">
-          Press Enter to send, Shift+Enter for new line. {analysisId ? "" : "Upload data and run analysis to enable chat."}
+          Press Enter to send, Shift+Enter for new line. {analysisId ? "Analysis context loaded." : "No analysis context - responses will be general."}
         </p>
       </div>
     </div>

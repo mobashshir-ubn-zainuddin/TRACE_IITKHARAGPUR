@@ -175,13 +175,20 @@ export async function POST(request: NextRequest) {
       );
       
       if (analysisRecord) {
+        // Normalize the analysis context from database format to chat API format
+        const kpiResult = analysisRecord.kpi_result ? JSON.parse(analysisRecord.kpi_result) : null;
+        const signalResult = analysisRecord.signal_result ? JSON.parse(analysisRecord.signal_result) : null;
+        const driverResult = analysisRecord.driver_result ? JSON.parse(analysisRecord.driver_result) : null;
+        const evidenceResult = analysisRecord.evidence_result ? JSON.parse(analysisRecord.evidence_result) : null;
+        const filters = analysisRecord.filters ? JSON.parse(analysisRecord.filters) : null;
+        
         analysis = {
           ...analysisRecord,
-          kpi_result: analysisRecord.kpi_result ? JSON.parse(analysisRecord.kpi_result) : null,
-          signal_result: analysisRecord.signal_result ? JSON.parse(analysisRecord.signal_result) : null,
-          driver_result: analysisRecord.driver_result ? JSON.parse(analysisRecord.driver_result) : null,
-          evidence_result: analysisRecord.evidence_result ? JSON.parse(analysisRecord.evidence_result) : null,
-          filters: analysisRecord.filters ? JSON.parse(analysisRecord.filters) : null,
+          kpi: kpiResult,
+          signal: signalResult,
+          driver: driverResult,
+          evidence: evidenceResult,
+          filters,
         };
       }
     }
@@ -219,7 +226,7 @@ Ask me about specific drivers, evidence, or recommendations.`,
     const genAI = new GoogleGenAI({ apiKey });
     
     const result = await genAI.models.generateContent({
-      model: "gemini-1.5-flash",
+      model: "gemini-3.5-flash",
       contents: systemPrompt,
       config: {
         temperature: 0.1,
