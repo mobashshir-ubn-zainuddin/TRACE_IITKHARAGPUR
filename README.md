@@ -1,1298 +1,1970 @@
-# TRACE --- From Signal to Decision
+# TRACE — Trustworthy Root-cause Analytics & Causal Evidence
 
-> **The AI Engine That Investigates, Not Just Explains.**
+> **AI-native Business Intelligence for explainable KPI investigation, evidence-backed root-cause analysis, and decision support.**
 
-TRACE is an AI-native Business Intelligence and decision-intelligence
-platform designed to answer the question conventional dashboards leave
-unresolved:
+TRACE (Trustworthy Root-cause Analytics & Causal Evidence) is a business intelligence application designed to move beyond dashboards that merely report **what changed**. TRACE detects material KPI movements, identifies and ranks potential drivers, retrieves supporting or contradictory evidence, exposes the reasoning path, and presents an evidence-grounded investigation to business users.
 
-> **What changed, why did it change, what evidence supports that
-> explanation, how confident are we, and what should we do next?**
+The application is implemented as a full-stack Next.js application with a deterministic analytics layer, SQLite persistence, structured evidence storage, hybrid evidence/retrieval components, a graph-based evidence view, and Gemini-powered conversational analysis.
 
-TRACE combines governed KPI computation, statistical signal detection,
-driver analysis, hybrid evidence retrieval, evidence graphs,
-persona-aware narratives, recommendations, and governance into a single
-investigation workflow.
-
-**Accenture Innovation Challenge 2026 --- Round 2 \|
-BusinessIntelligence.ai \| Team TRACE, IIT Kharagpur**
-
-------------------------------------------------------------------------
+---
 
 ## Table of Contents
 
--   [Problem](#problem)
--   [Solution](#solution)
--   [Core Workflow](#core-workflow)
--   [Architecture](#architecture)
--   [Functional Modules](#functional-modules)
--   [KPI Intelligence](#kpi-intelligence)
--   [Evidence and RAG](#evidence-and-rag)
--   [Evidence Graph](#evidence-graph)
--   [AI and LLM Design](#ai-and-llm-design)
--   [Persona-Aware Intelligence](#persona-aware-intelligence)
--   [Recommendations](#recommendations)
--   [Trust and Governance](#trust-and-governance)
--   [Data Sources](#data-sources)
--   [Technology Stack](#technology-stack)
--   [Getting Started](#getting-started)
--   [Testing](#testing)
--   [Example Investigation](#example-investigation)
--   [Design Principles](#design-principles)
--   [Business Value](#business-value)
--   [Scalability](#scalability)
--   [Challenge Alignment](#challenge-alignment)
--   [Team](#team)
+1. [Overview](#overview)
+2. [Problem Statement](#problem-statement)
+3. [Solution](#solution)
+4. [Core Capabilities](#core-capabilities)
+5. [Implementation Approach](#implementation-approach)
+6. [Solution Architecture](#solution-architecture)
+7. [End-to-End Data Flow](#end-to-end-data-flow)
+8. [Module Architecture](#module-architecture)
+9. [Analytics and Reasoning Methodology](#analytics-and-reasoning-methodology)
+10. [AI / LLM Architecture](#ai--llm-architecture)
+11. [Evidence and Retrieval Architecture](#evidence-and-retrieval-architecture)
+12. [Evidence Graph](#evidence-graph)
+13. [Data Architecture](#data-architecture)
+14. [Database Model](#database-model)
+15. [Repository Structure](#repository-structure)
+16. [Technology Stack](#technology-stack)
+17. [Dependencies](#dependencies)
+18. [Prerequisites](#prerequisites)
+19. [Environment Configuration](#environment-configuration)
+20. [Installation](#installation)
+21. [Database Initialization and Synthetic Data](#database-initialization-and-synthetic-data)
+22. [Running the Application](#running-the-application)
+23. [Demo Workflow](#demo-workflow)
+24. [API Architecture](#api-architecture)
+25. [Testing](#testing)
+26. [Production Build](#production-build)
+27. [Troubleshooting](#troubleshooting)
+28. [Security and Governance](#security-and-governance)
+29. [Design Principles](#design-principles)
+30. [Business Value](#business-value)
+31. [Challenge Alignment](#challenge-alignment)
+32. [Future Scalability](#future-scalability)
+33. [Team](#team)
+34. [License](#license)
 
-------------------------------------------------------------------------
+---
 
-## Problem
+# Overview
 
-Traditional Business Intelligence systems are excellent at answering:
+Traditional BI systems are optimized for visualization:
 
--   What is our revenue?
--   Which KPI moved?
--   Which region is underperforming?
--   How far are we from target?
+> **What happened?**
 
-But a KPI movement is only the beginning of an investigation.
+TRACE extends this workflow toward:
 
-When revenue drops, business users may need to inspect transaction data,
-pricing, product mix, inventory, operations, customer feedback, regional
-performance, historical trends, and contextual business reports. These
-sources often have different formats, definitions, grains, owners, and
-refresh cadences.
+> **What changed → how material is it → what could explain it → what evidence supports or contradicts those explanations → how confident are we → what should a decision-maker investigate next?**
 
-The result is a slow and difficult workflow:
+TRACE combines:
 
-``` text
-Dashboard
-   ↓
-KPI movement
-   ↓
-Analyst investigation
-   ↓
-Multiple systems
-   ↓
-Manual comparison
-   ↓
-Evidence gathering
-   ↓
-Hypothesis formation
-   ↓
-Business decision
+- governed KPI computation
+- historical trend analysis
+- signal and anomaly detection
+- dimensional breakdown
+- driver decomposition
+- hypothesis generation
+- statistical association
+- structured and unstructured evidence
+- evidence scoring
+- contradiction detection
+- provenance and lineage
+- graph-based reasoning visualization
+- uncertainty and confidence
+- conversational investigation
+- decision-oriented recommendations
+
+The architecture deliberately separates **deterministic business analytics** from **retrieval** and **LLM reasoning**.
+
+---
+
+# Problem Statement
+
+Modern organizations have data distributed across multiple systems and formats:
+
+- transactional systems
+- marketing platforms
+- operational systems
+- spreadsheets
+- structured datasets
+- reports and documents
+- business context
+
+A conventional dashboard can show that revenue fell, but the analyst still has to manually:
+
+1. identify the material movement
+2. investigate historical context
+3. segment the movement
+4. determine potential drivers
+5. retrieve business evidence
+6. compare conflicting signals
+7. judge confidence
+8. communicate the conclusion
+
+This creates several problems:
+
+- long investigation cycles
+- inconsistent analytical methodology
+- weak linkage between KPIs and evidence
+- difficult-to-audit AI-generated explanations
+- overconfidence when data is sparse
+- inability to distinguish correlation from causation
+- fragmented reasoning across dashboards, spreadsheets, and documents
+
+TRACE addresses this by turning KPI investigation into a structured, traceable analytical workflow.
+
+---
+
+# Solution
+
+TRACE is organized around a layered intelligence pipeline:
+
+```text
+┌──────────────────────────────────────────────────────────────┐
+│                         TRACE UI                              │
+│ Dashboard │ Data │ Investigations │ Chat │ Evidence Graph   │
+└──────────────────────────────┬───────────────────────────────┘
+                               │
+                               ▼
+┌──────────────────────────────────────────────────────────────┐
+│                     APPLICATION / API LAYER                  │
+│ Upload │ Analyze │ KPI │ Signals │ Drivers │ Hypotheses      │
+│ Evidence │ Decisions │ Uncertainty │ Chat                    │
+└──────────────────────────────┬───────────────────────────────┘
+                               │
+              ┌────────────────┼────────────────┐
+              ▼                ▼                ▼
+┌────────────────────┐ ┌─────────────────┐ ┌──────────────────┐
+│ Deterministic      │ │ Evidence /      │ │ LLM Reasoning    │
+│ Analytics          │ │ Retrieval       │ │                  │
+│                    │ │                 │ │ Gemini           │
+│ KPI                │ │ Documents       │ │ grounded in      │
+│ Signals            │ │ Chunks          │ │ supplied context │
+│ Drivers            │ │ Embeddings      │ │                  │
+│ Contributions      │ │ Evidence scores │ │ No KPI invention │
+└─────────┬──────────┘ └────────┬────────┘ └────────┬─────────┘
+          │                     │                   │
+          └─────────────────────┼───────────────────┘
+                                ▼
+                    ┌──────────────────────┐
+                    │ SQLite Persistence   │
+                    │                      │
+                    │ KPI / Sales / Ops    │
+                    │ Marketing / Evidence │
+                    │ Uploads / Analyses   │
+                    └──────────────────────┘
 ```
 
-The BusinessIntelligence.ai challenge asks for an intelligence-to-action
-engine that detects material KPI movements, reconciles heterogeneous
-sources, identifies explanatory drivers, produces traceable narratives,
-communicates uncertainty, recommends practical actions, and learns from
-feedback. fileciteturn558file1L4-L5
+---
 
-------------------------------------------------------------------------
+# Core Capabilities
 
-## Solution
+## 1. KPI Intelligence
 
-TRACE turns the investigation into a governed end-to-end pipeline:
+TRACE maintains KPI context including:
 
-``` text
-RAW BUSINESS DATA
-       ↓
-MODULE 1 — GOVERNED KPI
-       ↓
-MODULE 2 — SIGNAL
-       ↓
-MODULE 3 — HYPOTHESIS
-       ↓
-MODULE 4 — EVIDENCE + RAG
-       ↓
-MODULE 5 — STORY + ACTION
-       ↓
-MODULE 6 — TRUST + GOVERNANCE
-       ↓
-MODULE 7 — DECISION WORKSPACE
+- current value
+- previous-period value
+- percentage movement
+- historical series
+- dimensional breakdown
+- materiality
+- statistical significance
+- z-score
+- year-over-year movement
+
+Supported business metrics include the current analytical model's revenue and related commercial/operational measures such as:
+
+- Revenue
+- Orders
+- Average Order Value
+- Conversion Rate
+- Marketing ROI
+- Stockout / revenue-impact indicators
+- Discount
+- Product Mix
+- Price
+- Refunds
+
+---
+
+## 2. Signal Detection
+
+TRACE converts KPI movement into a structured signal containing:
+
+- signal strength
+- priority
+- status
+- materiality
+- statistical significance
+- deviation
+- temporal context
+- historical context
+
+This allows the system to prioritize movements that deserve investigation.
+
+---
+
+## 3. Driver Analysis
+
+The driver layer decomposes a KPI movement across business dimensions such as:
+
+- region
+- product
+- channel
+
+Candidate drivers are ranked using analytical evidence such as:
+
+- magnitude
+- association
+- direction
+- timing
+- segment consistency
+- structured evidence availability
+- causal plausibility
+- contradictions
+
+---
+
+## 4. Evidence Retrieval
+
+Evidence can be associated with hypotheses and scored according to multiple signals:
+
+```text
+Semantic relevance
+        +
+Source authority
+        +
+Temporal alignment
+        +
+Entity alignment
+        +
+Hypothesis alignment
+        ↓
+Final evidence score
 ```
 
-The responsibility boundary is deliberately explicit:
+Evidence can support or contradict a hypothesis.
 
-  Module     Question answered
-  ---------- -------------------------------------------------
-  Module 1   **What happened?**
-  Module 2   **Is it meaningful?**
-  Module 3   **What might explain it?**
-  Module 4   **What evidence supports or contradicts it?**
-  Module 5   **How should we explain and act on it?**
-  Module 6   **Can we trust, audit, and learn from it?**
-  Module 7   **How does the user interact with the result?**
+---
 
-This separation prevents generative AI from becoming the source of
-quantitative truth.
+## 5. Evidence Graph
 
-------------------------------------------------------------------------
+TRACE represents relationships between:
 
-## Core Workflow
-
-### 1. WHAT --- Governed KPI Intelligence
-
-TRACE computes governed KPIs from structured business data and
-maintains:
-
--   KPI definitions
--   semantic contracts
--   calculation logic
--   dimensions
--   historical observations
--   data quality
--   freshness
--   lineage
-
-The KPI layer is deterministic and acts as the quantitative source of
-truth.
-
-### 2. SIGNAL --- Material Movement Detection
-
-The signal engine evaluates whether a KPI movement is meaningful using:
-
--   historical baselines
--   period-over-period analysis
--   statistical significance
--   business materiality
--   seasonality
--   volatility
--   anomaly detection
--   signal confidence
--   prioritization
-
-### 3. WHY --- Driver and Hypothesis Analysis
-
-TRACE decomposes material KPI movements into candidate explanatory
-drivers.
-
-Example:
-
-``` text
-Revenue ↓ 9.9%
-
-├── AOV decline       → 54%
-├── Order decline     → 28%
-├── Product mix       → 12%
-└── Other             → 6%
-```
-
-Candidate explanations are represented as explicit hypotheses rather
-than unsupported AI statements.
-
-### 4. EVIDENCE --- Retrieval and Verification
-
-For every important hypothesis, TRACE retrieves relevant evidence from
-structured and unstructured sources.
-
-``` text
-EvidenceRequest
-      ↓
-Query Builder
-      ↓
-Structured + Keyword + Vector Retrieval
-      ↓
-Hybrid Retrieval
-      ↓
-Reranking
-      ↓
-Evidence Scoring
-      ↓
-Support / Contradict / Neutral
-      ↓
-Confidence Update
-      ↓
-Provenance
-      ↓
-Evidence Graph
-```
-
-### 5. SO WHAT --- Decision Intelligence
-
-The final intelligence layer combines:
-
-``` text
+```text
 KPI
-+ Signal
-+ Drivers
-+ Evidence
-+ Confidence
-+ Persona
-+ Business Rules
+ ↓
+Signal
+ ↓
+Hypothesis
+ ↓
+Evidence
+ ↓
+Relationship
 ```
 
-and produces:
+The graph makes the analytical chain inspectable instead of hiding reasoning inside a generated paragraph.
 
--   executive summaries
--   analytical explanations
--   uncertainty
--   evidence citations
--   recommended actions
--   monitoring plans
--   decision context
+---
 
-------------------------------------------------------------------------
+## 6. Conversational Investigation
 
-## Architecture
+The TRACE Chat interface allows users to ask questions about an existing analysis.
 
-``` text
-┌───────────────────────────────────────────────────────────────┐
-│                           TRACE                               │
-│                                                               │
-│  BUSINESS DATA                                                │
-│  CSV / Excel / Structured Data / Documents / Knowledge       │
-│                         │                                     │
-│                         ▼                                     │
-│  ┌─────────────────────────────────────────────────────────┐  │
-│  │ MODULE 1 — GOVERNED KPI                                 │  │
-│  │ Schema → Validation → Normalization → Semantics         │  │
-│  │ → Calculation → History → Freshness → Lineage           │  │
-│  └─────────────────────────┬───────────────────────────────┘  │
-│                            ▼                                  │
-│  ┌─────────────────────────────────────────────────────────┐  │
-│  │ MODULE 2 — SIGNAL ENGINE                                │  │
-│  │ Baseline → Significance → Materiality → Anomaly         │  │
-│  │ → Prioritization → Confidence                            │  │
-│  └─────────────────────────┬───────────────────────────────┘  │
-│                            ▼                                  │
-│  ┌─────────────────────────────────────────────────────────┐  │
-│  │ MODULE 3 — DRIVER / HYPOTHESIS ENGINE                   │  │
-│  │ Decomposition → Drivers → Hypotheses → Ranking          │  │
-│  └─────────────────────────┬───────────────────────────────┘  │
-│                            ▼                                  │
-│  ┌─────────────────────────────────────────────────────────┐  │
-│  │ MODULE 4 — EVIDENCE + RAG                               │  │
-│  │ Structured + Keyword + Vector → Hybrid → Rerank         │  │
-│  │ → Evidence Score → Contradiction → Provenance           │  │
-│  └─────────────────────────┬───────────────────────────────┘  │
-│                            ▼                                  │
-│  ┌─────────────────────────────────────────────────────────┐  │
-│  │ MODULE 5 — STORY + ACTION                                │  │
-│  │ WHAT → WHY → EVIDENCE → UNCERTAINTY → SO WHAT           │  │
-│  └─────────────────────────┬───────────────────────────────┘  │
-│                            ▼                                  │
-│  ┌─────────────────────────────────────────────────────────┐  │
-│  │ MODULE 6 — TRUST + GOVERNANCE                            │  │
-│  │ Feedback → Audit → Confidence → Decision Memory         │  │
-│  └─────────────────────────┬───────────────────────────────┘  │
-│                            ▼                                  │
-│  ┌─────────────────────────────────────────────────────────┐  │
-│  │ MODULE 7 — DECISION WORKSPACE                            │  │
-│  │ Dashboard → Evidence → Graph → Story → Action           │  │
-│  └─────────────────────────────────────────────────────────┘  │
-└───────────────────────────────────────────────────────────────┘
+Examples:
+
+- Why did revenue change?
+- What is the strongest driver?
+- What evidence supports the conclusion?
+- Are there contradictions?
+- Which hypothesis should be investigated first?
+
+The chat API constructs its context from the structured analysis rather than allowing the model to invent KPI calculations.
+
+---
+
+# Implementation Approach
+
+TRACE follows a staged analytical pipeline.
+
+## Phase 1 — Data Ingestion
+
+Input sources are parsed and normalized.
+
+Supported upload formats include:
+
+- CSV
+- XLSX
+- XLS
+- JSON
+- PDF
+- TXT
+- Markdown
+
+The upload layer:
+
+1. validates file type
+2. validates extension
+3. enforces a file-size limit
+4. calculates a content hash
+5. detects schema
+6. detects dimensions and measures
+7. detects date and numeric columns
+8. estimates data grain
+9. maps source fields to canonical fields
+10. persists dataset metadata and rows
+
+The upload API is implemented under:
+
+```text
+src/app/api/upload/
 ```
 
-------------------------------------------------------------------------
+---
 
-## Functional Modules
+## Phase 2 — Governed Data Layer
 
-### Module 1 --- Governed KPI Layer
+Structured data is persisted in SQLite.
 
-Module 1 establishes quantitative truth.
+The database layer creates and manages:
 
-Capabilities:
+- dimensions
+- source metadata
+- sales transactions
+- marketing observations
+- operational observations
+- uploaded datasets
+- uploaded rows
+- analysis runs
+- evidence records
 
--   user data onboarding
--   business data modelling
--   schema inference
--   column mapping
--   validation
--   profiling
--   data-quality assessment
--   normalization
--   synthetic data generation
--   SQLite persistence
--   KPI semantic contracts
--   KPI calculation engine
--   historical KPI layer
--   data freshness
--   KPI lineage
--   KPI API
+The database implementation is centered around:
 
-A semantic contract explicitly defines correct KPI aggregation. For
-example:
-
-``` text
-AOV = Total Revenue / Total Orders
+```text
+src/server/db.ts
 ```
 
-rather than summing or averaging regional AOV values.
+---
 
-### Module 2 --- Signal Engine
+## Phase 3 — KPI Computation
 
-The signal engine determines whether a movement deserves investigation.
+The KPI layer reads normalized business data and calculates:
 
-Capabilities:
-
--   historical baseline
--   period-over-period analysis
--   statistical significance
--   business materiality
--   seasonality
--   volatility
--   anomaly detection
--   signal prioritization
--   signal confidence
--   signal classification
--   signal API
-
-Detection is intentionally separated from root-cause explanation.
-
-### Module 3 --- Driver / Hypothesis Engine
-
-Capabilities:
-
--   driver decomposition
--   contribution analysis
--   candidate hypothesis generation
--   driver ranking
--   multi-factor analysis
--   business-context filtering
--   hypothesis confidence
--   evidence-request generation
-
-Example structured output:
-
-``` json
-{
-  "metric": "Revenue",
-  "movement": -9.88,
-  "hypotheses": [
-    {
-      "driver": "AOV decline",
-      "contribution": 54,
-      "confidence": 0.87
-    },
-    {
-      "driver": "Order decline",
-      "contribution": 28,
-      "confidence": 0.79
-    }
-  ]
-}
+```text
+Current KPI
+Previous KPI
+Absolute Change
+Percentage Change
+Historical Context
+Dimensional Context
 ```
 
-------------------------------------------------------------------------
+The KPI implementation is organized under:
 
-## KPI Intelligence
-
-TRACE treats KPIs as governed business definitions rather than arbitrary
-dashboard calculations.
-
-A KPI definition contains its:
-
--   business meaning
--   formula
--   dimensions
--   thresholds
--   historical context
--   lineage
--   access constraints
--   freshness metadata
-
-The KPI layer produces clean historical observations for downstream
-analysis.
-
-This is important because incorrect aggregation can create incorrect
-conclusions. TRACE therefore keeps quantitative computation outside the
-LLM.
-
-------------------------------------------------------------------------
-
-## Evidence and RAG
-
-TRACE treats retrieval as an analytical verification layer, not simply a
-chatbot feature.
-
-### Structured retrieval
-
-Used for:
-
--   KPI values
--   transactions
--   dates
--   regions
--   products
--   operational metrics
--   business dimensions
-
-### Keyword retrieval
-
-Useful for exact business terminology, identifiers, names, and phrases.
-
-### Vector retrieval
-
-Useful for semantic matching across:
-
--   reports
--   operational documents
--   customer feedback
--   internal knowledge
--   business notes
--   contextual documents
-
-### Hybrid retrieval
-
-Multiple retrieval channels are combined before reranking.
-
-### Evidence scoring
-
-Each retrieved item is evaluated against the active hypothesis.
-
-  Classification      Meaning
-  ------------------- -----------------------------------------
-  **Supporting**      Strengthens the hypothesis
-  **Contradictory**   Weakens or challenges it
-  **Neutral**         Relevant but not directionally decisive
-
-### Provenance
-
-Evidence records preserve:
-
--   source
--   document
--   chunk
--   retrieval method
--   timestamp
--   model
-
-This creates a traceable chain from insight to source.
-
-------------------------------------------------------------------------
-
-## Evidence Graph
-
-TRACE represents an investigation as a graph:
-
-``` text
-                    ┌─────────────┐
-                    │     KPI     │
-                    │  Revenue ↓  │
-                    └──────┬──────┘
-                           │
-                           ▼
-                    ┌─────────────┐
-                    │   SIGNAL    │
-                    │  Material   │
-                    └──────┬──────┘
-                           │
-              ┌────────────┼────────────┐
-              ▼            ▼            ▼
-        ┌──────────┐ ┌──────────┐ ┌──────────┐
-        │ AOV ↓    │ │ Orders ↓ │ │ Mix      │
-        │ Driver   │ │ Driver   │ │ Driver   │
-        └────┬─────┘ └────┬─────┘ └────┬─────┘
-             │            │            │
-             ▼            ▼            ▼
-        ┌──────────┐ ┌──────────┐ ┌──────────┐
-        │ Evidence │ │ Evidence │ │ Evidence │
-        │ Support  │ │ Support  │ │ Neutral  │
-        └────┬─────┘ └────┬─────┘ └────┬─────┘
-             │            │            │
-             └────────────┼────────────┘
-                          ▼
-                   ┌─────────────┐
-                   │ Confidence  │
-                   └──────┬──────┘
-                          ▼
-                   ┌─────────────┐
-                   │   Action    │
-                   └─────────────┘
+```text
+src/server/kpi/
+src/app/api/kpi/
 ```
 
-Users can move from:
+---
 
-**KPI → Signal → Hypothesis → Evidence → Confidence → Decision**
+## Phase 4 — Signal Detection
 
-rather than receiving an opaque AI-generated answer.
+The signal layer evaluates KPI movement using the available historical observations.
 
-------------------------------------------------------------------------
+The output is a structured signal with:
 
-## AI and LLM Design
-
-TRACE uses AI where it adds value and deterministic computation where
-correctness matters.
-
-### Deterministic layer
-
-Used for:
-
--   KPI calculations
--   aggregation
--   historical baselines
--   statistical analysis
--   contribution analysis
--   materiality
--   signal scoring
--   evidence scoring
--   provenance
--   lineage
-
-### LLM layer
-
-Used for:
-
--   intent understanding
--   contextual synthesis
--   natural-language narratives
--   persona adaptation
--   evidence summarization
--   uncertainty explanation
--   recommendation phrasing
--   decision-context interpretation
-
-The LLM receives a verified context package rather than unrestricted raw
-database access:
-
-``` text
-Verified Analytics
-       +
-Verified Evidence
-       +
-Confidence
-       +
-Business Rules
-       ↓
-      LLM
-       ↓
-Persona-specific narrative
+```text
+signal strength
+priority
+status
+materiality
+statistical significance
+z-score
+temporal comparison
 ```
 
-The LLM must not:
+Implementation:
 
--   calculate authoritative KPI values
--   invent contribution percentages
--   fabricate evidence
--   invent sources
--   override evidence confidence
--   make unsupported causal claims
--   fabricate expected financial impact
+```text
+src/server/signal/
+src/app/api/signals/
+```
 
-This architecture follows the challenge's explicit requirement to
-distinguish deterministic logic, SQL, business rules, statistics, ML,
-retrieval, and LLM processing. fileciteturn558file1L4-L5
+---
 
-------------------------------------------------------------------------
+## Phase 5 — Driver Decomposition
 
-## Persona-Aware Intelligence
+TRACE examines business dimensions and ranks candidate drivers.
 
-Different decision-makers require different levels of detail.
+The driver layer combines:
 
-TRACE supports configurable personas including:
+- KPI movement
+- dimensional movement
+- contribution
+- statistical association
+- expected direction
+- segment consistency
+- evidence availability
+- contradictions
 
--   Executive
--   Analyst
--   Regional Manager
--   Finance Manager
--   Operations Manager
--   Marketing Manager
+Implementation:
 
-### Executive
+```text
+src/server/driver/
+src/app/api/drivers/
+src/app/driver-decomposition/
+```
 
-Prioritizes:
+---
 
--   concise insight
--   business impact
--   decision
--   risk
--   high-value action
+## Phase 6 — Hypothesis Generation
+
+The system converts candidate drivers into explicit hypotheses.
+
+A hypothesis contains information such as:
+
+```text
+name
+driver
+claim
+expected direction
+confidence
+status
+association
+evidence availability
+contradictions
+```
+
+This prevents the system from collapsing all possible explanations into one unsupported answer.
+
+Implementation:
+
+```text
+src/app/api/hypotheses/
+```
+
+---
+
+## Phase 7 — Evidence Retrieval and Scoring
+
+Structured and unstructured evidence are evaluated independently from the deterministic KPI calculations.
+
+The evidence subsystem contains:
+
+```text
+src/server/evidence/
+```
+
+The subsystem supports:
+
+- documents
+- chunks
+- embeddings
+- evidence scoring
+- evidence relations
+- retrieval
+- provenance
+
+---
+
+## Phase 8 — Decision Support
+
+The decision layer transforms analytical findings into business-oriented recommendations.
+
+Implementation:
+
+```text
+src/server/decision/
+src/app/api/decisions/
+```
+
+The decision layer is designed to preserve:
+
+- rationale
+- evidence
+- confidence
+- uncertainty
+- recommended action
+
+---
+
+## Phase 9 — Conversational AI
+
+The Chat API receives:
+
+```text
+analysis context
++
+user question
+```
+
+It constructs a grounded prompt containing:
+
+- KPI information
+- signal information
+- driver hypotheses
+- evidence
+- contradictions
+- provenance
+
+The LLM is instructed to:
+
+- answer only from supplied context
+- distinguish association from causation
+- explicitly acknowledge insufficient evidence
+- cite hypotheses/evidence by name
+- never invent missing data
+
+Implementation:
+
+```text
+src/app/api/chat/route.ts
+src/app/chat/
+```
+
+---
+
+# Solution Architecture
+
+## Frontend
+
+The frontend is implemented using Next.js App Router and React.
+
+Major application routes include:
+
+```text
+/
+├── dashboard
+├── data
+├── investigate
+├── chat
+├── driver-decomposition
+└── evidence-graph
+```
+
+The UI uses:
+
+- React components
+- Tailwind CSS
+- Recharts
+- React Flow
+- Lucide icons
+
+---
+
+## Backend
+
+The backend uses Next.js Route Handlers.
+
+Major API domains:
+
+```text
+/api/analyze
+/api/chat
+/api/decisions
+/api/drivers
+/api/evidence
+/api/files
+/api/hypotheses
+/api/kpi
+/api/signals
+/api/uncertainty
+/api/upload
+```
+
+---
+
+## Persistence
+
+SQLite is used as the application database.
+
+Database file:
+
+```text
+db/trace.db
+```
+
+The database is created automatically in the application working directory.
+
+---
+
+# End-to-End Data Flow
+
+```text
+CSV / XLSX / JSON / Document
+              │
+              ▼
+       Upload Validation
+              │
+              ▼
+        File Metadata
+              │
+              ▼
+       Schema Detection
+              │
+              ▼
+     Canonical Field Mapping
+              │
+              ▼
+        SQLite Storage
+              │
+              ▼
+       KPI Computation
+              │
+              ▼
+       Signal Detection
+              │
+              ▼
+      Driver Decomposition
+              │
+              ▼
+     Hypothesis Generation
+              │
+       ┌──────┴───────┐
+       ▼              ▼
+ Structured       Unstructured
+ Evidence         Evidence
+       │              │
+       └──────┬───────┘
+              ▼
+       Evidence Scoring
+              │
+              ▼
+       Contradiction Check
+              │
+              ▼
+       Confidence / Uncertainty
+              │
+              ▼
+       Decision / Recommendation
+              │
+       ┌──────┴────────┐
+       ▼               ▼
+   Dashboard         Chat
+       │
+       ▼
+ Evidence Graph
+```
+
+---
+
+# Module Architecture
+
+| Layer | Responsibility | Main Location |
+|---|---|---|
+| UI | Dashboard, data, investigation, chat and graph views | `src/app/`, `src/components/` |
+| API | HTTP interfaces for application features | `src/app/api/` |
+| Data | Synthetic data generation and ingestion | `src/server/data/` |
+| Database | SQLite connection and migrations | `src/server/db.ts` |
+| KPI | KPI calculations and history | `src/server/kpi/` |
+| Signal | Material movement detection | `src/server/signal/` |
+| Driver | Driver/hypothesis analysis | `src/server/driver/` |
+| Evidence | Documents, embeddings, scoring, retrieval | `src/server/evidence/` |
+| Decision | Decision support | `src/server/decision/` |
+| Uncertainty | Confidence/uncertainty logic | `src/server/uncertainty/` |
+| Types | Shared server-side domain types | `src/server/types.ts` |
+| Utilities | Shared helper functions | `src/server/utils/`, `src/server/utils.ts` |
+
+---
+
+# Analytics and Reasoning Methodology
+
+TRACE intentionally separates three kinds of computation.
+
+## Deterministic Analytics
+
+These calculations are performed by application code:
+
+- KPI values
+- percentage changes
+- historical comparisons
+- dimensional aggregation
+- contribution calculations
+- signal metrics
+- statistical association
+- confidence-related structured calculations
+
+The objective is reproducibility.
+
+---
+
+## Retrieval
+
+Retrieval identifies relevant evidence from:
+
+- stored documents
+- document chunks
+- metadata
+- embeddings
+- structured relationships
+
+Retrieval does not replace KPI computation.
+
+---
+
+## LLM Reasoning
+
+The LLM is responsible for:
+
+- interpreting structured analytical results
+- answering user questions
+- synthesizing evidence
+- producing business-readable explanations
+- communicating uncertainty
+
+It is not the source of truth for numerical KPI calculations.
+
+---
+
+# AI / LLM Architecture
+
+TRACE integrates Google's Gemini API through:
+
+```text
+@google/genai
+```
+
+The Chat API obtains the key from:
+
+```text
+GEMINI_API_KEY
+```
+
+or:
+
+```text
+GOOGLE_AI_API_KEY
+```
+
+The conversational pipeline is:
+
+```text
+User Question
+      │
+      ▼
+Analysis Context
+      │
+      ├── KPI
+      ├── Signal
+      ├── Drivers
+      ├── Hypotheses
+      ├── Evidence
+      ├── Contradictions
+      └── Provenance
+      │
+      ▼
+Grounded Prompt
+      │
+      ▼
+Gemini
+      │
+      ▼
+Business Explanation
+      │
+      ▼
+UI
+```
+
+The prompt explicitly instructs the model to distinguish:
+
+```text
+associated with
+```
+
+from:
+
+```text
+caused by
+```
+
+and to abstain when evidence is insufficient.
+
+---
+
+# Evidence and Retrieval Architecture
+
+The evidence subsystem stores evidence in multiple layers.
+
+## Documents
+
+```text
+documents
+```
+
+Stores:
+
+- source
+- title
+- document type
+- region
+- product
+- topic
+- document date
+- authority score
+- content hash
+
+---
+
+## Document Chunks
+
+```text
+document_chunks
+```
+
+Stores:
+
+- document relationship
+- chunk index
+- text
+- region
+- product
+- temporal boundaries
+- metadata
+
+---
+
+## Embeddings
+
+```text
+embeddings
+```
+
+Stores:
+
+- chunk relationship
+- embedding vector
+- provider
+- model
+- dimension
+- content hash
+- timestamp
+
+---
+
+## Evidence Scores
+
+```text
+evidence_scores
+```
+
+Stores:
+
+- semantic score
+- source score
+- temporal score
+- entity score
+- alignment score
+- final score
+- classification
+
+---
+
+## Evidence Relations
+
+```text
+evidence_relations
+```
+
+Stores the relationship between:
+
+```text
+hypothesis → evidence
+```
+
+with:
+
+- relation
+- strength
+- timestamp
+
+---
+
+# Evidence Graph
+
+The evidence graph is implemented using React Flow:
+
+```text
+@xyflow/react
+```
+
+The graph exposes the relationship between analytical objects.
 
 Example:
 
-``` text
-Revenue declined 9.9% in North, primarily driven by
-lower AOV.
-
-Evidence confidence: High.
-
-Recommended:
-Review pricing and product mix.
-
-Risk:
-If the trend persists, monthly revenue may remain
-below target.
+```text
+                  ┌──────────────┐
+                  │    Revenue   │
+                  └──────┬───────┘
+                         │
+                         ▼
+                  ┌──────────────┐
+                  │ Revenue Drop │
+                  └──────┬───────┘
+                         │
+              ┌──────────┼──────────┐
+              ▼          ▼          ▼
+          Orders     Stockouts    Discount
+              │          │          │
+              ▼          ▼          ▼
+           Evidence   Evidence   Evidence
 ```
 
-### Analyst
+This provides an inspectable evidence chain rather than an opaque AI narrative.
 
-Prioritizes:
+---
 
--   driver decomposition
--   contribution
--   evidence
--   contradictions
--   data gaps
--   methodology
--   confidence
--   lineage
+# Data Architecture
+
+The synthetic demonstration dataset models three connected business systems.
+
+## Sales System
+
+**Grain:** transaction
+
+Contains:
+
+- order
+- transaction date
+- region
+- product
+- channel
+- quantity
+- gross revenue
+- discount
+- net revenue
+
+---
+
+## Marketing Platform
+
+**Grain:** daily
+
+Contains:
+
+- date
+- region
+- product
+- channel
+- campaign
+- sessions
+- conversions
+- marketing spend
+- attributed revenue
+
+---
+
+## Operations System
+
+**Grain:** daily
+
+Contains:
+
+- date
+- region
+- product
+- inventory available
+- stockout rate
+- delivery delay rate
+
+The synthetic data therefore demonstrates heterogeneous business data at different grains and refresh cadences.
+
+---
+
+# Database Model
+
+The SQLite schema is created by `runMigrations()` in:
+
+```text
+src/server/db.ts
+```
+
+## Core entities
+
+```text
+regions
+products
+data_sources
+
+sales_transactions
+marketing_daily
+operations_daily
+
+documents
+document_chunks
+embeddings
+evidence_scores
+evidence_relations
+
+uploaded_files
+uploaded_datasets
+dataset_columns
+dataset_mappings
+uploaded_rows
+
+analysis_runs
+decisions
+```
+
+### Analysis Run
+
+`analysis_runs` provides persistence for the analytical pipeline and stores:
+
+```text
+dataset
+metric
+period
+filters
+status
+KPI result
+signal result
+driver result
+evidence result
+error message
+timestamps
+```
+
+This allows the UI and Chat layer to reference a completed investigation.
+
+---
+
+# Repository Structure
+
+The repository is organized as follows:
+
+```text
+TRACE_IITKHARAGPUR/
+│
+├── README.md
+├── TRACE_PS.txt
+├── Implementation_plan.txt
+├── TRACE_IITKharagpur.pptx
+├── round2_detailed_problem_statements_final.pdf
+│
+└── trace-app/
+    │
+    ├── package.json
+    ├── package-lock.json
+    ├── next.config.ts
+    ├── tsconfig.json
+    ├── eslint.config.mjs
+    ├── jest.config.js
+    ├── check-types.js
+    ├── AGENTS.md
+    │
+    ├── src/
+    │   ├── app/
+    │   │   ├── api/
+    │   │   │   ├── analyze/
+    │   │   │   ├── chat/
+    │   │   │   ├── decisions/
+    │   │   │   ├── drivers/
+    │   │   │   ├── evidence/
+    │   │   │   ├── files/
+    │   │   │   ├── hypotheses/
+    │   │   │   ├── kpi/
+    │   │   │   ├── signals/
+    │   │   │   ├── uncertainty/
+    │   │   │   └── upload/
+    │   │   │
+    │   │   ├── chat/
+    │   │   ├── dashboard/
+    │   │   ├── data/
+    │   │   ├── driver-decomposition/
+    │   │   ├── evidence-graph/
+    │   │   ├── investigate/
+    │   │   ├── globals.css
+    │   │   ├── layout.tsx
+    │   │   └── page.tsx
+    │   │
+    │   ├── components/
+    │   │   └── EvidenceGraph.tsx
+    │   │
+    │   ├── lib/
+    │   │
+    │   └── server/
+    │       ├── data/
+    │       │   └── generateData.ts
+    │       ├── decision/
+    │       ├── driver/
+    │       ├── evidence/
+    │       ├── kpi/
+    │       ├── signal/
+    │       ├── uncertainty/
+    │       ├── db.ts
+    │       ├── types.ts
+    │       ├── utils.ts
+    │       └── utils/
+    │
+    ├── graphify-out/
+    ├── scripts/
+    └── public/
+```
+
+The exact repository may contain additional generated, configuration, or supporting files. The directories above represent the principal application architecture.
+
+---
+
+# Technology Stack
+
+| Category | Technology |
+|---|---|
+| Framework | Next.js 16.3.2 |
+| UI | React 19.2.8 |
+| Language | TypeScript |
+| Styling | Tailwind CSS 4 |
+| Charts | Recharts 3.10.1 |
+| Graph Visualization | React Flow / `@xyflow/react` 12.11.3 |
+| Icons | Lucide React |
+| Database | SQLite |
+| Spreadsheet Parsing | SheetJS / `xlsx` |
+| AI | Google Gemini via `@google/genai` |
+| Testing | Jest |
+| API Testing | Supertest |
+| TypeScript Runtime | `tsx`, `ts-node` |
+| Linting | ESLint |
+| Build | Next.js |
+
+---
+
+# Dependencies
+
+The application dependencies are defined in:
+
+```text
+trace-app/package.json
+```
+
+## Runtime dependencies
+
+```text
+@google/genai
+@xyflow/react
+lucide-react
+next
+react
+react-dom
+recharts
+sqlite3
+xlsx
+```
+
+## Development dependencies
+
+```text
+@tailwindcss/postcss
+@types/jest
+@types/node
+@types/react
+@types/react-dom
+@types/supertest
+eslint
+eslint-config-next
+jest
+sqlite
+supertest
+tailwindcss
+ts-jest
+ts-node
+tsx
+typescript
+```
+
+The lockfile:
+
+```text
+trace-app/package-lock.json
+```
+
+should be used for reproducible dependency installation.
+
+---
+
+# Prerequisites
+
+Before running TRACE locally, install:
+
+- Node.js
+- npm
+- Git
+
+Recommended environment:
+
+```text
+Node.js 18+
+npm
+Git
+```
+
+For AI-powered chat responses, internet connectivity and a valid Gemini API key are required.
+
+The deterministic dashboard and structured analytical functionality can operate independently of the LLM response path.
+
+---
+
+# Environment Configuration
+
+Create an environment file in:
+
+```text
+trace-app/.env.local
+```
+
+For Gemini-powered conversational analysis:
+
+```env
+GEMINI_API_KEY=your_gemini_api_key
+```
+
+The application also recognizes:
+
+```env
+GOOGLE_AI_API_KEY=your_gemini_api_key
+```
+
+Do **not** commit API keys or other secrets to GitHub.
 
 Example:
 
-``` text
-Revenue declined 9.9%.
-
-Driver decomposition:
-AOV       -54%
-Orders    -28%
-Mix       -12%
-
-Evidence:
-Inventory report — supports
-Pricing report — supports
-Support tickets — supports
-Operations report — partial contradiction
-
-Confidence: 86%
-
-Method:
-Contribution analysis + hybrid evidence retrieval
+```text
+.env.local
 ```
 
-The underlying analytical truth remains shared. Persona configuration
-changes presentation and decision focus.
+should remain local and be covered by the repository's ignore rules.
 
-------------------------------------------------------------------------
+---
 
-## Recommendations
+# Installation
 
-TRACE converts analytical findings into structured actions:
+Clone the repository:
 
-``` text
-Driver
-   ↓
-Controllable Lever
-   ↓
-Action
-   ↓
-Expected Impact
-   ↓
-Owner
-   ↓
-Confidence
-   ↓
-Monitoring Plan
-```
-
-Recommendations are constrained by:
-
--   evidence
--   confidence
--   business rules
--   decision rights
--   available data
--   identified uncertainty
-
-The goal is not to produce generic suggestions, but to connect a
-recommendation to the investigation that justified it.
-
-------------------------------------------------------------------------
-
-## Trust and Governance
-
-TRACE treats trust as part of the product rather than an afterthought.
-
-### Confidence
-
-Confidence reflects the quality and consistency of the analytical and
-evidence chain.
-
-### Contradiction handling
-
-Conflicting evidence is explicitly surfaced.
-
-### Abstention
-
-When evidence is insufficient, sparse, stale, or contradictory, TRACE
-communicates uncertainty rather than forcing an unsupported conclusion.
-
-### Freshness
-
-Source freshness is visible so users can distinguish current evidence
-from stale information.
-
-### Lineage
-
-Metrics and evidence can be traced back to their underlying sources.
-
-### Audit trail
-
-An investigation can be represented as:
-
-``` text
-Input
-→ KPI
-→ Signal
-→ Hypothesis
-→ Evidence
-→ Confidence
-→ Narrative
-→ Recommendation
-→ Decision
-→ Feedback
-```
-
-### Feedback loop
-
-User feedback supports:
-
--   correction
--   validation
--   overrides
--   evaluation
--   continuous improvement
--   decision memory
-
-------------------------------------------------------------------------
-
-## Data Sources
-
-TRACE is designed for heterogeneous business information.
-
-### Structured
-
--   CSV
--   Excel
--   tabular business datasets
--   transaction data
--   KPI data
--   operational metrics
-
-### Unstructured
-
--   business reports
--   text documents
--   operational notes
--   customer feedback
--   internal knowledge
-
-### Metadata
-
-TRACE maintains contextual information such as:
-
--   source
--   document
--   timestamp
--   business dimension
--   retrieval method
--   lineage
--   freshness
-
-The challenge specifically emphasizes multiple sources with different
-grains and refresh cadences, inconsistent KPI definitions, business
-rules, security, evidence, confidence, and lineage.
-fileciteturn558file1L4-L5
-
-------------------------------------------------------------------------
-
-## Technology Stack
-
-  -----------------------------------------------------------------------
-  Layer                               Technology
-  ----------------------------------- -----------------------------------
-  Frontend                            Next.js, React, TypeScript
-
-  Visualization                       Recharts, React Flow
-
-  Application                         Next.js server architecture,
-                                      Node.js
-
-  Structured persistence              SQLite
-
-  Analytics                           Statistical analysis, contribution
-                                      analysis, anomaly detection
-
-  Retrieval                           Structured + keyword + vector
-                                      hybrid retrieval
-
-  AI                                  LLM-based synthesis and narrative
-                                      generation
-
-  Testing                             Jest, Supertest
-
-  Graph                               React Flow / graph-based evidence
-                                      representation
-  -----------------------------------------------------------------------
-
-The prototype architecture uses **Next.js + TypeScript + SQLite**, with
-Recharts, React Flow, Jest, Supertest, and the modular server-side
-analytical layers defined by the TRACE architecture.
-
-------------------------------------------------------------------------
-
-## Getting Started
-
-### Prerequisites
-
--   Node.js 18+
--   npm
-
-Verify:
-
-``` bash
-node --version
-npm --version
-```
-
-### Clone
-
-``` bash
+```bash
 git clone https://github.com/mobashshir-ubn-zainuddin/TRACE_IITKHARAGPUR.git
-cd TRACE_IITKHARAGPUR
 ```
 
-### Enter the application
+Enter the application:
 
-``` bash
+```bash
+cd TRACE_IITKHARAGPUR
 cd trace-app
 ```
 
-### Install dependencies
+Install dependencies:
 
-``` bash
+```bash
 npm install
 ```
 
-### Configure environment
+Create the environment file:
 
-Create the local environment file:
-
-``` bash
-cp .env.example .env.local
+```text
+.env.local
 ```
 
-Configure the required application and AI-provider variables.
+and configure the Gemini API key if AI chat is required.
 
-### Initialize the database
+---
 
-``` bash
-npm run db:init
+# Database Initialization and Synthetic Data
+
+TRACE includes its own migration and synthetic data generation workflow.
+
+## Initialize / migrate the database
+
+Run:
+
+```bash
+npm run migrate
 ```
 
-If database initialization is integrated into startup, this step is
-handled automatically.
+This executes:
 
-### Start development
+```text
+scripts/migrate.ts
+```
 
-``` bash
+and prepares the SQLite database.
+
+---
+
+## Generate demonstration data
+
+Run:
+
+```bash
+npm run seed
+```
+
+This executes:
+
+```text
+src/server/data/generateData.ts
+```
+
+The generator uses a deterministic random seed and creates the connected demonstration dataset.
+
+The synthetic scenario is designed around a business decline in:
+
+```text
+North region
+August 2026
+```
+
+with controlled changes involving:
+
+- orders
+- Product B stockouts
+- Product A / premium mix
+- discounting
+- conversion rate
+- marketing channel effects
+
+This provides a repeatable scenario for demonstrating TRACE's investigation workflow.
+
+---
+
+## Reset and regenerate
+
+To rebuild the local analytical dataset:
+
+```bash
+npm run db:reset
+```
+
+This runs the migration followed by synthetic data generation.
+
+---
+
+# Running the Application
+
+Start the development server:
+
+```bash
 npm run dev
 ```
 
 Open:
 
-``` text
+```text
 http://localhost:3000
 ```
 
-------------------------------------------------------------------------
+The application is built using Next.js App Router.
 
-## Testing
+---
 
-Run the test suite:
+# Demo Workflow
 
-``` bash
+For the recommended demonstration:
+
+## Step 1 — Start TRACE
+
+```bash
+npm run dev
+```
+
+Open:
+
+```text
+http://localhost:3000
+```
+
+---
+
+## Step 2 — Open Dashboard
+
+Navigate to:
+
+```text
+/dashboard
+```
+
+Review:
+
+- total revenue
+- average order value
+- total orders
+- active investigations
+- system health
+
+---
+
+## Step 3 — Investigate a KPI
+
+Open:
+
+```text
+/investigate
+```
+
+Select the revenue investigation.
+
+TRACE presents:
+
+- current value
+- previous value
+- percentage change
+- materiality
+- statistical significance
+- z-score
+- year-over-year context
+
+---
+
+## Step 4 — Inspect Top Signals
+
+Review the ranked KPI signals.
+
+Signals contain:
+
+- change percentage
+- priority
+- strength
+- confidence
+
+---
+
+## Step 5 — Inspect Driver Analysis
+
+Open the driver analysis.
+
+Review candidate drivers such as:
+
+- Orders
+- Stockouts
+- Discount
+- Average Order Value
+- Product Mix
+- Price
+- Refunds
+
+Each hypothesis exposes its analytical status and evidence limitations.
+
+---
+
+## Step 6 — Inspect Dimensions
+
+TRACE provides dimensional breakdowns across:
+
+```text
+Region
+Product
+Channel
+```
+
+This helps identify where the KPI movement is concentrated.
+
+---
+
+## Step 7 — Inspect Evidence
+
+Evidence is associated with hypotheses and can be classified as:
+
+```text
+Supporting
+Contradictory
+Insufficient
+```
+
+The system also exposes evidence gaps and confidence.
+
+---
+
+## Step 8 — Inspect the Evidence Graph
+
+Open:
+
+```text
+/evidence-graph
+```
+
+The graph exposes relationships between hypotheses and evidence.
+
+---
+
+## Step 9 — Ask TRACE
+
+Open:
+
+```text
+/chat
+```
+
+Ask questions such as:
+
+```text
+Why did revenue change?
+```
+
+```text
+What is the strongest driver?
+```
+
+```text
+What evidence supports the conclusion?
+```
+
+```text
+Are there any contradictions?
+```
+
+The chat response is grounded in the available investigation context.
+
+---
+
+# API Architecture
+
+TRACE uses Next.js Route Handlers.
+
+The principal API domains are:
+
+| API | Purpose |
+|---|---|
+| `/api/analyze` | Execute analytical workflow |
+| `/api/chat` | Grounded conversational investigation |
+| `/api/decisions` | Decision-support operations |
+| `/api/drivers` | Driver analysis |
+| `/api/evidence` | Evidence operations |
+| `/api/files` | File-related operations |
+| `/api/hypotheses` | Hypothesis retrieval |
+| `/api/kpi` | KPI calculations and history |
+| `/api/signals` | Signal detection and ranking |
+| `/api/uncertainty` | Confidence / uncertainty information |
+| `/api/upload` | Dataset ingestion |
+
+The API layer separates the browser UI from server-side analytics and persistence.
+
+---
+
+# File Upload Architecture
+
+The upload endpoint supports:
+
+```text
+.csv
+.xlsx
+.xls
+.json
+.pdf
+.txt
+.md
+```
+
+Maximum configured file size:
+
+```text
+50 MB
+```
+
+The upload process is:
+
+```text
+File
+ ↓
+Validation
+ ↓
+Content Hash
+ ↓
+Duplicate Check
+ ↓
+Parser
+ ↓
+Schema Detection
+ ↓
+Canonical Mapping
+ ↓
+Dataset Metadata
+ ↓
+Rows
+ ↓
+Analysis-ready Dataset
+```
+
+For spreadsheets, SheetJS is loaded dynamically and workbook sheets are parsed into structured records.
+
+---
+
+# Testing
+
+The project uses Jest and Supertest.
+
+Run the complete test suite:
+
+```bash
 npm test
 ```
 
-Run coverage when supported:
+Run the Module 3 / driver-focused test suite:
 
-``` bash
-npm run test:coverage
+```bash
+npm run test:module3
 ```
 
-Tests cover the core analytical and application behaviour, including:
+Run linting:
 
--   KPI correctness
--   aggregation
--   signal calculations
--   driver decomposition
--   evidence scoring
--   contradiction handling
--   sparse evidence
--   no-evidence scenarios
--   wrong-region / wrong-period retrieval
--   provenance
--   API behaviour
-
-------------------------------------------------------------------------
-
-## Example Investigation
-
-Suppose:
-
-``` text
-Revenue
-North Region
-Month-over-month
-↓ 9.9%
+```bash
+npm run lint
 ```
 
-### Step 1 --- Signal
+The project also includes:
 
-``` text
-Revenue movement: -9.9%
-Materiality: High
-Signal confidence: 0.91
+```text
+check-types.js
 ```
 
-### Step 2 --- Drivers
+for type-checking support.
 
-``` text
-AOV decline       54%
-Order decline     28%
-Product mix       12%
-Other              6%
+A recommended validation sequence before submission is:
+
+```bash
+npm install
+npm run migrate
+npm run seed
+npm run lint
+npm test
+npm run build
 ```
 
-### Step 3 --- Hypotheses
+Then launch the production build locally.
 
-``` text
-H1: Pricing / AOV deterioration
-H2: Lower order volume
-H3: Product mix shift
+---
+
+# Production Build
+
+Create a production build:
+
+```bash
+npm run build
 ```
 
-### Step 4 --- Evidence
+Start the production server:
 
-``` text
-Pricing report
-Inventory report
-Transaction data
-Customer support records
-Operations report
+```bash
+npm start
 ```
 
-### Step 5 --- Evidence evaluation
+The expected flow is:
 
-``` text
-H1
-├── Pricing report       SUPPORT
-├── Transaction data     SUPPORT
-└── Operations report   PARTIAL CONTRADICTION
-
-H2
-├── Transaction data     SUPPORT
-└── Regional demand     SUPPORT
-
-H3
-└── Product mix data     SUPPORT
+```text
+npm run build
+    ↓
+Next.js production build
+    ↓
+npm start
+    ↓
+http://localhost:3000
 ```
 
-### Step 6 --- Confidence
+---
 
-``` text
-Primary hypothesis:
-AOV decline
+# Troubleshooting
 
-Evidence confidence:
-86%
+## Port already in use
+
+If port `3000` is occupied, stop the existing Next.js process or start on another port:
+
+```bash
+npm run dev -- -p 3001
 ```
 
-### Step 7 --- Decision intelligence
+---
 
-``` text
-Revenue declined 9.9% in North, primarily driven by
-lower AOV.
+## Database does not exist
 
-Evidence confidence is high.
+Run:
 
-Recommended action:
-Review pricing and product mix.
-
-Monitoring:
-Track AOV, order volume, and product-level mix in the
-next reporting cycle.
+```bash
+npm run migrate
+npm run seed
 ```
 
-The user can inspect the evidence graph and trace the recommendation
-back through the driver and evidence chain.
+---
 
-------------------------------------------------------------------------
+## Dashboard has no analytical data
 
-## Design Principles
+Regenerate the deterministic demonstration dataset:
 
-### 1. Quantitative truth is deterministic
+```bash
+npm run db:reset
+```
 
-The LLM does not own KPI calculations.
+Then restart the application.
 
-### 2. Explanation must be evidence-backed
+---
 
-A plausible explanation is not automatically a verified explanation.
+## Gemini chat does not respond with an AI answer
 
-### 3. Contradictions are first-class information
+Check:
 
-Conflicting evidence is surfaced instead of hidden.
+```text
+GEMINI_API_KEY
+```
 
-### 4. Confidence is explicit
+or:
 
-Important inferences carry uncertainty.
+```text
+GOOGLE_AI_API_KEY
+```
 
-### 5. Abstention is a feature
+in:
 
-When evidence is insufficient, TRACE can refuse to overstate the
-conclusion.
+```text
+trace-app/.env.local
+```
 
-### 6. Provenance is mandatory
+Then restart the development server.
 
-Insights should be traceable to their analytical and information
-sources.
+---
 
-### 7. Persona changes presentation, not truth
+## Chat says that analysis context is unavailable
 
-Different users can receive different narratives from the same verified
-analytical foundation.
+The chat workflow is analysis-context aware.
 
-### 8. LLMs synthesize; analytical systems calculate
+Run the analysis from the Data / investigation workflow first, then return to Chat with the resulting analysis context.
 
-Generative AI is deliberately separated from quantitative computation.
+---
 
-### 9. Every recommendation has a reasoning chain
+## Upload fails
 
-``` text
+Check:
+
+- file extension
+- MIME type
+- file size
+- non-empty file
+- valid CSV / XLSX / JSON structure
+
+The upload API validates supported formats and a 50 MB maximum file size.
+
+---
+
+# Security and Governance
+
+TRACE follows a controlled AI architecture.
+
+## Deterministic source of truth
+
+Numerical business calculations are performed by application logic rather than generated by the LLM.
+
+---
+
+## Grounded generation
+
+The Chat API instructs the model to answer only from supplied analysis/evidence context.
+
+---
+
+## Evidence-aware uncertainty
+
+When evidence is incomplete, TRACE exposes:
+
+- insufficient data
+- evidence gaps
+- contradictions
+- low confidence
+- missing segment evidence
+- unavailable unstructured evidence
+
+---
+
+## Association vs causation
+
+TRACE does not automatically treat statistical association as causal proof.
+
+The system explicitly communicates the distinction between:
+
+```text
+statistical association
+```
+
+and:
+
+```text
+causal explanation
+```
+
+---
+
+## Provenance
+
+Analytical objects maintain relationships back to:
+
+```text
 KPI
-→ Signal
-→ Driver
-→ Evidence
-→ Confidence
-→ Action
+Signal
+Hypothesis
+Evidence
+Source
 ```
 
-### 10. Humans remain decision-makers
+This supports auditability and traceability.
 
-TRACE is a decision-support system, not a replacement for accountable
-business judgment.
+---
 
-------------------------------------------------------------------------
+# Design Principles
 
-## Business Value
+TRACE is designed around the following principles.
 
-### Faster investigation
+## 1. Analytics before narrative
 
-Automates the first-pass investigation analysts perform across multiple
-systems.
+Compute the business facts first, then generate explanations.
 
-### Better explainability
+---
 
-Major conclusions are connected to supporting evidence and provenance.
+## 2. Evidence before confidence
 
-### Lower hallucination risk
+Confidence should reflect the quality and completeness of available evidence.
 
-The LLM receives verified analytical context rather than unrestricted
-raw business data.
+---
 
-### Better decision quality
+## 3. Explicit hypotheses
 
-Recommendations are grounded in quantified drivers, evidence,
-uncertainty, and business context.
+Potential drivers are represented as explicit hypotheses rather than hidden reasoning.
 
-### Analyst productivity
+---
 
-Analysts spend less time collecting evidence and more time validating
-decisions and acting on high-value questions.
+## 4. Contradictions are first-class signals
 
-### Cross-functional applicability
+Contradictory evidence should weaken a conclusion rather than being silently ignored.
 
-The framework can support:
+---
 
--   sales
--   finance
--   marketing
--   supply chain
--   operations
--   customer experience
--   product analytics
+## 5. Abstention is a valid outcome
 
-------------------------------------------------------------------------
+If evidence is insufficient, TRACE should say so.
 
-## Scalability
+---
 
-### Prototype
+## 6. Human-readable reasoning
 
-``` text
-Next.js
-+
-SQLite
-+
-Hybrid Retrieval
-+
-LLM
+Business users should be able to understand:
+
+```text
+What changed?
+Why does it matter?
+What could explain it?
+What supports that explanation?
+What contradicts it?
+How confident are we?
+What should we do next?
 ```
 
-### Production evolution
+---
 
-``` text
-Enterprise Data Sources
-        ↓
-Warehouse / Data Platform
-        ↓
-Semantic + KPI Layer
-        ↓
-Signal Engine
-        ↓
-Driver Engine
-        ↓
-Enterprise Search / Vector Store
-        ↓
-Evidence Graph
-        ↓
-LLM Orchestration
-        ↓
-Decision Workspace
+# Business Value
+
+TRACE reduces the distance between raw business data and decision-making.
+
+### Without TRACE
+
+```text
+Dashboard
+   ↓
+Analyst manually investigates
+   ↓
+Multiple spreadsheets / systems
+   ↓
+Manual evidence gathering
+   ↓
+Manual explanation
+   ↓
+Decision
 ```
 
-The architecture allows individual layers to scale independently.
+### With TRACE
+
+```text
+Business Data
+     ↓
+TRACE
+     ↓
+Signal
+     ↓
+Drivers
+     ↓
+Evidence
+     ↓
+Confidence
+     ↓
+Decision
+```
+
+The principal value is not simply another dashboard. It is a **traceable investigation workflow** that makes analytical reasoning more consistent, explainable, and actionable.
+
+---
+
+# Challenge Alignment
+
+TRACE is designed to address the core requirements of an AI-native BI investigation system.
+
+| Requirement | TRACE Approach |
+|---|---|
+| Multiple connected KPIs | Revenue, Orders, AOV, Conversion Rate, Marketing ROI and related measures |
+| Multiple data sources | Sales, Marketing, Operations and document evidence |
+| Different data grains | Transactional sales and daily marketing/operations observations |
+| Detect material movement | Signal engine |
+| Statistical significance | Statistical analysis and signal metadata |
+| Driver identification | Driver decomposition and hypotheses |
+| Contribution analysis | Dimensional contribution and driver ranking |
+| Unstructured evidence | Documents, chunks and retrieval |
+| Evidence scoring | Multi-factor evidence scoring |
+| Contradictory evidence | Explicit contradiction detection |
+| Confidence | Hypothesis and evidence confidence |
+| Lineage | Provenance and evidence relations |
+| Explainability | Investigation UI and evidence graph |
+| Conversational BI | Grounded TRACE Chat |
+| Decision support | Decision layer and recommendations |
+| Human oversight | Evidence visibility, confidence, uncertainty and feedback-oriented workflow |
+
+---
+
+# Future Scalability
+
+The current architecture is intentionally modular so that the prototype can evolve into a production BI platform.
 
 Potential production extensions include:
 
--   PostgreSQL or warehouse-backed persistence
--   enterprise data connectors
--   row/column/domain-level security
--   distributed vector retrieval
--   model routing
--   caching
--   asynchronous insight generation
--   observability
--   model and data drift monitoring
--   cost telemetry
--   role-based access control
--   enterprise identity integration
--   scheduled KPI refresh
--   proactive alerts
--   decision memory
--   continuous evaluation
+- PostgreSQL or cloud data warehouse persistence
+- enterprise identity and SSO
+- row-level and column-level security
+- domain-specific authorization
+- scheduled data refresh
+- streaming ingestion
+- production vector database
+- enterprise document connectors
+- model routing
+- model evaluation
+- observability
+- audit logs
+- distributed analytical execution
+- workflow orchestration
+- role-specific recommendations
+- human feedback loops
+- enterprise data catalog integration
 
-The challenge explicitly calls for realistic consideration of security,
-cost, latency, scalability, model/data drift, feedback and LLM
-economics. fileciteturn558file1L4-L5
+The application layer can remain largely stable while infrastructure and data connectors evolve.
 
-------------------------------------------------------------------------
+---
 
-## Challenge Alignment
+# Team
 
-  Round 2 requirement               TRACE capability
-  --------------------------------- -----------------------------------
-  Detect material KPI movements     Signal Engine
-  Reconcile heterogeneous sources   Data onboarding + semantic layer
-  Identify explanatory drivers      Driver / Hypothesis Engine
-  Rank drivers                      Contribution + confidence scoring
-  Persona-specific narratives       Persona-aware Story Engine
-  Traceable evidence                Hybrid RAG + provenance
-  Contradictory evidence            Evidence classification
-  Uncertainty                       Confidence + abstention
-  Practical actions                 Recommendation Engine
-  Feedback mechanism                Governance + feedback loop
-  Security and auditability         Governance layer
-  LLM/non-LLM separation            Explicit architecture
-  Source freshness                  Freshness metadata
-  Analytical lineage                KPI and evidence lineage
-  Decision workspace                Dashboard + investigation + graph
+**TRACE — IIT Kharagpur**
 
-The design directly addresses the BusinessIntelligence.ai track's Round
-2 objective: detect and prioritize material KPI movements, reconcile
-heterogeneous sources, rank explanatory drivers, generate
-evidence-backed persona-specific narratives, communicate uncertainty,
-recommend actions, and learn from business-user feedback.
-fileciteturn558file1L4-L5
+Repository:
 
-------------------------------------------------------------------------
-
-## End-to-End TRACE
-
-``` text
-                    ┌──────────────┐
-                    │  BUSINESS    │
-                    │     DATA     │
-                    └──────┬───────┘
-                           │
-                           ▼
-                    ┌──────────────┐
-                    │ GOVERNED KPI │
-                    └──────┬───────┘
-                           │
-                        WHAT?
-                           │
-                           ▼
-                    ┌──────────────┐
-                    │    SIGNAL    │
-                    └──────┬───────┘
-                           │
-                     MATERIAL?
-                           │
-                           ▼
-                    ┌──────────────┐
-                    │  HYPOTHESIS  │
-                    └──────┬───────┘
-                           │
-                         WHY?
-                           │
-                           ▼
-                    ┌──────────────┐
-                    │   EVIDENCE   │
-                    └──────┬───────┘
-                           │
-                   SUPPORT / CONTRADICT
-                           │
-                           ▼
-                    ┌──────────────┐
-                    │  CONFIDENCE  │
-                    └──────┬───────┘
-                           │
-                           ▼
-                    ┌──────────────┐
-                    │    STORY     │
-                    └──────┬───────┘
-                           │
-                        SO WHAT?
-                           │
-                           ▼
-                    ┌──────────────┐
-                    │    ACTION    │
-                    └──────┬───────┘
-                           │
-                           ▼
-                    ┌──────────────┐
-                    │   FEEDBACK   │
-                    └──────────────┘
-```
-
-> **TRACE turns a KPI movement into an auditable investigation and a
-> decision.**
-
-------------------------------------------------------------------------
-
-## Team
-
-### Team TRACE --- IIT Kharagpur
-
-  Member                     Role
-  -------------------------- -------------
-  **Mobashshir Zainuddin**   Team Leader
-  **Eisa Shaiju**            Team Member
-  **Aadil Mulani**           Team Member
-
-**Institution:** IIT Kharagpur\
-**Stream:** Engineering\
-**Graduation:** 2028
-
-------------------------------------------------------------------------
-
-## Repository
-
-``` text
 https://github.com/mobashshir-ubn-zainuddin/TRACE_IITKHARAGPUR
+
+Application:
+
+```text
+trace-app/
 ```
 
-------------------------------------------------------------------------
+---
 
-## Final Statement
+# License
 
-TRACE is built around a simple proposition:
+This project is developed as a prototype for the Accenture Innovation Challenge.
 
-> **A business does not need another dashboard that tells it what
-> happened. It needs an intelligence layer that can investigate why,
-> show the evidence, communicate uncertainty, and help decide what to do
-> next.**
-
-# TRACE --- From Signal to Decision.
