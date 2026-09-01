@@ -1,0 +1,22 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm run dev > /tmp/claude/d--TRACE-IITKHARAGPUR/dev.log 2>&1 & *)",
+      "Bash(curl -s --max-time 60 http://localhost:3000/data)",
+      "Bash(curl -s --max-time 30 http://localhost:3000/favicon.ico)",
+      "Bash(xxd)",
+      "Bash(curl -s --max-time 60 \"http://localhost:3000/api/files\")",
+      "Bash(curl -s -o /tmp-upload.json -w \"HTTP %{http_code}\\\\n\" --max-time 120 -F \"file=@public/demo-sales-data.csv;type=text/csv\" http://localhost:3000/api/upload)",
+      "Bash(head -c 700 /tmp-upload.json)",
+      "Bash(curl -s --max-time 120 -F \"file=@public/demo-sales-data.csv;type=text/csv\" http://localhost:3000/api/upload)",
+      "Bash(node -e ' *)",
+      "Bash(curl -s -w \"\\\\nHTTP %{http_code}\\\\n\" --max-time 120 -F \"file=@public/demo-sales-data.csv;type=text/csv\" http://localhost:3000/api/upload)",
+      "Bash(curl -s --max-time 60 http://localhost:3000/api/files)",
+      "Bash(curl -s --max-time 120 \"http://localhost:3000/api/kpi?metric=revenue&month=2026-08\")",
+      "Bash(curl -s --max-time 120 \"http://localhost:3000/api/signals/top?period=2026-08\")"
+    ],
+    "additionalDirectories": [
+      "\\tmp\\claude\\d--TRACE-IITKHARAGPUR"
+    ]
+  }
+}

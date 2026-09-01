@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { ArrowLeft, Send, Loader2, Sparkles, MessageSquare, X, Copy, Check, AlertCircle } from "lucide-react";
 import Link from "next/link";
@@ -31,6 +31,15 @@ const SUGGESTED_QUESTIONS = [
 ];
 
 export default function ChatPage() {
+  // useSearchParams() requires a Suspense boundary for static prerendering.
+  return (
+    <Suspense fallback={<div className="p-6 text-muted-foreground text-sm">Loading chat...</div>}>
+      <ChatPageContent />
+    </Suspense>
+  );
+}
+
+function ChatPageContent() {
   const searchParams = useSearchParams();
   const analysisId = searchParams.get("analysisId");
   const datasetId = searchParams.get("datasetId");
@@ -283,7 +292,7 @@ export default function ChatPage() {
             rows={1}
           />
           <button
-            onClick={handleSend}
+            onClick={() => void handleSend()}
             disabled={loading || !input.trim()}
             className="p-3 bg-primary text-primary-foreground rounded-xl hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex-shrink-0"
             aria-label="Send message"

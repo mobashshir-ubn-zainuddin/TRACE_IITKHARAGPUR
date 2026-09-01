@@ -74,18 +74,18 @@ async function parseXLSX(buffer: ArrayBuffer): Promise<{ headers: string[]; rows
   
   for (const sheetName of workbook.SheetNames) {
     const worksheet = workbook.Sheets[sheetName];
-    const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: "" });
-    
+    const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: "" }) as unknown[][];
+
     if (jsonData.length === 0) continue;
-    
-    const headers = jsonData[0].map(h => String(h).trim());
+
+    const headers = jsonData[0].map((h) => String(h).trim());
     const rows: Record<string, unknown>[] = [];
-    
+
     for (let i = 1; i < jsonData.length; i++) {
-      const rowData = jsonData[i];
+      const rowData = jsonData[i] ?? [];
       const row: Record<string, unknown> = {};
-      headers.forEach((h, i) => {
-        let val: unknown = rowData[i] ?? "";
+      headers.forEach((h, colIndex) => {
+        let val: unknown = rowData[colIndex] ?? "";
         if (val !== "" && !isNaN(Number(val))) val = Number(val);
         row[h] = val;
       });
@@ -283,9 +283,16 @@ export async function POST(request: NextRequest) {
     const db = await getDB();
     const existing = await db.get("SELECT id FROM uploaded_files WHERE content_hash = ?", contentHash);
     if (existing) {
-      return NextResponse.json({ 
-        error: "File already uploaded", 
-        fileId: existing.id 
+      // Return the existing dataset id too, so the caller can still open the
+      // analysis for an already-ingested dataset instead of dead-ending.
+      const existingDataset = await db.get(
+        "SELECT id FROM uploaded_datasets WHERE file_id = ? ORDER BY id DESC LIMIT 1",
+        existing.id
+      );
+      return NextResponse.json({
+        error: "File already uploaded",
+        fileId: existing.id,
+        datasetId: existingDataset?.id ?? null,
       }, { status: 409 });
     }
     
@@ -296,7 +303,7 @@ export async function POST(request: NextRequest) {
       const content = buffer.toString("utf8");
       parsed = await parseCSV(content);
     } else if (file.name.endsWith(".xlsx") || file.name.endsWith(".xls")) {
-      parsed = await parseXLSX(buffer);
+      parsed = await parseXLSX(arrayBuffer);
     } else if (file.type === "application/json" || file.name.endsWith(".json")) {
       const content = buffer.toString("utf8");
       parsed = await parseJSON(content);
@@ -319,38 +326,44 @@ export async function POST(request: NextRequest) {
     `, file.name, file.name, file.type, file.size, contentHash);
     
     const fileId = (fileResult as { lastID: number }).lastID;
-    
-    // Store dataset metadata
-    const datasetResult = await db.run(`
-      INSERT INTO uploaded_datasets (file_id, name, source_type, row_count, column_count, schema_hash, status, created_at)
-      VALUES (?, ?, ?, ?, ?, ?, 'active', datetime('now'))
-    `, fileId, file.name, file.type, parsed.rows.length, parsed.headers.length, contentHash);
-    
-    const datasetId = (datasetResult as { lastID: number }).lastID;
-    
-    // Store column mappings
-    for (const header of parsed.headers) {
-      await db.run(`
-        INSERT INTO dataset_columns (dataset_id, source_column, canonical_field, physical_type, semantic_type, role, nullable, unique_ratio)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-      `, datasetId, header, mapToCanonical([header])[header] || header, 
-        "string", "dimension", "dimension", 1, 0.5);
-    }
-    
-    // Store rows (for structured data)
-    if (parsed.rows.length > 0) {
-      const placeholders = parsed.headers.map(() => "?").join(",");
-      const columns = parsed.headers.join(",");
-      
-      for (const row of parsed.rows) {
-        const values = parsed.headers.map(h => row[h] ?? null);
+
+    let datasetId: number;
+    try {
+      // Store dataset metadata (`uploaded_datasets` timestamps with `uploaded_at`)
+      const datasetResult = await db.run(`
+        INSERT INTO uploaded_datasets (file_id, name, source_type, row_count, column_count, schema_hash, status, uploaded_at)
+        VALUES (?, ?, ?, ?, ?, ?, 'active', datetime('now'))
+      `, fileId, file.name, file.type, parsed.rows.length, parsed.headers.length, contentHash);
+
+      datasetId = (datasetResult as { lastID: number }).lastID;
+
+      // Store column mappings
+      for (const header of parsed.headers) {
+        await db.run(`
+          INSERT INTO dataset_columns (dataset_id, source_column, canonical_field, physical_type, semantic_type, role, nullable, unique_ratio)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        `, datasetId, header, columnMapping[header] || header,
+          "string", "dimension", "dimension", 1, 0.5);
+      }
+
+      // Store rows (for structured data).
+      // `uploaded_rows` holds one JSON document per row in its `data` column, so
+      // arbitrary user schemas can be stored without altering the table.
+      for (let i = 0; i < parsed.rows.length; i++) {
         await db.run(
-          `INSERT INTO uploaded_rows (dataset_id, row_index, ${columns}) VALUES (?, ?, ${placeholders})`,
-          [datasetId, parsed.rows.indexOf(row), ...values]
+          `INSERT INTO uploaded_rows (dataset_id, row_index, data) VALUES (?, ?, ?)`,
+          datasetId,
+          i,
+          JSON.stringify(parsed.rows[i])
         );
       }
+    } catch (err) {
+      // Roll back the file row so a partial failure cannot register the content
+      // hash and make every later retry look like a duplicate.
+      await db.run("DELETE FROM uploaded_files WHERE id = ?", fileId).catch(() => {});
+      throw err;
     }
-    
+
     // Generate preview
     const preview = parsed.rows.slice(0, 10);
     
