@@ -165,7 +165,7 @@ export async function hybridSearch(options: HybridSearchOptions): Promise<Hybrid
   const structuredStartTime = Date.now();
   const structuredPromise = structuredSearch(evidenceRequest).catch(err => {
     console.warn("Structured search failed:", err);
-    return { evidence: [] } as StructuredSearchResult;
+    return { evidence: [], latencyMs: 0, queryCount: 0 } as StructuredSearchResult;
   });
   
   const keywordStartTime = Date.now();

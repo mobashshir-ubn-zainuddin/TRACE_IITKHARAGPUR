@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { ArrowLeft, BrainCircuit, BarChart3, AlertTriangle, Network, ShieldAlert, CheckCircle2, RotateCw, Loader2 } from "lucide-react";
 import Link from "next/link";
@@ -187,6 +187,15 @@ const getStatusLabel = (status: string) => {
 };
 
 export default function InvestigatePage() {
+  // useSearchParams() requires a Suspense boundary for static prerendering.
+  return (
+    <Suspense fallback={<div className="p-6 text-muted-foreground text-sm">Loading investigation...</div>}>
+      <InvestigatePageContent />
+    </Suspense>
+  );
+}
+
+function InvestigatePageContent() {
   const searchParams = useSearchParams();
   const analysisId = searchParams.get("analysisId");
   const datasetId = searchParams.get("datasetId");
@@ -199,14 +208,12 @@ export default function InvestigatePage() {
   const [challengeResult, setChallengeResult] = useState<string | null>(null);
 
   const fetchAnalysis = useCallback(async () => {
-    if (!analysisId) {
-      setLoading(false);
-      return;
-    }
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch(`/api/analyze?analysisId=${analysisId}`);
+      // With no analysisId the API returns the most recent completed analysis,
+      // so the "Investigations" nav link works without a query string.
+      const res = await fetch(analysisId ? `/api/analyze?analysisId=${analysisId}` : `/api/analyze`);
       if (!res.ok) {
         const err = await res.json();
         throw new Error(err.error || `Failed to fetch analysis: ${res.status}`);
@@ -460,7 +467,7 @@ export default function InvestigatePage() {
                     cursor={{ fill: 'var(--muted)' }}
                     contentStyle={{ backgroundColor: 'var(--card)', borderColor: 'var(--border)', borderRadius: '8px' }}
                     itemStyle={{ color: 'var(--foreground)' }}
-                    formatter={(value: unknown, name: string) => {
+                    formatter={(value: unknown) => {
                       const num = Array.isArray(value) ? (typeof value[0] === 'string' ? parseFloat(value[0]) : value[0]) : value;
                       return isNaN(num as number) ? ['', ''] : [`${(num as number).toFixed(1)}%`, 'Contribution'];
                     }}
@@ -529,9 +536,9 @@ export default function InvestigatePage() {
                     </span>
                   </td>
                   <td className="px-4 py-3">
-                    {d.contradictions?.length > 0 ? (
+                    {(d.contradictions?.length ?? 0) > 0 ? (
                       <span className="px-2 py-1 bg-destructive/10 text-destructive rounded text-xs font-semibold">
-                        {d.contradictions.length} contradiction(s)
+                        {d.contradictions?.length} contradiction(s)
                       </span>
                     ) : (
                       <span className="text-muted-foreground text-xs">None</span>

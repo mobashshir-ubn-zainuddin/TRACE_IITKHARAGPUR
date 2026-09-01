@@ -5,7 +5,8 @@ import { generateSignal } from "@/server/signal";
 import { analyzeDrivers } from "@/server/driver";
 import { analyzeEvidence, initializeModule4 } from "@/server/evidence";
 import type { KPIResponse, KPISignal } from "@/server/types";
-import type { DriverAnalysis, DriverFilters, EvidenceRequest } from "@/server/driver/types";
+import type { DriverAnalysis, EvidenceRequest } from "@/server/driver/types";
+import type { DriverFilters } from "@/server/driver/history";
 import type { EvidencePackage } from "@/server/evidence/types";
 import { generateEvidenceRequests } from "@/server/driver/hypothesis";
 
@@ -72,8 +73,6 @@ export async function POST(request: NextRequest) {
         region: filters.region,
         product: filters.product,
         channel: filters.channel,
-        start: period,
-        end: period,
       };
       
       const driverResult: DriverAnalysis = await analyzeDrivers(
@@ -92,14 +91,22 @@ export async function POST(request: NextRequest) {
       console.log(`[Analysis ${analysisId}] Running M4: Evidence retrieval...`);
       await initializeModule4();
 
-      // Prepare M3 hypotheses for evidence analysis - use the same hypothesisId format as M3
-      const m3Hypotheses = driverResult.drivers.map((d) => ({
-        hypothesisId: d.id, // M3 assigns H1, H2, H3... 
-        driver: d.driver,
-        name: d.name,
-        expectedDirection: d.expectedDirection,
-        priorConfidence: d.confidence,
-      }));
+      // Prepare M3 hypotheses for evidence analysis.
+      // M3 exposes two ids for the same hypothesis: `d.id` (H1, H2, ...) and the
+      // `H<driver>` label stamped onto generateEvidenceRequests() output. Register
+      // both so every evidence request resolves to its hypothesis.
+      const m3Hypotheses = driverResult.drivers.flatMap((d) => {
+        const base = {
+          driver: d.driver,
+          name: d.name,
+          expectedDirection: d.expectedDirection,
+          priorConfidence: d.confidence,
+        };
+        return [
+          { ...base, hypothesisId: d.id },
+          { ...base, hypothesisId: `H${d.driver}` },
+        ];
+      });
 
       // Prepare evidence requests using M3's generateEvidenceRequests
       const evidenceRequests: EvidenceRequest[] = driverResult.evidenceRequests || [];
@@ -109,8 +116,14 @@ export async function POST(request: NextRequest) {
       if (finalEvidenceRequests.length === 0 && driverResult.drivers.length > 0) {
         const topDrivers = driverResult.drivers.slice(0, 3);
         for (const d of topDrivers) {
+          // generateEvidenceRequests() labels requests `H<driverId>`, but the
+          // hypothesis map above is keyed by M3's own ids (H1, H2, ...).
+          // Re-stamp the id so M4 can resolve the hypothesis.
           finalEvidenceRequests.push(
-            ...generateEvidenceRequests(d.driver, metric, period, driverFilters)
+            ...generateEvidenceRequests(d.driver, metric, period, driverFilters).map((req) => ({
+              ...req,
+              hypothesisId: d.id,
+            }))
           );
         }
       }
@@ -217,10 +230,27 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    return NextResponse.json(
-      { error: "analysisId or datasetId is required" },
-      { status: 400 }
+    // No explicit id: return the most recent completed analysis so entry points
+    // like the "Investigations" nav link resolve without a query string.
+    const latest = await db.get(
+      `SELECT * FROM analysis_runs
+       WHERE status = 'completed'
+       ORDER BY datetime(COALESCE(completed_at, created_at)) DESC, id DESC
+       LIMIT 1`
     );
+
+    if (!latest) {
+      return NextResponse.json({ error: "Analysis not found" }, { status: 404 });
+    }
+
+    return NextResponse.json({
+      ...latest,
+      kpi_result: latest.kpi_result ? JSON.parse(latest.kpi_result) : null,
+      signal_result: latest.signal_result ? JSON.parse(latest.signal_result) : null,
+      driver_result: latest.driver_result ? JSON.parse(latest.driver_result) : null,
+      evidence_result: latest.evidence_result ? JSON.parse(latest.evidence_result) : null,
+      filters: latest.filters ? JSON.parse(latest.filters) : null,
+    });
   } catch (error) {
     console.error("Analyze GET error:", error);
     return NextResponse.json(

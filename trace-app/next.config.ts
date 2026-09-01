@@ -3,10 +3,8 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
-  devIndicators: {
-    buildActivity: false,
-    buildActivityPosition: "bottom-right",
-  },
+  // Next.js 16: `false` fully disables the dev tools indicator overlay.
+  devIndicators: false,
 };
 
 export default nextConfig;
