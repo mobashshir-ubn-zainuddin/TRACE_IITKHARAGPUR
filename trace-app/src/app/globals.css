@@ -1,17 +1,30 @@
 @import "tailwindcss";
 
+/* Manual theme control: `dark:` classes respond to [data-theme="dark"] on
+   <html> instead of only OS preference, so the toggle in the header can
+   drive them directly. Default markup ships with data-theme="dark" (see
+   layout.tsx), so existing `dark:` usage across the app keeps its current
+   look with zero behavior change until the user actually switches. */
+@custom-variant dark (&:where([data-theme=dark], [data-theme=dark] *));
+
 :root {
   --background: #0f111a;
   --foreground: #f8fafc;
-  
+
   --card: #151824;
   --card-foreground: #f8fafc;
-  
+
   --border: #2a2e40;
-  
+
   --primary: #3b82f6;
   --primary-foreground: #ffffff;
-  
+
+  --accent: #8b5cf6;
+  --accent-foreground: #ffffff;
+
+  --warning: #f59e0b;
+  --warning-foreground: #1a1200;
+
   --destructive: #ef4444;
   --destructive-foreground: #ffffff;
 
@@ -20,6 +33,38 @@
 
   --muted: #1e2436;
   --muted-foreground: #94a3b8;
+
+  --shadow-card: 0 1px 2px rgba(0,0,0,0.4), 0 8px 24px -8px rgba(0,0,0,0.5);
+}
+
+[data-theme="light"] {
+  --background: #f4f6fb;
+  --foreground: #0f172a;
+
+  --card: #ffffff;
+  --card-foreground: #0f172a;
+
+  --border: #e2e8f0;
+
+  --primary: #2563eb;
+  --primary-foreground: #ffffff;
+
+  --accent: #7c3aed;
+  --accent-foreground: #ffffff;
+
+  --warning: #d97706;
+  --warning-foreground: #ffffff;
+
+  --destructive: #dc2626;
+  --destructive-foreground: #ffffff;
+
+  --success: #059669;
+  --success-foreground: #ffffff;
+
+  --muted: #eef1f7;
+  --muted-foreground: #64748b;
+
+  --shadow-card: 0 1px 2px rgba(15,23,42,0.06), 0 8px 24px -8px rgba(15,23,42,0.12);
 }
 
 @theme inline {
@@ -30,6 +75,10 @@
   --color-border: var(--border);
   --color-primary: var(--primary);
   --color-primary-foreground: var(--primary-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
   --color-destructive: var(--destructive);
   --color-destructive-foreground: var(--destructive-foreground);
   --color-success: var(--success);
@@ -46,9 +95,11 @@ body {
   font-family: var(--font-sans), sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  transition: background-color 200ms ease, color 200ms ease;
 }
 
-/* Glassmorphism utility */
+/* Glassmorphism utility - tuned per theme so it reads as frosted glass in
+   both light and dark rather than always-dark tinted glass. */
 .glass {
   background: rgba(21, 24, 36, 0.6);
   backdrop-filter: blur(12px);
@@ -61,4 +112,24 @@ body {
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: var(--shadow-card);
+}
+
+[data-theme="light"] .glass {
+  background: rgba(255, 255, 255, 0.7);
+  border: 1px solid rgba(15, 23, 42, 0.06);
+}
+
+[data-theme="light"] .glass-panel {
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(15, 23, 42, 0.08);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

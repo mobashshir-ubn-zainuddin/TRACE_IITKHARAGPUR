@@ -19,16 +19,18 @@ interface ChatResponse {
   error?: string;
 }
 
-const SUGGESTED_QUESTIONS = [
-  "Why did revenue change?",
-  "What is the strongest driver?",
-  "What evidence supports the conclusion?",
-  "Are there any contradictions?",
+const CONTEXT_QUESTIONS = [
+  "Explain the current business performance",
+  "What are the biggest drivers?",
+  "What evidence supports the main finding?",
+  "How should I interpret the dashboard?",
   "What should I investigate next?",
-  "Explain the driver decomposition",
-  "How confident is the analysis?",
-  "What data is missing?",
 ];
+
+const GENERAL_QUESTIONS = ["How do I use TRACE?"];
+
+const UPLOAD_FIRST_MESSAGE =
+  "Upload and analyze a dataset from the Data page first. Once the analysis completes, I can explain the results and answer questions about the data.";
 
 export default function ChatPage() {
   // useSearchParams() requires a Suspense boundary for static prerendering.
@@ -49,19 +51,33 @@ function ChatPageContent() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [analysisContext, setAnalysisContext] = useState<any>(null);
+  const [resolvedAnalysisId, setResolvedAnalysisId] = useState<string | null>(analysisId);
+  const [contextLoading, setContextLoading] = useState(true);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
+  // If the page wasn't given an explicit ?analysisId, fall back to the most
+  // recent completed analysis (same behavior /api/analyze GET already uses
+  // for other entry points) so the user never has to paste an id manually.
   const fetchAnalysisContext = useCallback(async () => {
-    if (!analysisId) return;
+    setContextLoading(true);
     try {
-      const res = await fetch(`/api/analyze?analysisId=${analysisId}`);
+      const url = analysisId ? `/api/analyze?analysisId=${analysisId}` : "/api/analyze";
+      const res = await fetch(url);
       if (res.ok) {
         const data = await res.json();
         setAnalysisContext(data);
+        setResolvedAnalysisId(data?.id != null ? String(data.id) : null);
+      } else {
+        setAnalysisContext(null);
+        setResolvedAnalysisId(null);
       }
     } catch (err) {
       console.warn("Failed to load analysis context for chat:", err);
+      setAnalysisContext(null);
+      setResolvedAnalysisId(null);
+    } finally {
+      setContextLoading(false);
     }
   }, [analysisId]);
 
@@ -94,10 +110,12 @@ function ChatPageContent() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          analysisId,
+          // Send the resolved id (falls back to the latest completed
+          // analysis when the URL didn't carry one) - the API looks it up
+          // fresh from analysis_runs so it's always correctly normalized.
+          analysisId: resolvedAnalysisId,
           datasetId,
           message,
-          context: analysisContext,
         }),
       });
 
@@ -135,7 +153,7 @@ function ChatPageContent() {
     } finally {
       setLoading(false);
     }
-  }, [input, loading, analysisId, datasetId, analysisContext]);
+  }, [input, loading, resolvedAnalysisId, datasetId]);
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !e.shiftKey) {
@@ -153,9 +171,10 @@ function ChatPageContent() {
   };
 
   return (
-    <div className="flex flex-col h-screen bg-zinc-100 dark:bg-zinc-900">
-      {/* Header */}
-      <header className="glass sticky top-0 z-50 w-full px-6 py-4 flex items-center justify-between border-b border-border">
+    <div className="flex flex-col h-[calc(100vh-10rem)] min-h-[28rem] rounded-2xl overflow-hidden border border-border bg-zinc-100 dark:bg-zinc-900">
+      {/* Header - not sticky: the global nav header above is already sticky,
+          so stacking a second sticky bar here would overlap it. */}
+      <header className="glass w-full px-6 py-4 flex items-center justify-between border-b border-border">
         <div className="flex items-center gap-4">
           <Link href={datasetId ? "/data" : "/investigate"} className="p-2 rounded-full hover:bg-muted transition-colors border border-transparent hover:border-border">
             <ArrowLeft className="w-5 h-5 text-foreground" />
@@ -166,14 +185,18 @@ function ChatPageContent() {
               <span>TRACE Chat</span>
             </h1>
             <p className="text-xs text-muted-foreground">
-              {analysisId ? `Analysis: ${analysisId}` : datasetId ? `Dataset: ${datasetId}` : "No analysis context"}
+              {contextLoading
+                ? "Loading analysis..."
+                : resolvedAnalysisId
+                ? `Analysis: ${resolvedAnalysisId}`
+                : "No analysis context"}
             </p>
           </div>
         </div>
         <div className="flex items-center gap-2">
-          {analysisContext && (
+          {analysisContext?.kpi_result && (
             <span className="px-2 py-1 bg-primary/10 text-primary text-xs rounded-full font-medium">
-              {analysisContext.kpi?.label} {analysisContext.kpi?.changePct >= 0 ? "↑" : "↓"} {Math.abs(analysisContext.kpi?.changePct || 0).toFixed(1)}%
+              {analysisContext.kpi_result.label} {analysisContext.kpi_result.changePct >= 0 ? "↑" : "↓"} {Math.abs(analysisContext.kpi_result.changePct || 0).toFixed(1)}%
             </span>
           )}
         </div>
@@ -199,34 +222,37 @@ function ChatPageContent() {
             </div>
             <h2 className="text-2xl font-bold text-foreground mb-2">Ask TRACE about this investigation</h2>
             <p className="text-muted-foreground max-w-md mb-6">
-              {analysisId 
+              {contextLoading
+                ? "Loading analysis context..."
+                : resolvedAnalysisId
                 ? "I have access to the full analysis including KPI signals, driver hypotheses, evidence, and recommendations. Ask me anything about the findings."
-                : "Upload data and run an analysis first, then come back to chat about the results."
-              }
+                : UPLOAD_FIRST_MESSAGE}
             </p>
-            <div className="flex flex-wrap gap-2 justify-center max-w-2xl">
-              {SUGGESTED_QUESTIONS.slice(0, 4).map((q) => (
-                <button
-                  key={q}
-                  onClick={() => handleSuggestedClick(q)}
-                  className="px-4 py-2 bg-white dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 rounded-lg text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-zinc-700 transition-colors"
-                >
-                  {q}
-                </button>
-              ))}
-            </div>
-            {analysisId && (
-              <div className="mt-4 flex flex-wrap gap-2 justify-center max-w-2xl">
-                {SUGGESTED_QUESTIONS.slice(4).map((q) => (
-                  <button
-                    key={q}
-                    onClick={() => handleSuggestedClick(q)}
-                    className="px-4 py-2 bg-white dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 rounded-lg text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-zinc-700 transition-colors"
-                  >
-                    {q}
-                  </button>
-                ))}
-              </div>
+            {!contextLoading && (
+              <>
+                <div className="flex flex-wrap gap-2 justify-center max-w-2xl">
+                  {(resolvedAnalysisId ? CONTEXT_QUESTIONS : []).map((q) => (
+                    <button
+                      key={q}
+                      onClick={() => handleSuggestedClick(q)}
+                      className="px-4 py-2 bg-white dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 rounded-lg text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-zinc-700 transition-colors"
+                    >
+                      {q}
+                    </button>
+                  ))}
+                </div>
+                <div className="mt-4 flex flex-wrap gap-2 justify-center max-w-2xl">
+                  {GENERAL_QUESTIONS.map((q) => (
+                    <button
+                      key={q}
+                      onClick={() => handleSuggestedClick(q)}
+                      className="px-4 py-2 bg-white dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 rounded-lg text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-zinc-700 transition-colors"
+                    >
+                      {q}
+                    </button>
+                  ))}
+                </div>
+              </>
             )}
           </div>
         )}
@@ -286,7 +312,7 @@ function ChatPageContent() {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder={analysisId ? "Ask about this investigation..." : "Type your question (analysis context will be used if available)"}
+            placeholder={resolvedAnalysisId ? "Ask about this investigation..." : "Ask how to use TRACE, or upload data to ask about your results..."}
             disabled={loading}
             className="flex-1 min-h-[44px] max-h-48 px-4 py-3 bg-white dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 rounded-xl text-sm resize-none focus:outline-none focus:ring-2 focus:ring-primary/50 disabled:opacity-50"
             rows={1}
@@ -301,7 +327,7 @@ function ChatPageContent() {
           </button>
         </div>
         <p className="text-xs text-muted-foreground text-center mt-2">
-          Press Enter to send, Shift+Enter for new line. {analysisId ? "Analysis context loaded." : "No analysis context - responses will be general."}
+          Press Enter to send, Shift+Enter for new line. {resolvedAnalysisId ? "Analysis context loaded." : "No analysis context - I can still answer general/website questions."}
         </p>
       </div>
     </div>

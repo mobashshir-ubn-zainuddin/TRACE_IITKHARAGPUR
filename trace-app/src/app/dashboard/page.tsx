@@ -1,8 +1,9 @@
 "use client";
 // src/app/dashboard/page.tsx
 import { useEffect, useState, useRef, useCallback, useMemo } from "react";
+import Link from "next/link";
 import { LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid, ResponsiveContainer } from "recharts";
-import { Loader2, AlertTriangle, CheckCircle, TrendingDown, TrendingUp, Minus, Target } from "lucide-react";
+import { Loader2, AlertTriangle, CheckCircle, TrendingDown, TrendingUp, Minus, Target, Database } from "lucide-react";
 
 interface KPIData {
   month: string;
@@ -389,11 +390,11 @@ function CurrentSignalSection({ signal, loading, error }: {
   );
 }
 
-function TopSignalsSection({ signals, loading, error, period }: { 
-  signals: TopSignal[]; 
-  loading: boolean; 
+function TopSignalsSection({ signals, loading, error, period }: {
+  signals: TopSignal[];
+  loading: boolean;
   error: string | null;
-  period: string;
+  period: string | null;
 }) {
   if (loading) {
     return (
@@ -630,11 +631,11 @@ function DriverAnalysisSection({ analysis, loading, error }: {
 }
 
 // Module 3: Dimension Breakdown Section
-function DimensionBreakdownSection({ breakdown, loading, error, period }: { 
+function DimensionBreakdownSection({ breakdown, loading, error, period }: {
   breakdown: {region: DimensionContribution[]; product: DimensionContribution[]; channel: DimensionContribution[]};
-  loading: boolean; 
+  loading: boolean;
   error: string | null;
-  period: string;
+  period: string | null;
 }) {
   if (loading) {
     return (
@@ -953,11 +954,41 @@ export default function Dashboard() {
     }, 0);
   }, [metric]);
 
-  // Derive the latest period from the data
-  const latestPeriod = data.length > 0 ? data[data.length - 1].month : new Date().toISOString().slice(0, 7);
+  // The single authoritative "current period" for this dashboard: resolved
+  // from the actual data (latest month with rows for this metric), never
+  // from the system clock. Every downstream fetch below (signal, top
+  // signals, drivers, breakdown, hypotheses) keys off this one value so the
+  // whole page shares one analysis period.
+  const [latestPeriod, setLatestPeriod] = useState<string | null>(null);
+  const [periodResolved, setPeriodResolved] = useState(false);
 
-  // Fetch KPI history for chart
   useEffect(() => {
+    let mounted = true;
+    setPeriodResolved(false);
+    setLatestPeriod(null);
+
+    async function fetchLatestPeriod() {
+      try {
+        const response = await fetch(`/api/kpi/latest-period?metric=${metric}`);
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        const data = await response.json();
+        if (mounted) setLatestPeriod(data.period ?? null);
+      } catch (e) {
+        console.error(e);
+        if (mounted) setLatestPeriod(null);
+      } finally {
+        if (mounted) setPeriodResolved(true);
+      }
+    }
+
+    fetchLatestPeriod();
+    return () => { mounted = false; };
+  }, [metric]);
+
+  // Fetch KPI history for chart, anchored to the resolved latest period
+  // (not "now") so the trailing 12-month window always ends on real data.
+  useEffect(() => {
+    if (!latestPeriod) return;
     let mounted = true;
     let currentGeneration = 0;
 
@@ -965,21 +996,21 @@ export default function Dashboard() {
       setLoading(true);
       currentGeneration++;
       const gen = currentGeneration;
-      
+
       try {
         // Use single batched history request instead of 12 individual requests
-        const startMonth = new Date();
-        startMonth.setMonth(startMonth.getMonth() - 11);
-        const start = startMonth.toISOString().slice(0, 7);
-        const end = new Date().toISOString().slice(0, 7);
-        
+        const [endYear, endMonthNum] = latestPeriod!.split("-").map(Number);
+        const startDate = new Date(endYear, endMonthNum - 1 - 11, 1);
+        const start = startDate.toISOString().slice(0, 7);
+        const end = latestPeriod!;
+
         const response = await fetch(`/api/kpi/history?metric=${metric}&start=${start}&end=${end}`);
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
-        
+
         const data = await response.json();
-        
+
         if (!mounted || gen !== currentGeneration) return;
-        
+
         const mappedData = (data.periods || [])
           .map((r: { period: string; value: number }) => ({
             month: r.period,
@@ -1005,7 +1036,7 @@ export default function Dashboard() {
 
     fetchKPI();
     return () => { mounted = false; };
-  }, [metric]);
+  }, [metric, latestPeriod]);
 
   // Fetch current signal for the selected metric and latest period
   useEffect(() => {
@@ -1092,22 +1123,23 @@ export default function Dashboard() {
   // Module 3: Fetch dimension breakdown for region, product, channel
   useEffect(() => {
     if (!latestPeriod) return;
-    
+    const resolvedPeriod = latestPeriod;
+
     let cancelled = false;
-    
+
     async function fetchDimensionBreakdown() {
       setBreakdownLoading(true);
       setBreakdownError(null);
-      
+
       try {
         const dimensions: ("region" | "product" | "channel")[] = ["region", "product", "channel"];
-        
+
         // Use independent fetch calls with separate AbortControllers to avoid
         // the shared AbortController issue in useFetchWithAbort
         const responses = await Promise.allSettled(
           dimensions.map(async (dimension) => {
             const response = await fetch(
-              `/api/drivers/breakdown?metric=${encodeURIComponent(metric)}&period=${encodeURIComponent(latestPeriod)}&dimension=${dimension}`
+              `/api/drivers/breakdown?metric=${encodeURIComponent(metric)}&period=${encodeURIComponent(resolvedPeriod)}&dimension=${dimension}`
             );
             
             if (!response.ok) {
@@ -1197,9 +1229,17 @@ export default function Dashboard() {
 
   return (
     <section className="p-8 min-h-screen bg-zinc-100 dark:bg-zinc-900">
-      <h1 className="text-3xl font-bold mb-4 text-black dark:text-white">
-        Dashboard – KPI Storytelling
-      </h1>
+      <div className="flex items-center justify-between flex-wrap gap-4 mb-4">
+        <h1 className="text-3xl font-bold text-black dark:text-white">
+          Dashboard – KPI Storytelling
+        </h1>
+        <Link
+          href="/data"
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-primary-foreground font-medium hover:opacity-90 transition-opacity focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60"
+        >
+          <Database className="w-4 h-4" /> Data &amp; Upload
+        </Link>
+      </div>
       <div className="flex items-center gap-4 mb-6">
         <label htmlFor="metric" className="text-lg text-black dark:text-gray-200">
           Metric:
@@ -1222,6 +1262,18 @@ export default function Dashboard() {
           </span>
         )}
       </div>
+
+      {periodResolved && !latestPeriod && (
+        <div className="mb-6 p-4 rounded-xl bg-white dark:bg-zinc-800 shadow-lg border-l-4 border-amber-500 flex items-start gap-3">
+          <AlertTriangle className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
+          <div>
+            <p className="font-medium text-gray-900 dark:text-white">No data available for {metric}</p>
+            <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">
+              There are no records for this metric yet. Upload a dataset from the Data page, or select a different metric.
+            </p>
+          </div>
+        </div>
+      )}
 
       {/* Module 2: Current Signal Section */}
       <CurrentSignalSection 

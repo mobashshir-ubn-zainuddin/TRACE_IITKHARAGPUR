@@ -1,8 +1,21 @@
 "use client";
 import { useEffect, useState, useMemo } from "react";
-import { ReactFlow, Background, Controls, type Edge, type Node, type NodeTypes, type EdgeTypes } from "@xyflow/react";
+import {
+  ReactFlow,
+  Background,
+  Controls,
+  Handle,
+  Position,
+  BaseEdge,
+  getBezierPath,
+  type Edge,
+  type Node,
+  type NodeTypes,
+  type EdgeTypes,
+  type EdgeProps,
+} from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
-import { AlertCircle, RefreshCw } from "lucide-react";
+import { AlertCircle, RefreshCw, GitBranch } from "lucide-react";
 
 interface GraphNode {
   id: string;
@@ -62,67 +75,109 @@ function getDefaultPeriod(): string {
   return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
 }
 
+/**
+ * Every node in this graph can appear as an edge source and/or target (KPI ->
+ * hypothesis -> evidence -> source), and the API never sets sourceHandle /
+ * targetHandle on edges (verified in src/server/evidence/graph.ts). So every
+ * custom node gets the same pair of *default* (unnamed) handles - that's
+ * what React Flow error "008" was: edges resolving to a source/target handle
+ * that didn't exist on the node at all, because these were plain <div>s with
+ * no <Handle> rendered.
+ */
+function GraphNodeCard({
+  label,
+  sublabel,
+  background,
+  border,
+  textColor,
+}: {
+  label: string;
+  sublabel: string;
+  background: string;
+  border: string;
+  textColor: string;
+}) {
+  return (
+    <div style={{ padding: 8, background, border: `1px solid ${border}`, borderRadius: 4, minWidth: 140, maxWidth: 220 }}>
+      <Handle type="target" position={Position.Left} />
+      <div style={{ fontWeight: 600, fontSize: 12, wordBreak: "break-word" }}>{label}</div>
+      <div style={{ fontSize: 10, color: textColor }}>{sublabel}</div>
+      <Handle type="source" position={Position.Right} />
+    </div>
+  );
+}
+
 const nodeTypes: NodeTypes = {
   hypothesis: ({ data }) => (
-    <div style={{ padding: 8, background: "#fef3c7", border: "1px solid #f59e0b", borderRadius: 4, minWidth: 140 }}>
-      <div style={{ fontWeight: 600, fontSize: 12 }}>{data.label}</div>
-      <div style={{ fontSize: 10, color: "#92400e" }}>Hypothesis</div>
-    </div>
+    <GraphNodeCard label={data.label} sublabel="Hypothesis" background="#fef3c7" border="#f59e0b" textColor="#92400e" />
   ),
   evidence: ({ data }) => (
-    <div style={{ padding: 8, background: "#dbeafe", border: "1px solid #3b82f6", borderRadius: 4, minWidth: 140 }}>
-      <div style={{ fontWeight: 600, fontSize: 12 }}>{data.label}</div>
-      <div style={{ fontSize: 10, color: "#1e40af" }}>Evidence</div>
-    </div>
+    <GraphNodeCard label={data.label} sublabel="Evidence" background="#dbeafe" border="#3b82f6" textColor="#1e40af" />
   ),
   source: ({ data }) => (
-    <div style={{ padding: 8, background: "#dcfce7", border: "1px solid #22c55e", borderRadius: 4, minWidth: 140 }}>
-      <div style={{ fontWeight: 600, fontSize: 12 }}>{data.label}</div>
-      <div style={{ fontSize: 10, color: "#166534" }}>Source</div>
-    </div>
+    <GraphNodeCard label={data.label} sublabel="Source" background="#dcfce7" border="#22c55e" textColor="#166534" />
   ),
   kpi: ({ data }) => (
-    <div style={{ padding: 8, background: "#fce7f3", border: "1px solid #ec4899", borderRadius: 4, minWidth: 140 }}>
-      <div style={{ fontWeight: 600, fontSize: 12 }}>{data.label}</div>
-      <div style={{ fontSize: 10, color: "#be185d" }}>KPI</div>
-    </div>
+    <GraphNodeCard label={data.label} sublabel="KPI" background="#fce7f3" border="#ec4899" textColor="#be185d" />
   ),
   default: ({ data }) => (
-    <div style={{ padding: 8, background: "#f3f4f6", border: "1px solid #d1d5db", borderRadius: 4, minWidth: 140 }}>
-      <div style={{ fontWeight: 600, fontSize: 12 }}>{data.label}</div>
-      <div style={{ fontSize: 10, color: "#6b7280" }}>{data.type}</div>
-    </div>
+    <GraphNodeCard label={data.label} sublabel={data.type} background="#f3f4f6" border="#d1d5db" textColor="#6b7280" />
   ),
 };
 
+/**
+ * Proper custom edges: a valid path is generated from React Flow's own
+ * sourceX/sourceY/targetX/targetY via getBezierPath, then drawn through
+ * BaseEdge (the raw <path> with no `d` in the previous implementation never
+ * had geometry at all). Color/dash/label per edge type preserves the
+ * supports / contradicts / neutral / from_source / about_driver / about_kpi
+ * semantics - this is deliberately not collapsed into one generic edge.
+ */
+function makeSemanticEdge(color: string, dashed: boolean, label?: string) {
+  return function SemanticEdge({
+    id,
+    sourceX,
+    sourceY,
+    targetX,
+    targetY,
+    sourcePosition,
+    targetPosition,
+    markerEnd,
+  }: EdgeProps) {
+    const [edgePath, labelX, labelY] = getBezierPath({
+      sourceX,
+      sourceY,
+      sourcePosition,
+      targetX,
+      targetY,
+      targetPosition,
+    });
+    return (
+      <>
+        <BaseEdge
+          id={id}
+          path={edgePath}
+          markerEnd={markerEnd}
+          style={{ stroke: color, strokeWidth: 2, strokeDasharray: dashed ? "5,5" : undefined }}
+        />
+        {label && (
+          <text x={labelX} y={labelY} fill={color} fontSize={10} textAnchor="middle" dominantBaseline="middle" style={{ pointerEvents: "none" }}>
+            {label}
+          </text>
+        )}
+      </>
+    );
+  };
+}
+
 const edgeTypes: EdgeTypes = {
-  supports: ({ data }) => (
-    <>
-      <path stroke="#22c55e" strokeWidth={2} strokeDasharray="5,5" />
-      {data?.strength && <text fill="#166534" fontSize={10} textAnchor="middle" dominantBaseline="middle">Supports</text>}
-    </>
-  ),
-  contradicts: ({ data }) => (
-    <>
-      <path stroke="#ef4444" strokeWidth={2} strokeDasharray="5,5" />
-      {data?.strength && <text fill="#991b1b" fontSize={10} textAnchor="middle" dominantBaseline="middle">Contradicts</text>}
-    </>
-  ),
-  neutral: ({ data }) => (
-    <path stroke="#9ca3af" strokeWidth={2} strokeDasharray="5,5" />
-  ),
-  from_source: ({ data }) => (
-    <path stroke="#3b82f6" strokeWidth={2} />
-  ),
-  about_driver: ({ data }) => (
-    <path stroke="#f59e0b" strokeWidth={2} strokeDasharray="5,5" />
-  ),
-  about_kpi: ({ data }) => (
-    <path stroke="#8b5cf6" strokeWidth={2} strokeDasharray="5,5" />
-  ),
-  default: ({ data }) => (
-    <path stroke="#9ca3af" strokeWidth={2} />
-  ),
+  supports: makeSemanticEdge("#22c55e", true, "Supports"),
+  contradicts: makeSemanticEdge("#ef4444", true, "Contradicts"),
+  neutral: makeSemanticEdge("#9ca3af", true),
+  from_source: makeSemanticEdge("#3b82f6", false),
+  about_driver: makeSemanticEdge("#f59e0b", true),
+  about_kpi: makeSemanticEdge("#8b5cf6", true),
+  default: makeSemanticEdge("#9ca3af", false),
 };
 
 export function EvidenceGraph({ 
@@ -172,37 +227,59 @@ export function EvidenceGraph({
         if (!mounted) return;
         
         setGraphData(data);
-        
-        const n = data.nodes.map((node: GraphNode, i: number) => ({
-          id: node.id,
-          type: mapNodeType(node.type),
-          data: { label: node.label, type: node.type },
-          position: { 
-            x: (node.properties?.x as number) ?? i * 150, 
-            y: (node.properties?.y as number) ?? 0 
-          },
-          style: { width: 140, padding: 8, background: "#4f46e5", color: "white", borderRadius: 4, border: "1px solid #3730a3" },
-        }));
-        
-        const e = data.edges.map((edge: GraphEdge) => ({
-          id: edge.id,
-          source: edge.source,
-          target: edge.target,
-          type: mapEdgeType(edge.type),
-          animated: true,
-          style: { 
-            stroke: edge.type === "contradicts" ? "#ef4444" : edge.type === "supports" ? "#22c55e" : "#9ca3af", 
-            strokeWidth: 2 
-          },
-          label: edge.type,
-          labelStyle: { fontSize: 10, fill: "#fff" },
-          labelBgStyle: { 
-            fill: edge.type === "contradicts" ? "#ef4444" : edge.type === "supports" ? "#22c55e" : "#9ca3af", 
-            padding: 2, 
-            borderRadius: 2 
-          },
-        }));
-        
+
+        // Validate before handing anything to ReactFlow: every node needs a
+        // unique id/type/data/position, and every edge must reference nodes
+        // that actually exist. An edge to a missing node is skipped (with a
+        // dev warning) rather than fed to ReactFlow, which is the other way
+        // "008"-style errors happen - not just missing handles.
+        const seenNodeIds = new Set<string>();
+        const validNodes: GraphNode[] = [];
+        for (const node of data.nodes as GraphNode[]) {
+          if (!node?.id || seenNodeIds.has(node.id)) {
+            if (node?.id) console.warn(`Skipping duplicate evidence node id: ${node.id}`);
+            continue;
+          }
+          seenNodeIds.add(node.id);
+          validNodes.push(node);
+        }
+
+        // Tiered layout by node role (KPI -> Hypothesis -> Evidence ->
+        // Source) instead of one flat row - the API never sets x/y, so this
+        // is what actually makes the DAG readable.
+        const tierOf = (type: string): number =>
+          type === "kpi" ? 0 : type === "hypothesis" ? 1 : type === "evidence" ? 2 : type === "source" ? 3 : 4;
+        const tierCounts = [0, 0, 0, 0, 0];
+
+        const n: Node<{ label: string; type: string }>[] = validNodes.map((node) => {
+          const tier = tierOf(node.type);
+          const col = tierCounts[tier]++;
+          const x = (node.properties?.x as number) ?? tier * 260;
+          const y = (node.properties?.y as number) ?? col * 90;
+          return {
+            id: node.id,
+            type: mapNodeType(node.type),
+            data: { label: node.label, type: node.type },
+            position: { x, y },
+          };
+        });
+
+        const e: Edge[] = [];
+        for (const edge of data.edges as GraphEdge[]) {
+          if (!edge?.id || !edge.source || !edge.target) continue;
+          if (!seenNodeIds.has(edge.source) || !seenNodeIds.has(edge.target)) {
+            console.warn(`Skipping invalid evidence edge: source node ${edge.source} / target node ${edge.target} (edge ${edge.id})`);
+            continue;
+          }
+          e.push({
+            id: edge.id,
+            source: edge.source,
+            target: edge.target,
+            type: mapEdgeType(edge.type),
+            animated: edge.type === "supports" || edge.type === "contradicts",
+          });
+        }
+
         setNodes(n);
         setEdges(e);
       } catch (err) {
@@ -224,13 +301,30 @@ export function EvidenceGraph({
         <AlertCircle className="w-12 h-12 text-gray-400 mx-auto mb-4" />
         <p className="text-gray-600 dark:text-gray-300 text-lg">No evidence graph available</p>
         <p className="text-gray-500 dark:text-gray-400 mt-2">
-          {analysisId 
+          {analysisId
             ? "No evidence data found for this analysis. Run an analysis first."
             : "Select a metric and period, or run an analysis to generate evidence graph."}
         </p>
       </div>
     </div>
   ), [analysisId]);
+
+  // Distinct from the "no data returned at all" state above: the API
+  // responded and graphData exists, but after validation there is nothing
+  // renderable (e.g. every edge referenced a missing node, or the package
+  // genuinely has zero hypotheses/evidence). Never hand ReactFlow an empty
+  // graph silently - say so.
+  const noRelationshipsState = (
+    <div style={{ width: "100%", height: 500 }} className="bg-white dark:bg-zinc-800 rounded flex flex-col items-center justify-center">
+      <div className="text-center p-8 max-w-md">
+        <GitBranch className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+        <p className="text-gray-600 dark:text-gray-300 text-lg">No evidence relationships available</p>
+        <p className="text-gray-500 dark:text-gray-400 mt-2 text-sm">
+          Evidence relationships will appear when the analysis contains traceable supporting or contradicting evidence.
+        </p>
+      </div>
+    </div>
+  );
 
   return (
     <section className="p-8 min-h-screen bg-zinc-100 dark:bg-zinc-900">
@@ -293,7 +387,11 @@ export function EvidenceGraph({
             <p className="text-gray-600 dark:text-gray-300">Loading evidence graph…</p>
           </div>
         </div>
-      ) : graphData ? (
+      ) : !graphData ? (
+        emptyState
+      ) : nodes.length === 0 ? (
+        noRelationshipsState
+      ) : (
         <div style={{ width: "100%", height: 500 }} className="bg-white dark:bg-zinc-800 rounded">
           <ReactFlow
             nodes={nodes}
@@ -301,14 +399,12 @@ export function EvidenceGraph({
             fitView
             nodeTypes={nodeTypes}
             edgeTypes={edgeTypes}
-            onError={(err) => console.error("React Flow error:", err)}
+            onError={(id, message) => console.error(`[React Flow ${id}] ${message}`)}
           >
             <Background />
             <Controls />
           </ReactFlow>
         </div>
-      ) : (
-        emptyState
       )}
     </section>
   );

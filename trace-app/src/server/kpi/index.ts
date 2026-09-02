@@ -26,6 +26,109 @@ export async function resolveProductId(product?: string): Promise<number | undef
   return row.id;
 }
 
+/**
+ * Source table + date column a metric's rows actually live in. Used both to
+ * check row existence (periodHasData) and to resolve the latest period with
+ * real data (getLatestAvailablePeriod) - kept in one place so both stay in
+ * sync with computeKPI/getKPIHistoryBatched's own table choices.
+ */
+function sourceTableFor(metric: string): { table: string; dateColumn: string } {
+  const normalizedMetric = normalizeMetric(metric);
+  if (normalizedMetric === "conversion" || normalizedMetric === "marketingROI") {
+    return { table: "marketing_daily", dateColumn: "date" };
+  }
+  return { table: "sales_transactions", dateColumn: "transaction_date" };
+}
+
+/**
+ * Whether `month` has at least one underlying row for `metric` (+ filters).
+ * This is what distinguishes "no data for this period" from "data exists and
+ * genuinely aggregates to zero" - COALESCE(SUM(...), 0) alone can't tell them
+ * apart, since it returns 0 in both cases.
+ */
+export async function periodHasData(
+  metric: string,
+  month: string,
+  filters?: { region?: string; product?: string; channel?: string }
+): Promise<boolean> {
+  const db = await getDB();
+  const { table, dateColumn } = sourceTableFor(metric);
+  const { start, end } = monthToDateRange(month);
+
+  let whereClause = `WHERE ${dateColumn} BETWEEN ? AND ?`;
+  const params: (string | number)[] = [start, end];
+
+  if (filters?.region) {
+    const regionId = await resolveRegionId(filters.region);
+    if (regionId) {
+      whereClause += " AND region_id = ?";
+      params.push(regionId);
+    }
+  }
+  if (filters?.product) {
+    const productId = await resolveProductId(filters.product);
+    if (productId) {
+      whereClause += " AND product_id = ?";
+      params.push(productId);
+    }
+  }
+  if (filters?.channel && table === "sales_transactions") {
+    whereClause += " AND channel = ?";
+    params.push(filters.channel);
+  }
+
+  const row = await db.get(`SELECT COUNT(*) as c FROM ${table} ${whereClause}`, ...params);
+  return (row?.c || 0) > 0;
+}
+
+/**
+ * The single authoritative "current period" for the whole app: the latest
+ * calendar month that actually has rows for this metric (+ filters), read
+ * directly from its source table. Never derived from the system clock, so it
+ * can never resolve to a period the data doesn't cover yet.
+ *
+ * If uploaded data is ever merged into this same source table, this
+ * automatically picks up its latest month too - no separate "uploaded vs
+ * seeded" branch is needed because both would live in one authoritative table.
+ */
+export async function getLatestAvailablePeriod(
+  metric: string = "revenue",
+  filters?: { region?: string; product?: string; channel?: string }
+): Promise<string | null> {
+  const db = await getDB();
+  const { table, dateColumn } = sourceTableFor(metric);
+
+  let whereClause = "";
+  const conditions: string[] = [];
+  const params: (string | number)[] = [];
+
+  if (filters?.region) {
+    const regionId = await resolveRegionId(filters.region);
+    if (regionId) {
+      conditions.push("region_id = ?");
+      params.push(regionId);
+    }
+  }
+  if (filters?.product) {
+    const productId = await resolveProductId(filters.product);
+    if (productId) {
+      conditions.push("product_id = ?");
+      params.push(productId);
+    }
+  }
+  if (filters?.channel && table === "sales_transactions") {
+    conditions.push("channel = ?");
+    params.push(filters.channel);
+  }
+  if (conditions.length) whereClause = "WHERE " + conditions.join(" AND ");
+
+  const row = await db.get(
+    `SELECT MAX(strftime('%Y-%m', ${dateColumn})) as period FROM ${table} ${whereClause}`,
+    ...params
+  );
+  return row?.period ?? null;
+}
+
 async function computeRevenue(filters: { month: string; region?: string; product?: string; channel?: string }): Promise<{ current: number; previous: number }> {
   const db = await getDB();
   const { start, end } = monthToDateRange(filters.month);
@@ -251,6 +354,7 @@ export async function computeKPI(metric: string, month: string, filters?: { regi
   }
 
   const changePct = result.previous === 0 ? 0 : ((result.current - result.previous) / result.previous) * 100;
+  const dataAvailable = await periodHasData(normalizedMetric, month, filters);
 
   const quality = await computeDataQuality();
   const freshness = await computeFreshness(normalizedMetric);
@@ -281,8 +385,9 @@ export async function computeKPI(metric: string, month: string, filters?: { regi
       hoursSinceRefresh: 0,
       status: 'critical'
     },
-    is_anomaly: Math.abs(changePct) > 20,
-    severity: Math.abs(changePct) > 30 ? 'high' : Math.abs(changePct) > 20 ? 'medium' : 'low'
+    is_anomaly: dataAvailable && Math.abs(changePct) > 20,
+    severity: Math.abs(changePct) > 30 ? 'high' : Math.abs(changePct) > 20 ? 'medium' : 'low',
+    dataAvailable,
   };
 }
 
@@ -351,18 +456,28 @@ export async function getKPIHistoryBatched(metric: string, months: string[], fil
     const rows = await db.all(query, ...params);
     const rowMap = new Map(rows.map(r => [r.period, r.val || 0]));
 
+    // A month with no matching rows at all is *missing* data, not a real
+    // zero - GROUP BY only ever emits a row for a month that has ≥1
+    // underlying transaction, so anything absent from rowMap genuinely has
+    // no data and must not be materialized as value: 0 (see root-cause fix
+    // for the dashboard resolving an empty future period as "0 revenue").
     for (const month of months) {
-      results.push({ period: month, value: rowMap.get(month) || 0 });
+      if (rowMap.has(month)) {
+        results.push({ period: month, value: rowMap.get(month)! });
+      }
     }
   } else if (normalizedMetric === 'aov') {
     const revenueHistory = await getKPIHistoryBatched('revenue', months, filters);
     const ordersHistory = await getKPIHistoryBatched('orders', months, filters);
     const revenueMap = new Map(revenueHistory.map(r => [r.period, r.value]));
     const ordersMap = new Map(ordersHistory.map(r => [r.period, r.value]));
-    
+
+    // Only emit AOV for months where the underlying revenue/orders data
+    // actually exists - same "missing != zero" rule as above.
     for (const month of months) {
-      const revenue = revenueMap.get(month) || 0;
-      const orders = ordersMap.get(month) || 0;
+      if (!revenueMap.has(month) || !ordersMap.has(month)) continue;
+      const revenue = revenueMap.get(month)!;
+      const orders = ordersMap.get(month)!;
       results.push({ period: month, value: orders > 0 ? revenue / orders : 0 });
     }
   } else if (normalizedMetric === 'conversion' || normalizedMetric === 'marketingROI') {
@@ -410,11 +525,14 @@ export async function getKPIHistoryBatched(metric: string, months: string[], fil
     const rowMap = new Map(rows.map(r => [r.period, r.val || 0]));
 
     for (const month of months) {
-      results.push({ period: month, value: rowMap.get(month) || 0 });
+      if (rowMap.has(month)) {
+        results.push({ period: month, value: rowMap.get(month)! });
+      }
     }
   } else {
     for (const month of months) {
       const kpi = await computeKPI(normalizedMetric, month, { region: filters?.region, product: filters?.product, channel: filters?.channel });
+      if (kpi.dataAvailable === false) continue;
       results.push({ period: month, value: kpi.value });
     }
   }

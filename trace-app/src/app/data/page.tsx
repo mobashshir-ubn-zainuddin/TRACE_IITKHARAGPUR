@@ -264,10 +264,24 @@ export default function DataPage() {
   const runAnalysis = async (datasetId: number | null) => {
     if (!datasetId) return;
     try {
+      const metric = "revenue";
+      // Resolve the current analysis period from the actual data (the
+      // latest month with rows) instead of hard-coding one - this is the
+      // same authoritative resolver the dashboard uses, so the run this
+      // creates lines up with what the dashboard/investigation will show.
+      const periodRes = await fetch(`/api/kpi/latest-period?metric=${metric}`);
+      const periodData = periodRes.ok ? await periodRes.json() : null;
+      const period: string | null = periodData?.period ?? null;
+
+      if (!period) {
+        console.warn("No data available yet to resolve an analysis period; skipping analysis run.");
+        return;
+      }
+
       await fetch("/api/analyze", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ datasetId, metric: "revenue", period: "2026-08" }),
+        body: JSON.stringify({ datasetId, metric, period }),
       });
     } catch (err) {
       console.warn("Analysis could not be started:", err);

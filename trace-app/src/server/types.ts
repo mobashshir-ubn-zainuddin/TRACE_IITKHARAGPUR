@@ -57,6 +57,10 @@ export interface KPIResponse {
   freshness: SourceFreshness;
   is_anomaly?: boolean;
   severity?: 'low' | 'medium' | 'high';
+  /** False when the requested period has zero underlying rows (missing data),
+   *  as opposed to rows that exist and genuinely aggregate to zero. Used to
+   *  keep "no data for this period" from ever being reported as a real 0. */
+  dataAvailable?: boolean;
 }
 
 export interface KPIHistoryResponse {
@@ -170,7 +174,8 @@ export type SignalReasonCode =
   | "STALE_DATA"
   | "LOW_COMPLETENESS"
   | "HIGH_VOLATILITY"
-  | "NEW_KPI";
+  | "NEW_KPI"
+  | "NO_DATA_FOR_PERIOD";
 
 export interface KPISignal {
   id: string;
@@ -267,6 +272,9 @@ export interface KPISignal {
     historyLength: number;
     method: string[];
   };
+
+  /** False when `period` has zero underlying rows - see KPIResponse.dataAvailable. */
+  dataAvailable?: boolean;
 }
 
 export interface ScoringResult {
