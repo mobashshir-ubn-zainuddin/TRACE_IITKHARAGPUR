@@ -1,5 +1,5 @@
 import { getKPIDefinition, normalizeMetric, getAllKPIMetrics } from "../kpi/definitions";
-import { computeKPI } from "../kpi";
+import { computeKPI, periodHasData } from "../kpi";
 import { computeBaseline } from "./baseline";
 import { calculateMateriality } from "./materiality";
 import { calculateSignalScore } from "./scoring";
@@ -122,7 +122,53 @@ export async function generateSignal(
         },
       } as KPIResponse;
     }
-    
+
+    // The KPI cache above doesn't carry `dataAvailable`, so re-derive it
+    // directly (cheap COUNT query) rather than trusting a possibly-stale
+    // reconstructed value. This is the signal-side half of the root-cause
+    // fix: a requested period with zero underlying rows must never be
+    // scored as a real movement (e.g. a fabricated -100%).
+    const dataAvailable = fullKpiResponse.dataAvailable ?? await periodHasData(normalizedMetric, period, filterOpts);
+
+    if (!dataAvailable) {
+      const noDataSignal: KPISignal = {
+        id: `${normalizedMetric}-${period}-${filters?.region || 'all'}-${filters?.product || 'all'}-${filters?.channel || 'all'}`,
+        metric: normalizedMetric,
+        period,
+        currentValue: 0,
+        previousValue: fullKpiResponse.previousValue,
+        absoluteChange: 0,
+        changePct: 0,
+        baseline: { mean: 0, median: 0, stdDev: 0 },
+        deviation: {},
+        seasonality: { adjusted: false },
+        statisticalSignificance: "none",
+        materiality: "low",
+        signalStrength: 0,
+        priority: "low",
+        status: "normal",
+        confidence: 0,
+        dataQualityImpact: 0,
+        reasons: [`No data available for ${period}. This period has no underlying records, so no movement is reported (a missing period is not treated as a genuine zero).`],
+        reasonCodes: ["NO_DATA_FOR_PERIOD"],
+        explanation: {
+          summary: { direction: "flat", magnitudePct: 0, materiality: "low", statisticalSignificance: "none" },
+          reasons: [`No data available for ${period}.`],
+        },
+        dimensions: {
+          region: filters?.region || "",
+          product: filters?.product || "",
+          channel: filters?.channel || "",
+        },
+        candidateInvestigationWindow: { start: `${period}-01`, end: `${period}-31` },
+        telemetry: { calculationLatencyMs: Date.now() - startTime, historyLength: 0, method: ["no_data_guard"] },
+        dataAvailable: false,
+      };
+      signalCache.set(signalKey, noDataSignal);
+      endTotal({ dataAvailable: false });
+      return noDataSignal;
+    }
+
     // Get historical baseline (with caching + in-flight deduplication)
     const config = getSignalConfig();
     const baselineKey = makeBaselineKey(normalizedMetric, period, config.baselineWindowMonths, filterOpts);

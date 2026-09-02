@@ -90,8 +90,31 @@ export async function analyzeEvidence(options: AnalyzeEvidenceOptions): Promise<
     })
   );
   
-  // Aggregate results
-  const allEvidence: EvidenceItem[] = [];
+  // Aggregate results.
+  //
+  // ROOT CAUSE (evidenceCount vs linked-evidence mismatch, and evidence
+  // silently missing its supporting/contradicting/neutral classification):
+  // generateEvidenceRequests() intentionally issues ONE evidence request PER
+  // CANDIDATE LEVER of a driver (e.g. "orders" has 3 levers -> 3 requests, all
+  // sharing hypothesisId "Horders"; "aov" has 4 levers -> 4 requests). Each
+  // request retrieves up to 10 items. The previous code did
+  // `hypothesisEvidenceMap.set(result.hypothesisId, result.evidence)` inside
+  // the per-result loop below, which OVERWRITES the map entry every time a
+  // later lever's request for the same hypothesis is processed - so only the
+  // LAST lever's ~10 items ever became "the hypothesis's evidence" (used for
+  // evidenceCount, supporting/contradicting/neutral, confidence and
+  // contradiction detection), while `allEvidence` kept every lever's items
+  // (3x/4x more), which is exactly the "evidenceCount (10) vs linked evidence
+  // (30/40)" mismatch and the "not categorized" evidence. It also meant the
+  // contradiction/support classification for a hypothesis was decided from an
+  // arbitrary 1-of-N lever slice instead of its full retrieved evidence pool.
+  //
+  // Fix: merge (not overwrite) evidence across every request for the same
+  // hypothesisId, and dedupe by evidence id - ids already encode
+  // `${method}-${chunkId}-${hypothesisId}` (see retrieval/*.ts), so the same
+  // id can only recur when two lever queries retrieved the identical chunk
+  // for the identical hypothesis; it never collides across hypotheses.
+  const dedupedEvidenceById = new Map<string, EvidenceItem>();
   const hypothesisEvidenceMap = new Map<string, EvidenceItem[]>();
   const totalTelemetry: RetrievalTelemetry = {
     retrievalLatencyMs: 0,
@@ -127,9 +150,18 @@ export async function analyzeEvidence(options: AnalyzeEvidenceOptions): Promise<
   
   // Process each hypothesis
   for (const result of results) {
-    allEvidence.push(...result.evidence);
-    hypothesisEvidenceMap.set(result.hypothesisId, result.evidence);
-    
+    const existingForHyp = hypothesisEvidenceMap.get(result.hypothesisId) ?? [];
+    const mergedForHyp = [...existingForHyp];
+    for (const item of result.evidence) {
+      if (!dedupedEvidenceById.has(item.id)) {
+        dedupedEvidenceById.set(item.id, item);
+      }
+      if (!mergedForHyp.some((e) => e.id === item.id)) {
+        mergedForHyp.push(item);
+      }
+    }
+    hypothesisEvidenceMap.set(result.hypothesisId, mergedForHyp);
+
 // Aggregate telemetry
   totalTelemetry.retrievalLatencyMs += result.telemetry.retrievalLatencyMs;
   totalTelemetry.embeddingLatencyMs += result.telemetry.embeddingLatencyMs;
@@ -148,7 +180,12 @@ export async function analyzeEvidence(options: AnalyzeEvidenceOptions): Promise<
   totalTelemetry.embeddingCacheHit = totalTelemetry.embeddingCacheHit || result.telemetry.embeddingCacheHit;
   totalTelemetry.embeddingCacheMiss = totalTelemetry.embeddingCacheMiss || result.telemetry.embeddingCacheMiss;
   }
-  
+
+  // The package-level evidence list is the deduped union built above, so it
+  // always matches exactly what each hypothesis's merged bucket contains -
+  // no more 3x/4x inflation from unmerged per-lever requests.
+  const allEvidence: EvidenceItem[] = Array.from(dedupedEvidenceById.values());
+
   // Build evidence hypotheses with aggregate scores
   const evidenceHypotheses: EvidenceHypothesis[] = [];
   const allContradictions: EvidenceContradiction[] = [];

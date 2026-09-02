@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
-import { ArrowLeft, BrainCircuit, BarChart3, AlertTriangle, Network, ShieldAlert, CheckCircle2, RotateCw, Loader2 } from "lucide-react";
+import { ArrowLeft, BrainCircuit, BarChart3, AlertTriangle, Network, ShieldAlert, CheckCircle2, RotateCw, Loader2, Database } from "lucide-react";
 import Link from "next/link";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from "recharts";
 import { EvidenceGraph } from "@/components/EvidenceGraph";
@@ -219,7 +219,19 @@ function InvestigatePageContent() {
         throw new Error(err.error || `Failed to fetch analysis: ${res.status}`);
       }
       const data = await res.json();
-      setAnalysis(data);
+      // The POST /api/analyze response already uses kpi/signal/driver/evidence,
+      // but GET /api/analyze (used here) returns the raw analysis_runs row
+      // with kpi_result/signal_result/driver_result/evidence_result. Normalize
+      // so this page works from either shape instead of silently rendering
+      // blank/NaN values when the DB-row naming comes back.
+      const normalized: AnalysisData = {
+        ...data,
+        kpi: data.kpi ?? data.kpi_result,
+        signal: data.signal ?? data.signal_result,
+        driver: data.driver ?? data.driver_result,
+        evidence: data.evidence ?? data.evidence_result,
+      };
+      setAnalysis(normalized);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to load analysis");
     } finally {
@@ -336,7 +348,13 @@ function InvestigatePageContent() {
           </div>
         </div>
         <div className="flex gap-3 flex-wrap">
-          <button 
+          <Link
+            href="/data"
+            className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground hover:opacity-90 rounded-lg font-medium transition-opacity"
+          >
+            <Database className="w-4 h-4" /> Data &amp; Upload
+          </Link>
+          <button
             onClick={handleChallenge}
             disabled={isChallenging || conclusionStatus === 'loading'}
             className="flex items-center gap-2 px-4 py-2 bg-secondary text-secondary-foreground hover:bg-secondary/80 rounded-lg font-medium transition-colors disabled:opacity-50"

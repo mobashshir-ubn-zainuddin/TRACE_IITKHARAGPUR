@@ -60,23 +60,33 @@ export async function structuredSearch(request: EvidenceRequest): Promise<Struct
         if (isNaN(valueNum)) continue;
         
         const changePct = row[`${metric}_change_pct`] || row[`${metric}_pct`];
-        
-const provenance: Provenance = {
+        // Computed once and reused for both the evidence text and the
+        // content hash below - verifyEvidenceChain() re-hashes item.text to
+        // check for tampering, so hashing anything else (the old code hashed
+        // {metric, value} JSON, never the actual text) can never verify.
+        const text = `${metric}: ${valueNum.toLocaleString()} (${changePct ? `${changePct > 0 ? '+' : ''}${changePct.toFixed(1)}%` : 'N/A'})`;
+
+        // metric/period were previously hard-coded to "" here, which made
+        // validateProvenance() flag every structured evidence item as
+        // missing provenance (an empty string is falsy) - fill them from
+        // the actual retrieved metric key and the request's period so the
+        // provenance this evidence carries is real, not placeholder.
+        const provenance: Provenance = {
           source: "governed",
           sourceType: "structured" as const,
-          metric: "",
-          period: "",
+          metric,
+          period: request.period,
           query: `Structured query for ${metric}`,
-          contentHash: generateContentHash(JSON.stringify({ metric, value: valueNum })),
+          contentHash: generateContentHash(text),
           timestamp: new Date().toISOString(),
           retrievalMethod: "structured" as RetrievalMethod,
         };
-        
+
         const evidence = {
           id: `structured-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
           hypothesisId: "",
           driver: "structured",
-          text: `${metric}: ${valueNum.toLocaleString()} (${changePct ? `${changePct > 0 ? '+' : ''}${changePct.toFixed(1)}%` : 'N/A'})`,
+          text,
           direction: "neutral" as const,
           semanticRelevance: 1.0,
           sourceQuality: 1.0,
@@ -84,19 +94,10 @@ const provenance: Provenance = {
           entityRelevance: 1.0,
           hypothesisAlignment: 0.5,
           evidenceScore: 0,
-          provenance: {
-            source: "governed",
-            sourceType: "structured" as const,
-            metric: "",
-            period: "",
-            query: `Structured query for ${metric}`,
-            contentHash: generateContentHash(JSON.stringify({ metric, value: valueNum })),
-            timestamp: new Date().toISOString(),
-            retrievalMethod: "structured" as RetrievalMethod,
-          },
+          provenance,
           structuredData: {
-            metric: "",
-            period: "",
+            metric,
+            period: request.period,
             value: valueNum,
             changePct,
             table: "structured_query",
