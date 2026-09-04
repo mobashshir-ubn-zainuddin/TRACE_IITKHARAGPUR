@@ -45,14 +45,6 @@ interface EvidenceGraphData {
   };
 }
 
-interface EvidenceGraphResponse {
-  evidencePackage: unknown;
-  graphData: EvidenceGraphData;
-  telemetry: unknown;
-  confidenceUpdates: unknown;
-  provenanceSummary: unknown;
-}
-
 // Valid React Flow node types mapping
 const VALID_NODE_TYPES = ["hypothesis", "evidence", "source", "kpi", "default"] as const;
 type ValidNodeType = typeof VALID_NODE_TYPES[number];

@@ -163,6 +163,14 @@ class EmbeddingService {
   private providerName: string;
   private dimension: number;
   private initPromise: Promise<void> | null = null;
+  // Circuit breaker: once the configured provider fails once (e.g. an
+  // invalid API key), it will fail identically on every subsequent call for
+  // the lifetime of this process - there is no point re-attempting it (and
+  // paying its network latency) for every single chunk/query. Trip once,
+  // warn once, and route everything else straight to the deterministic
+  // fallback until the process restarts (or resetEmbeddingService() runs).
+  private providerDisabled = false;
+  private providerFailureWarned = false;
 
   constructor(provider?: EmbeddingProvider) {
     // Use Gemini if available, otherwise deterministic
@@ -227,6 +235,42 @@ class EmbeddingService {
     return `${this.providerName}:${this.modelName}:${this.dimension}:${contentHash}`;
   }
 
+  /** Log the provider failure exactly once, with just the message (not the
+   *  full stack trace repeated per call) - one concise warning instead of
+   *  dozens of identical ones. Genuine, unexpected errors are still logged;
+   *  this only suppresses repeats of the SAME already-diagnosed failure. */
+  private reportProviderFailure(error: unknown): void {
+    this.providerDisabled = true;
+    if (this.providerFailureWarned) return;
+    this.providerFailureWarned = true;
+    const reason = error instanceof Error ? error.message : String(error);
+    console.warn(
+      `Embedding provider "${this.provider.name}" failed (${reason}). Falling back to deterministic embeddings for the rest of this session; further attempts against this provider are suppressed to avoid repeated failing API calls.`
+    );
+  }
+
+  private async embedWithFallback(text: string): Promise<number[]> {
+    if (!this.providerDisabled) {
+      try {
+        return await this.provider.embed(text);
+      } catch (error) {
+        this.reportProviderFailure(error);
+      }
+    }
+    return new DeterministicEmbeddingProvider(this.dimension).embed(text);
+  }
+
+  private async embedBatchWithFallback(texts: string[]): Promise<{ embeddings: number[][]; fallbackUsed: boolean }> {
+    if (!this.providerDisabled) {
+      try {
+        return { embeddings: await this.provider.embedBatch(texts), fallbackUsed: false };
+      } catch (error) {
+        this.reportProviderFailure(error);
+      }
+    }
+    return { embeddings: await new DeterministicEmbeddingProvider(this.dimension).embedBatch(texts), fallbackUsed: true };
+  }
+
   /** Get embedding for query text (NOT persisted to database) */
   async embedQuery(text: string): Promise<{ embedding: number[]; fromCache: boolean; latencyMs: number; fallbackUsed?: boolean }> {
     await this.ensureInitialized();
@@ -244,16 +288,10 @@ class EmbeddingService {
       };
     }
     
-    // Generate embedding with fallback to deterministic
-    let embedding: number[];
-    try {
-      embedding = await this.provider.embed(text);
-    } catch (error) {
-      console.warn(`Embedding provider ${this.provider.name} failed, falling back to deterministic:`, error);
-      const fallback = new DeterministicEmbeddingProvider(this.dimension);
-      embedding = await fallback.embed(text);
-    }
-    
+    // Generate embedding with fallback to deterministic (circuit-broken -
+    // see embedWithFallback())
+    const embedding = await this.embedWithFallback(text);
+
     // Validate dimension
     if (embedding.length !== this.dimension) {
       throw new Error(`Embedding dimension mismatch: expected ${this.dimension}, got ${embedding.length}`);
@@ -290,16 +328,10 @@ class EmbeddingService {
       };
     }
     
-    // Generate embedding with fallback to deterministic
-    let embedding: number[];
-    try {
-      embedding = await this.provider.embed(text);
-    } catch (error) {
-      console.warn(`Embedding provider ${this.provider.name} failed, falling back to deterministic:`, error);
-      const fallback = new DeterministicEmbeddingProvider(this.dimension);
-      embedding = await fallback.embed(text);
-    }
-    
+    // Generate embedding with fallback to deterministic (circuit-broken -
+    // see embedWithFallback())
+    const embedding = await this.embedWithFallback(text);
+
     // Validate dimension
     if (embedding.length !== this.dimension) {
       throw new Error(`Embedding dimension mismatch: expected ${this.dimension}, got ${embedding.length}`);
@@ -346,15 +378,10 @@ class EmbeddingService {
     
     // Generate missing embeddings
     if (toGenerate.length > 0) {
-      let generated: number[][];
-      try {
-        generated = await this.provider.embedBatch(toGenerate.map(t => t.text));
-      } catch (error) {
-        console.warn(`Embedding provider ${this.provider.name} failed, falling back to deterministic:`, error);
-        fallbackUsed = true;
-        const fallback = new DeterministicEmbeddingProvider(this.dimension);
-        generated = await fallback.embedBatch(toGenerate.map(t => t.text));
-      }
+      // Circuit-broken - see embedBatchWithFallback()
+      const result = await this.embedBatchWithFallback(toGenerate.map(t => t.text));
+      const generated = result.embeddings;
+      fallbackUsed = result.fallbackUsed;
       for (let j = 0; j < toGenerate.length; j++) {
         const { index } = toGenerate[j];
         results[index] = generated[j];
@@ -404,15 +431,10 @@ class EmbeddingService {
     
     // Generate missing embeddings
     if (toGenerate.length > 0) {
-      let generated: number[][];
-      try {
-        generated = await this.provider.embedBatch(toGenerate.map(t => t.text));
-      } catch (error) {
-        console.warn(`Embedding provider ${this.provider.name} failed, falling back to deterministic:`, error);
-        fallbackUsed = true;
-        const fallback = new DeterministicEmbeddingProvider(this.dimension);
-        generated = await fallback.embedBatch(toGenerate.map(t => t.text));
-      }
+      // Circuit-broken - see embedBatchWithFallback()
+      const result = await this.embedBatchWithFallback(toGenerate.map(t => t.text));
+      const generated = result.embeddings;
+      fallbackUsed = result.fallbackUsed;
       for (let j = 0; j < toGenerate.length; j++) {
         const { index, chunkId } = toGenerate[j];
         results[index] = generated[j];
