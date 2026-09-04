@@ -194,6 +194,17 @@ function formatNumber(num: number): string {
   return new Intl.NumberFormat().format(Math.round(num));
 }
 
+/** Compact axis label for large values (e.g. 760501760 -> "760.5M"). Display
+ * only - underlying data/API values are never touched. */
+function formatCompactNumber(num: number): string {
+  const sign = num < 0 ? "-" : "";
+  const abs = Math.abs(num);
+  if (abs >= 1_000_000_000) return `${sign}${(abs / 1_000_000_000).toFixed(1)}B`;
+  if (abs >= 1_000_000) return `${sign}${(abs / 1_000_000).toFixed(1)}M`;
+  if (abs >= 1_000) return `${sign}${(abs / 1_000).toFixed(1)}K`;
+  return `${sign}${abs.toFixed(0)}`;
+}
+
 function formatPct(num: number): string {
   const sign = num >= 0 ? "+" : "";
   return `${sign}${num.toFixed(2)}%`;
@@ -1326,18 +1337,49 @@ export default function Dashboard() {
         </div>
       ) : (
         <>
+          {/*
+            Root cause of clipped Y-axis / low dark-mode contrast: no `width`
+            was reserved for the axis (recharts defaults to 60px, nowhere
+            near enough for raw revenue values like "760501760"), and the
+            axis/grid used hardcoded rgba(0,0,0,...) - literal black - which
+            all but disappears against the dark theme's near-black background.
+            Fixed by widening the axis, formatting ticks compactly (display
+            only - `data`/the API response are untouched), and switching every
+            stroke/fill to the existing --foreground/--muted-foreground/
+            --border CSS variables so it follows the same theme toggle as the
+            rest of the app instead of a second hardcoded palette.
+          */}
           <ResponsiveContainer width="100%" height={400} className="mt-6">
-            <LineChart data={data}>
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.1)" />
-              <XAxis dataKey="month" stroke="rgba(0,0,0,0.7)" />
-              <YAxis stroke="rgba(0,0,0,0.7)" />
-              <Tooltip />
+            <LineChart data={data} margin={{ top: 8, right: 16, left: 8, bottom: 8 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+              <XAxis
+                dataKey="month"
+                stroke="var(--muted-foreground)"
+                tick={{ fill: "var(--muted-foreground)", fontSize: 12 }}
+                axisLine={{ stroke: "var(--border)" }}
+                tickLine={false}
+              />
+              <YAxis
+                stroke="var(--muted-foreground)"
+                tick={{ fill: "var(--muted-foreground)", fontSize: 12 }}
+                axisLine={{ stroke: "var(--border)" }}
+                tickLine={false}
+                width={64}
+                tickFormatter={formatCompactNumber}
+              />
+              <Tooltip
+                contentStyle={{ backgroundColor: "var(--card)", borderColor: "var(--border)", borderRadius: 8 }}
+                labelStyle={{ color: "var(--foreground)", fontWeight: 600 }}
+                itemStyle={{ color: "var(--foreground)" }}
+                formatter={(value) => [formatNumber(Number(value)), "Revenue"]}
+              />
               <Line
                 type="monotone"
                 dataKey="value"
-                stroke="#4f46e5"
+                stroke="var(--primary)"
                 strokeWidth={2}
-                dot={{ stroke: "#4f46e5", strokeWidth: 2, r: 4 }}
+                dot={{ stroke: "var(--primary)", strokeWidth: 2, r: 4, fill: "var(--card)" }}
+                activeDot={{ r: 6 }}
               />
             </LineChart>
           </ResponsiveContainer>

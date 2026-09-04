@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { ArrowLeft, BrainCircuit, BarChart3, AlertTriangle, Network, ShieldAlert, CheckCircle2, RotateCw, Loader2, Database } from "lucide-react";
 import Link from "next/link";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from "recharts";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, ReferenceLine } from "recharts";
 import { EvidenceGraph } from "@/components/EvidenceGraph";
 
 interface AnalysisData {
@@ -323,13 +323,25 @@ function InvestigatePageContent() {
   const topDrivers = driver?.drivers?.filter(d => d.status !== "insufficient_data") || [];
   const topDriver = topDrivers[0];
 
-  // Build decomposition data from driver contributions
-  const decompositionData = driver?.dimensions?.map(d => ({
-    name: d.dimensionValue,
-    value: d.change,
-    fill: d.change >= 0 ? "var(--success)" : "var(--destructive)",
-    contributionPct: d.contributionPct
-  })) || [];
+  // Build decomposition data from driver contributions.
+  //
+  // Root cause of the "000000.0%" Y-axis: this used to plot `d.change` (the
+  // RAW absolute change, e.g. -270,463,927 revenue) through a tickFormatter
+  // that appends "%" as if the value were already a percentage - so a
+  // percent-axis was rendering a huge dollar figure. `d.changePct` is the
+  // field that's actually a percentage; use that for the bar/axis, and keep
+  // both the absolute change and contribution share available for the
+  // tooltip so no information is lost.
+  const decompositionData = driver?.dimensions?.map(d => {
+    const changePct = d.changePct ?? 0;
+    return {
+      name: d.dimensionValue,
+      value: changePct,
+      change: d.change,
+      fill: changePct >= 0 ? "var(--success)" : "var(--destructive)",
+      contributionPct: d.contributionPct,
+    };
+  }) || [];
 
   return (
     <div className="flex flex-col gap-8 animate-in fade-in duration-700 pb-12">
@@ -475,19 +487,46 @@ function InvestigatePageContent() {
           <p className="text-sm text-muted-foreground mb-4">Breakdown of the {kpi?.changePct?.toFixed(1) || "0"}% {metricLabel} change</p>
           
           {decompositionData.length > 0 ? (
-            <div className="h-64 w-full">
+            <div className="h-80 w-full">
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={decompositionData} margin={{ top: 20, right: 30, left: 0, bottom: 5 }}>
+                <BarChart data={decompositionData} margin={{ top: 20, right: 16, left: 8, bottom: 56 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
-                  <XAxis dataKey="name" stroke="var(--muted-foreground)" fontSize={11} tickLine={false} axisLine={false} interval={0} />
-                  <YAxis stroke="var(--muted-foreground)" fontSize={11} tickLine={false} axisLine={false} tickFormatter={(val) => `${val >= 0 ? "+" : ""}${val.toFixed(1)}%`} />
-                  <Tooltip 
+                  {/* Every category stays on the axis (interval=0); at up to a
+                      dozen categories the labels only stay legible rotated,
+                      so angle them instead of hiding any of them. */}
+                  <XAxis
+                    dataKey="name"
+                    stroke="var(--muted-foreground)"
+                    tick={{ fill: "var(--muted-foreground)", fontSize: 11 }}
+                    tickLine={false}
+                    axisLine={{ stroke: "var(--border)" }}
+                    interval={0}
+                    angle={-40}
+                    textAnchor="end"
+                    height={70}
+                  />
+                  <YAxis
+                    stroke="var(--muted-foreground)"
+                    tick={{ fill: "var(--muted-foreground)", fontSize: 11 }}
+                    tickLine={false}
+                    axisLine={{ stroke: "var(--border)" }}
+                    width={56}
+                    tickFormatter={(val: number) => `${val >= 0 ? "+" : ""}${val.toFixed(0)}%`}
+                  />
+                  <ReferenceLine y={0} stroke="var(--muted-foreground)" strokeWidth={1} />
+                  <Tooltip
                     cursor={{ fill: 'var(--muted)' }}
                     contentStyle={{ backgroundColor: 'var(--card)', borderColor: 'var(--border)', borderRadius: '8px' }}
+                    labelStyle={{ color: 'var(--foreground)', fontWeight: 600 }}
                     itemStyle={{ color: 'var(--foreground)' }}
-                    formatter={(value: unknown) => {
-                      const num = Array.isArray(value) ? (typeof value[0] === 'string' ? parseFloat(value[0]) : value[0]) : value;
-                      return isNaN(num as number) ? ['', ''] : [`${(num as number).toFixed(1)}%`, 'Contribution'];
+                    formatter={(_value, _name, item) => {
+                      const p = item?.payload as { value: number; change: number; contributionPct: number | null } | undefined;
+                      if (!p) return ["", ""];
+                      const sign = p.value >= 0 ? "+" : "";
+                      const lines = [`${sign}${p.value.toFixed(1)}%`];
+                      if (Number.isFinite(p.change)) lines.push(`(${p.change >= 0 ? "+" : ""}${Math.round(p.change).toLocaleString()} abs.)`);
+                      if (p.contributionPct != null) lines.push(`${Math.abs(p.contributionPct).toFixed(1)}% of total contribution`);
+                      return [lines.join(" "), "Change"];
                     }}
                   />
                   <Bar dataKey="value" radius={[4, 4, 4, 4]}>

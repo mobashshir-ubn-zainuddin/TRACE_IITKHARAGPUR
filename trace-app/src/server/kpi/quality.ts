@@ -35,73 +35,78 @@ export interface DataQualityResult {
 export async function computeDataQuality(): Promise<DataQualityResult> {
   const db = await getDB();
 
-  // Sales transactions quality checks
-  const salesTotal = await db.get("SELECT COUNT(*) as c FROM sales_transactions");
-  const salesNullNetRev = await db.get("SELECT COUNT(*) as c FROM sales_transactions WHERE net_revenue IS NULL");
-  const salesNullOrderId = await db.get("SELECT COUNT(*) as c FROM sales_transactions WHERE order_id IS NULL OR order_id = ''");
-  
-  // True duplicate check: duplicate transaction_id (primary key), not order_id
-  const salesDupTransactionId = await db.get(`
-    SELECT COUNT(*) as c FROM (
-      SELECT id FROM sales_transactions
-      GROUP BY id HAVING COUNT(*) > 1
-    )
-  `);
-  
-  // Referential integrity: orphan region_id and product_id
-  const salesOrphanRegionId = await db.get(`
-    SELECT COUNT(*) as c FROM sales_transactions st
-    LEFT JOIN regions r ON st.region_id = r.id
-    WHERE r.id IS NULL
-  `);
-  const salesOrphanProductId = await db.get(`
-    SELECT COUNT(*) as c FROM sales_transactions st
-    LEFT JOIN products p ON st.product_id = p.id
-    WHERE p.id IS NULL
-  `);
+  // Previously 17 separate sequential COUNT(*)/JOIN queries, meaning ~6-7
+  // independent full-table scans of sales_transactions alone (500k+ rows on
+  // the seeded dataset) every time this ran without a warm cache - a real,
+  // measurable contributor to the "slow once, fast after" latency on
+  // /api/signals/top and friends. Same checks, same numbers, but each table
+  // is now scanned exactly once via conditional SUM/CASE aggregates instead
+  // of once per individual check. Duplicate/orphan definitions are
+  // unchanged (duplicate transaction_id, orphan region_id/product_id FKs).
+  const [salesAgg, marketingAgg, opsAgg] = await Promise.all([
+    db.get(`
+      SELECT
+        COUNT(*) as total,
+        SUM(CASE WHEN net_revenue IS NULL THEN 1 ELSE 0 END) as nullNetRevenue,
+        SUM(CASE WHEN order_id IS NULL OR order_id = '' THEN 1 ELSE 0 END) as nullOrderId,
+        SUM(CASE WHEN r.id IS NULL THEN 1 ELSE 0 END) as orphanRegionId,
+        SUM(CASE WHEN p.id IS NULL THEN 1 ELSE 0 END) as orphanProductId,
+        (SELECT COUNT(*) FROM (SELECT id FROM sales_transactions GROUP BY id HAVING COUNT(*) > 1)) as duplicateTransactionId
+      FROM sales_transactions st
+      LEFT JOIN regions r ON st.region_id = r.id
+      LEFT JOIN products p ON st.product_id = p.id
+    `),
+    db.get(`
+      SELECT
+        COUNT(*) as total,
+        SUM(CASE WHEN sessions IS NULL THEN 1 ELSE 0 END) as nullSessions,
+        SUM(CASE WHEN conversions IS NULL THEN 1 ELSE 0 END) as nullConversions,
+        SUM(CASE WHEN r.id IS NULL THEN 1 ELSE 0 END) as orphanRegionId,
+        SUM(CASE WHEN p.id IS NULL THEN 1 ELSE 0 END) as orphanProductId
+      FROM marketing_daily md
+      LEFT JOIN regions r ON md.region_id = r.id
+      LEFT JOIN products p ON md.product_id = p.id
+    `),
+    db.get(`
+      SELECT
+        COUNT(*) as total,
+        SUM(CASE WHEN stockout_rate IS NULL THEN 1 ELSE 0 END) as nullStockoutRate,
+        SUM(CASE WHEN stockout_rate < 0 OR stockout_rate > 1 THEN 1 ELSE 0 END) as invalidStockoutRate,
+        SUM(CASE WHEN r.id IS NULL THEN 1 ELSE 0 END) as orphanRegionId,
+        SUM(CASE WHEN p.id IS NULL THEN 1 ELSE 0 END) as orphanProductId
+      FROM operations_daily od
+      LEFT JOIN regions r ON od.region_id = r.id
+      LEFT JOIN products p ON od.product_id = p.id
+    `),
+  ]);
 
-  // Marketing daily quality checks
-  const marketingTotal = await db.get("SELECT COUNT(*) as c FROM marketing_daily");
-  const marketingNullSessions = await db.get("SELECT COUNT(*) as c FROM marketing_daily WHERE sessions IS NULL");
-  const marketingNullConv = await db.get("SELECT COUNT(*) as c FROM marketing_daily WHERE conversions IS NULL");
-  
-  // Referential integrity for marketing_daily
-  const marketingOrphanRegionId = await db.get(`
-    SELECT COUNT(*) as c FROM marketing_daily md
-    LEFT JOIN regions r ON md.region_id = r.id
-    WHERE r.id IS NULL
-  `);
-  const marketingOrphanProductId = await db.get(`
-    SELECT COUNT(*) as c FROM marketing_daily md
-    LEFT JOIN products p ON md.product_id = p.id
-    WHERE p.id IS NULL
-  `);
+  const salesTotal = { c: salesAgg?.total || 0 };
+  const salesNullNetRev = { c: salesAgg?.nullNetRevenue || 0 };
+  const salesNullOrderId = { c: salesAgg?.nullOrderId || 0 };
+  const salesDupTransactionId = { c: salesAgg?.duplicateTransactionId || 0 };
+  const salesOrphanRegionId = { c: salesAgg?.orphanRegionId || 0 };
+  const salesOrphanProductId = { c: salesAgg?.orphanProductId || 0 };
 
-  // Operations daily quality checks
-  const opsTotal = await db.get("SELECT COUNT(*) as c FROM operations_daily");
-  const opsNullStockout = await db.get("SELECT COUNT(*) as c FROM operations_daily WHERE stockout_rate IS NULL");
-  const opsInvalidStockout = await db.get("SELECT COUNT(*) as c FROM operations_daily WHERE stockout_rate < 0 OR stockout_rate > 1");
-  
-  // Referential integrity for operations_daily
-  const opsOrphanRegionId = await db.get(`
-    SELECT COUNT(*) as c FROM operations_daily od
-    LEFT JOIN regions r ON od.region_id = r.id
-    WHERE r.id IS NULL
-  `);
-  const opsOrphanProductId = await db.get(`
-    SELECT COUNT(*) as c FROM operations_daily od
-    LEFT JOIN products p ON od.product_id = p.id
-    WHERE p.id IS NULL
-  `);
+  const marketingTotal = { c: marketingAgg?.total || 0 };
+  const marketingNullSessions = { c: marketingAgg?.nullSessions || 0 };
+  const marketingNullConv = { c: marketingAgg?.nullConversions || 0 };
+  const marketingOrphanRegionId = { c: marketingAgg?.orphanRegionId || 0 };
+  const marketingOrphanProductId = { c: marketingAgg?.orphanProductId || 0 };
+
+  const opsTotal = { c: opsAgg?.total || 0 };
+  const opsNullStockout = { c: opsAgg?.nullStockoutRate || 0 };
+  const opsInvalidStockout = { c: opsAgg?.invalidStockoutRate || 0 };
+  const opsOrphanRegionId = { c: opsAgg?.orphanRegionId || 0 };
+  const opsOrphanProductId = { c: opsAgg?.orphanProductId || 0 };
 
   const totalRecords = (salesTotal?.c || 0) + (marketingTotal?.c || 0) + (opsTotal?.c || 0);
-  const totalNulls = (salesNullNetRev?.c || 0) + (salesNullOrderId?.c || 0) + 
-                     (marketingNullSessions?.c || 0) + (marketingNullConv?.c || 0) + 
+  const totalNulls = (salesNullNetRev?.c || 0) + (salesNullOrderId?.c || 0) +
+                     (marketingNullSessions?.c || 0) + (marketingNullConv?.c || 0) +
                      (opsNullStockout?.c || 0);
-  
+
   // True duplicate rate: based on primary key duplicates, not order_id
   const totalDuplicates = salesDupTransactionId?.c || 0;
-  
+
   // Referential integrity: count all orphan foreign keys across all tables
   const totalOrphans = (salesOrphanRegionId?.c || 0) + (salesOrphanProductId?.c || 0) +
                        (marketingOrphanRegionId?.c || 0) + (marketingOrphanProductId?.c || 0) +
